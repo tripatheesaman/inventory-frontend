@@ -9,7 +9,8 @@ export type User = {
 export interface AuthContextType{
     user:User | null
     isAuthenticated: boolean 
-    loginAPI:(username:string, password:string)=>Promise<void>
+    permissions:string[]
+    login:(username:string, password:string)=>Promise<void>
     logout:()=>void
 }
 
