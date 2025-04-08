@@ -1,13 +1,12 @@
 'use client'
-
 import { AuthContextProvider } from "@/context/AuthContext/AuthContext"
-
-const Home = ()=>{
+import LoginPage from "./components/loginForm"
+const Home = () => {
   return (
     <>
-    <AuthContextProvider>
-      
-    </FormContextProvider>
+      <AuthContextProvider>
+        <LoginPage />
+      </AuthContextProvider>
     </>
   )
 }
