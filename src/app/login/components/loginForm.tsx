@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuthContext } from "@/context/AuthContext/AuthContext";
+import Image from "next/image";
 
 const LoginPage = () => {
   const { login } = useAuthContext();
@@ -28,44 +29,60 @@ const LoginPage = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100 px-4">
-      <div className="max-w-md w-full bg-white p-8 rounded-2xl shadow-md">
-        <h2 className="text-2xl font-bold text-center mb-6">Login</h2>
-        <form onSubmit={handleSubmit} className="space-y-4">
+    <div className="flex bg-primary min-h-full flex-col justify-center px-0 py-0 lg:px-8">
+      <Image
+          className="mx-auto  h-70 w-auto sm:h-50"
+          src="/images/nepal_airlines_logo.svg"
+          alt="Your Company"
+          width={640} 
+          height={643} 
+        />
+      <div className="sm:mx-auto sm:w-full sm:max-w-sm">
+        <form className="bg-brand-light space-y-6" action="#" method="POST">
           <div>
-            <label className="block text-sm font-medium text-gray-700">Username</label>
-            <input
-              type="text"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              className="mt-1 block w-full border rounded-md px-3 py-2 shadow-sm focus:ring focus:ring-blue-500 focus:outline-none"
-              required
-            />
+            <label htmlFor="email" className="block text-sm font-medium leading-6 text-gray-700">Email address</label>
+            <div className="mt-2">
+              <input
+                id="email"
+                name="email"
+                type="email"
+                autoComplete="email"
+                required
+                className="block w-full rounded-md border-0 bg-white/5 py-1.5 text-cyan-600 shadow-sm ring-1 ring-inset ring-red-500 focus:ring-2 focus:ring-inset focus:ring-black sm:text-sm sm:leading-6"
+              />
+            </div>
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700">Password</label>
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="mt-1 block w-full border rounded-md px-3 py-2 shadow-sm focus:ring focus:ring-blue-500 focus:outline-none"
-              required
-            />
+            <div className="flex items-center justify-between">
+              <label htmlFor="password" className="block text-sm font-medium leading-6 text-black">Password</label>
+              <div className="text-sm">
+                <a href="#" className="font-semibold text-red-500 hover:text-red-400">Forgot password?</a>
+              </div>
+            </div>
+            <div className="mt-2">
+              <input
+                id="password"
+                name="password"
+                type="password"
+                autoComplete="current-password"
+                required
+                className="block w-full rounded-md border-0 bg-white/5 py-1.5 text-white shadow-sm ring-1 ring-inset ring-red-500 focus:ring-2 focus:ring-inset focus:ring-black sm:text-sm sm:leading-6"
+              />
+            </div>
           </div>
 
-          {error && <p className="text-red-500 text-sm">{error.message}</p>}
-
-          <button
-            type="submit"
-            className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition"
-          >
-            Log In
-          </button>
+          <div>
+            <button
+              type="submit"
+              className="flex w-full justify-center rounded-md bg-red-500 px-3 py-1.5 text-sm font-semibold leading-6 text-white shadow-sm hover:bg-red-400 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-500"
+            >
+              Sign in
+            </button>
+          </div>
         </form>
       </div>
     </div>
-  );
-};
-
+  )
+}
 export default LoginPage;

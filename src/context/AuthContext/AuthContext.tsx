@@ -27,8 +27,8 @@ export const AuthContextProvider: React.FC<AuthContextProviderProps> = ({ childr
     const login = async (username: string, password: string) => {
         try {
             const data = await loginRequest(username, password);
-            localStorage.setItem("token", data.token);
-            const decoded: User = jwtDecode<User>(data.token);
+            localStorage.setItem("token", data.accessToken);
+            const decoded: User = jwtDecode<User>(data.accessToken);
             setUser(decoded);
             setPermissions(decoded.permissions);
         } catch (error:unknown) {
