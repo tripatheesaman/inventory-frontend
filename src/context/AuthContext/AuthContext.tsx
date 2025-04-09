@@ -1,4 +1,4 @@
-import { createContext, useEffect, useState } from "react";
+import { createContext, useContext, useEffect, useState } from "react";
 import { jwtDecode } from "jwt-decode";
 import { AuthContextProviderProps, AuthContextType, User } from "./AuthContextTypes";
 import { loginRequest } from "@/app/login/loginrequest";
@@ -27,8 +27,8 @@ export const AuthContextProvider: React.FC<AuthContextProviderProps> = ({ childr
     const login = async (username: string, password: string) => {
         try {
             const data = await loginRequest(username, password);
-            localStorage.setItem("token", data.token);
-            const decoded: User = jwtDecode<User>(data.token);
+            localStorage.setItem("token", data.accessToken);
+            const decoded: User = jwtDecode<User>(data.accessToken);
             setUser(decoded);
             setPermissions(decoded.permissions);
         } catch (error:unknown) {
@@ -54,5 +54,9 @@ export const AuthContextProvider: React.FC<AuthContextProviderProps> = ({ childr
     );
 };
 
+export const useAuthContext = ()=>{
+    const authContext = useContext(AuthContext)
+    if (authContext === undefined) throw new Error("useFormContext must be used within FormContextProvider !")
+    return authContext
+}
 
-export default AuthContext;
