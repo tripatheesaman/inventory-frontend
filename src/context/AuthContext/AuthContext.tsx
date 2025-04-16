@@ -1,7 +1,8 @@
+'use client'
 import { createContext, useContext, useEffect, useState } from "react";
 import { jwtDecode } from "jwt-decode";
 import { AuthContextProviderProps, AuthContextType, User } from "./AuthContextTypes";
-import { loginRequest } from "@/app/login/loginrequest";
+import { loginRequest } from "@/app/login/loginApiRequests/loginrequest";
 
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -56,7 +57,7 @@ export const AuthContextProvider: React.FC<AuthContextProviderProps> = ({ childr
 
 export const useAuthContext = ()=>{
     const authContext = useContext(AuthContext)
-    if (authContext === undefined) throw new Error("useFormContext must be used within FormContextProvider !")
+    if (authContext === undefined) throw new Error("useFormContext must be used within AuthContextProvider !")
     return authContext
 }
 
