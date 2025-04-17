@@ -4,18 +4,19 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuthContext } from "@/context/AuthContext/AuthContext";
 import Image from "next/image";
+import { Eye, EyeOff } from "lucide-react";
 
 const LoginPage = () => {
   const { login } = useAuthContext();
   const router = useRouter();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<Error | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
-
     try {
       await login(username, password);
       router.push("/dashboard");
@@ -29,60 +30,72 @@ const LoginPage = () => {
   };
 
   return (
-    <div className="flex bg-primary min-h-full flex-col justify-center px-0 py-0 lg:px-8">
-      <Image
-          className="mx-auto  h-70 w-auto sm:h-50"
-          src="/images/nepal_airlines_logo.svg"
-          alt="Your Company"
-          width={640} 
-          height={643} 
-        />
-      <div className="sm:mx-auto sm:w-full sm:max-w-sm">
-        <form className="bg-brand-light space-y-6" action="#" method="POST">
+    <main className="flex min-h-screen items-center justify-center bg-gray-100 px-4 py-12">
+      <div className="w-full max-w-md rounded-2xl bg-white shadow-xl p-8">
+        <div className="flex justify-center mb-6">
+          <Image
+            src="/images/nepal_airlines_logo.jpeg"
+            alt="Nepal Airlines Logo"
+            width={150}
+            height={150}
+            className="h-auto w-auto"
+          />
+        </div>
+
+        <form onSubmit={handleSubmit} className="space-y-6">
           <div>
-            <label htmlFor="email" className="block text-sm font-medium leading-6 text-gray-700">Email address</label>
-            <div className="mt-2">
-              <input
-                id="email"
-                name="email"
-                type="email"
-                autoComplete="email"
-                required
-                className="block w-full rounded-md border-0 bg-white/5 py-1.5 text-cyan-600 shadow-sm ring-1 ring-inset ring-red-500 focus:ring-2 focus:ring-inset focus:ring-black sm:text-sm sm:leading-6"
-              />
-            </div>
+            <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+              Email
+            </label>
+            <input
+              id="email"
+              type="email"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              required
+              placeholder="you@example.com"
+              className="mt-1 w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-red-500 focus:ring-red-500"
+            />
           </div>
 
           <div>
-            <div className="flex items-center justify-between">
-              <label htmlFor="password" className="block text-sm font-medium leading-6 text-black">Password</label>
-              <div className="text-sm">
-                <a href="#" className="font-semibold text-red-500 hover:text-red-400">Forgot password?</a>
-              </div>
-            </div>
-            <div className="mt-2">
+            <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+              Password
+            </label>
+            <div className="relative">
               <input
                 id="password"
-                name="password"
-                type="password"
-                autoComplete="current-password"
+                type={showPassword ? "text" : "password"}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
                 required
-                className="block w-full rounded-md border-0 bg-white/5 py-1.5 text-white shadow-sm ring-1 ring-inset ring-red-500 focus:ring-2 focus:ring-inset focus:ring-black sm:text-sm sm:leading-6"
+                placeholder="Enter your password"
+                className="mt-1 w-full rounded-lg border border-gray-300 px-4 py-2 pr-10 focus:border-red-500 focus:ring-red-500"
               />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute inset-y-0 right-2 flex items-center text-gray-500"
+              >
+                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+              </button>
             </div>
           </div>
 
-          <div>
-            <button
-              type="submit"
-              className="flex w-full justify-center rounded-md bg-red-500 px-3 py-1.5 text-sm font-semibold leading-6 text-white shadow-sm hover:bg-red-400 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-500"
-            >
-              Sign in
-            </button>
-          </div>
+          {error && (
+            <p className="text-sm text-red-600">{error.message}</p>
+          )}
+
+          <button
+            type="submit"
+            className="w-full rounded-lg bg-red-500 px-4 py-2 text-white font-semibold hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-400"
+          >
+            Login
+          </button>
         </form>
       </div>
-    </div>
-  )
-}
+    </main>
+  );
+};
+
 export default LoginPage;
