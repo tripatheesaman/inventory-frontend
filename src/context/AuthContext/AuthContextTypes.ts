@@ -1,9 +1,15 @@
 import { ReactNode } from "react"
 
-export type User = {
+export type UserInfo = {
     username: string
-    userId: number
-    permissions: string[]
+    name: string
+    permissions: Record<string, any>
+}
+
+export type User = {
+    UserInfo: UserInfo
+    iat: number
+    exp: number
 }
 
 export interface AuthContextType {

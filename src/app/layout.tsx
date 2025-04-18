@@ -5,7 +5,7 @@ Purpose: Root layout that handles both authenticated and unauthenticated routes
 
 'use client'
 
-import { useAuthContext, AuthContextProvider } from '@/context/AuthContext/AuthContext';
+import { AuthContextProvider } from '@/context/AuthContext/AuthContext';
 import Sidebar from '@/components/layout/Sidebar';
 import TopBar from '@/components/layout/Topbar';
 import ProtectedRoute from '@/lib/ProtectedRoute';

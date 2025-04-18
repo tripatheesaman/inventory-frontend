@@ -24,8 +24,8 @@ interface TopBarProps {
 export default function TopBar({ onToggleSidebar }: TopBarProps) {
   const { user, logout } = useAuthContext();
 
-  const getInitials = (username: string) => {
-    return username
+  const getInitials = (name: string) => {
+    return name
       .split(' ')
       .map((n) => n[0])
       .join('')
@@ -41,13 +41,13 @@ export default function TopBar({ onToggleSidebar }: TopBarProps) {
         >
           <Menu size={20} />
         </button>
-        <h2 className="text-lg font-semibold">Welcome, {user?.username}</h2>
+        <h2 className="text-lg font-semibold">Welcome, {user?.UserInfo.name}</h2>
       </div>
       <DropdownMenu>
         <DropdownMenuTrigger>
           <Avatar>
-            <AvatarImage src="" alt={user?.username} />
-            <AvatarFallback>{getInitials(user?.username || 'U')}</AvatarFallback>
+            <AvatarImage src="" alt={user?.UserInfo.name} />
+            <AvatarFallback>{getInitials(user?.UserInfo.name || 'U')}</AvatarFallback>
           </Avatar>
         </DropdownMenuTrigger>
         <DropdownMenuContent className="w-40">
