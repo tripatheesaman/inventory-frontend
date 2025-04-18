@@ -8,7 +8,7 @@ Purpose: Layout wrapper including Sidebar, TopBar and permission filtering
 import { usePathname } from 'next/navigation';
 import { useAuthContext } from '@/context/AuthContext/AuthContext';
 import Sidebar from './Sidebar';
-import TopBar from './TopBar';
+import TopBar from './Topbar';
 import Unauthorized from '@/app/(fallback)/unauthorized/page';
 import { Suspense } from 'react';
 

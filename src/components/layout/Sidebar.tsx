@@ -11,17 +11,45 @@ import { cn } from "@/lib/utils";
 import { Home, LogIn, LogOut, FileText, ChevronDown } from "lucide-react";
 
 const sidebarLinks = [
-  { label: "Dashboard", href: "/dashboard", icon: <Home size={20} /> },
-  { label: "Issue", href: "/issue", icon: <LogOut size={20} /> },
-  { label: "Receive", href: "/receive", icon: <LogIn size={20} /> },
+  { 
+    label: "Dashboard", 
+    href: "/dashboard", 
+    icon: <Home size={20} />,
+    permission: 'view_dashboard'
+  },
+  { 
+    label: "Issue", 
+    href: "/issue", 
+    icon: <LogOut size={20} />,
+    permission: 'issue_items'
+  },
+  { 
+    label: "Receive", 
+    href: "/receive", 
+    icon: <LogIn size={20} />,
+    permission: 'receive_items'
+  },
   {
     label: "Reports",
     href: "/reports",
     icon: <FileText size={20} />,
+    permission: 'view_reports',
     submenu: [
-      { label: "Daily", href: "/reports/daily" },
-      { label: "Weekly", href: "/reports/weekly" },
-      { label: "Monthly", href: "/reports/monthly" },
+      { 
+        label: "Daily", 
+        href: "/reports/daily",
+        permission: 'view_daily_reports'
+      },
+      { 
+        label: "Weekly", 
+        href: "/reports/weekly",
+        permission: 'view_weekly_reports'
+      },
+      { 
+        label: "Monthly", 
+        href: "/reports/monthly",
+        permission: 'view_monthly_reports'
+      },
     ],
   },
 ];
@@ -36,9 +64,9 @@ export default function Sidebar({ collapsed, onCollapse }: SidebarProps) {
   const { permissions } = useAuthContext();
   const [activeMenu, setActiveMenu] = useState<string | null>(null);
 
-  const hasPermission = (path: string) => {
-    if (path === "/dashboard") return true;
-    return permissions?.includes(path.replace("/", ""));
+  const hasPermission = (permission?: string) => {
+    if (!permission) return true;
+    return permissions?.includes(permission);
   };
 
   const toggleSubmenu = (label: string) => {
@@ -51,8 +79,8 @@ export default function Sidebar({ collapsed, onCollapse }: SidebarProps) {
         <h2 className="text-xl font-bold">Inventory</h2>
       </div>
       <nav className="px-2">
-        {sidebarLinks.map(({ label, href, icon, submenu }) => (
-          hasPermission(href) && (
+        {sidebarLinks.map(({ label, href, icon, submenu, permission }) => (
+          hasPermission(permission) && (
             <div key={label}>
               <Link
                 href={href}
@@ -76,17 +104,19 @@ export default function Sidebar({ collapsed, onCollapse }: SidebarProps) {
               </Link>
               {submenu && activeMenu === label && !collapsed && (
                 <div className="ml-4">
-                  {submenu.map(({ label: subLabel, href: subHref }) => (
-                    <Link
-                      key={subHref}
-                      href={subHref}
-                      className={cn(
-                        "flex items-center px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-md",
-                        pathname === subHref && "bg-gray-100"
-                      )}
-                    >
-                      {subLabel}
-                    </Link>
+                  {submenu.map(({ label: subLabel, href: subHref, permission: subPermission }) => (
+                    hasPermission(subPermission) && (
+                      <Link
+                        key={subHref}
+                        href={subHref}
+                        className={cn(
+                          "flex items-center px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-md",
+                          pathname === subHref && "bg-gray-100"
+                        )}
+                      >
+                        {subLabel}
+                      </Link>
+                    )
                   ))}
                 </div>
               )}
