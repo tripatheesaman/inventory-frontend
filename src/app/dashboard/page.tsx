@@ -1,19 +1,12 @@
-// app/dashboard/page.tsx
-'use client'
+/*
+File: src/app/dashboard/page.tsx
+Purpose: Dashboard Home
+*/
 
-import dynamic from 'next/dynamic';
-import { Suspense } from 'react';
-
-const HomeContent = dynamic(() => import('@/components/pages/HomeContent'), {
-  suspense: true,
-});
-
-const DashboardHome = () => {
+export default function DashboardPage() {
   return (
-    <Suspense fallback={<div className="text-center mt-20">Loading...</div>}>
-      <HomeContent />
-    </Suspense>
+    <div className="flex items-center justify-center h-full text-3xl font-bold text-gray-800">
+      Home
+    </div>
   );
-};
-
-export default DashboardHome;
+}
