@@ -8,51 +8,9 @@ import { usePathname } from "next/navigation";
 import { useState, Dispatch, SetStateAction } from "react";
 import { useAuthContext } from "@/context/AuthContext/AuthContext";
 import { cn } from "@/lib/utils";
-import { Home, LogIn, LogOut, FileText, ChevronDown } from "lucide-react";
-
-const sidebarLinks = [
-  { 
-    label: "Dashboard", 
-    href: "/dashboard", 
-    icon: <Home size={20} />,
-    permission: 'view_dashboard'
-  },
-  { 
-    label: "Issue", 
-    href: "/issue", 
-    icon: <LogOut size={20} />,
-    permission: 'issue_items'
-  },
-  { 
-    label: "Receive", 
-    href: "/receive", 
-    icon: <LogIn size={20} />,
-    permission: 'receive_items'
-  },
-  {
-    label: "Reports",
-    href: "/reports",
-    icon: <FileText size={20} />,
-    permission: 'view_reports',
-    submenu: [
-      { 
-        label: "Daily", 
-        href: "/reports/daily",
-        permission: 'view_daily_reports'
-      },
-      { 
-        label: "Weekly", 
-        href: "/reports/weekly",
-        permission: 'view_weekly_reports'
-      },
-      { 
-        label: "Monthly", 
-        href: "/reports/monthly",
-        permission: 'view_monthly_reports'
-      },
-    ],
-  },
-];
+import { Home, LogIn, LogOut, FileText, ChevronDown, Search } from "lucide-react";
+import { sidebarLinks } from "./sidebarConfig";
+import { SidebarIcon } from "./SidebarIcon";
 
 interface SidebarProps {
   collapsed: boolean;
@@ -90,7 +48,7 @@ export default function Sidebar({ collapsed, onCollapse }: SidebarProps) {
                 )}
                 onClick={() => toggleSubmenu(label)}
               >
-                {icon}
+                <SidebarIcon name={icon} />
                 {!collapsed && <span className="ml-3">{label}</span>}
                 {submenu && !collapsed && (
                   <ChevronDown

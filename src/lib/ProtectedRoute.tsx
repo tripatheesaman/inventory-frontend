@@ -18,11 +18,10 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
       router.push("/login");
     }
   }, [isAuthenticated, router]);
+
   if (!isAuthenticated) return null;
 
-  return  (<>
-    {children}
-    </>);
+  return children;
 };
 
 export default ProtectedRoute;
