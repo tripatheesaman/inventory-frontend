@@ -6,19 +6,19 @@ import { loginRequest } from "@/app/login/loginApiRequests/loginrequest";
 import { useRouter } from "next/navigation";
 
 // Static permissions for all users
-const STATIC_PERMISSIONS = [
-    'view_dashboard',
-    'search_items',
-    'issue_items',
-    'receive_items',
-    'view_reports',
-    'view_daily_reports',
-    'view_weekly_reports',
-    'view_monthly_reports',
-    'manage_inventory',
-    'view_users',
-    'manage_users'
-];
+// const STATIC_PERMISSIONS = [
+//     'view_dashboard',
+//     'search_items',
+//     'issue_items',
+//     'receive_items',
+//     'view_reports',
+//     'view_daily_reports',
+//     'view_weekly_reports',
+//     'view_monthly_reports',
+//     'manage_inventory',
+//     'view_users',
+//     'manage_users'
+// ];
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
@@ -43,9 +43,11 @@ export const AuthContextProvider: React.FC<AuthContextProviderProps> = ({ childr
         if (token && validateToken(token)) {
             try {
                 const decoded: User = jwtDecode<User>(token);
+                console.log(decoded)
                 setUser(decoded);
+                setPermissions(decoded.UserInfo.permissions);
                 // Set static permissions for all users
-                setPermissions(STATIC_PERMISSIONS);
+                // setPermissions(STATIC_PERMISSIONS);
             } catch (error) {
                 console.error("Invalid token", error);
                 localStorage.removeItem("token");
@@ -68,8 +70,7 @@ export const AuthContextProvider: React.FC<AuthContextProviderProps> = ({ childr
             localStorage.setItem("token", data.accessToken);
             const decoded: User = jwtDecode<User>(data.accessToken);
             setUser(decoded);
-            // Set static permissions for all users
-            setPermissions(STATIC_PERMISSIONS);
+            setPermissions(decoded.UserInfo.permissions);
             router.push("/dashboard");
         } catch (error: unknown) {
             if (error instanceof Error) {

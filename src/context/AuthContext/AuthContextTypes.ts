@@ -3,7 +3,7 @@ import { ReactNode } from "react"
 export type UserInfo = {
     username: string
     name: string
-    permissions: Record<string, any>
+    permissions: string[]
 }
 
 export type User = {
