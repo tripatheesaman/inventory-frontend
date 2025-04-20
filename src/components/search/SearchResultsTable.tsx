@@ -9,7 +9,7 @@ interface SearchResult {
   nacCode: string;
   itemName: string;
   partNumber: string;
-  equipmentNumber: string; // Applicable For
+  equipmentNumber: string;
   currentBalance: number;
   location: string;
   cardNumber: string;
@@ -34,7 +34,6 @@ export const SearchResultsTable = ({
     estimateSize: () => 50, 
     overscan: 5,
   });
-
   return (
     <div 
       id="table-container"

@@ -5,7 +5,6 @@ Purpose: Search Page
 
 'use client'
 
-import { useEffect } from 'react';
 import { SearchControls, SearchResults, ItemDetailsModal } from '@/components/search';
 import { useSearch } from '@/hooks/useSearch';
 import { useItemDetails } from '@/hooks/useItemDetails';
@@ -17,7 +16,6 @@ export default function SearchPage() {
     isLoading,
     error,
     handleSearch,
-    fetchSearchResults,
   } = useSearch();
 
   const {
@@ -26,10 +24,6 @@ export default function SearchPage() {
     fetchItemDetails,
     closeModal,
   } = useItemDetails();
-
-  useEffect(() => {
-    fetchSearchResults();
-  }, [fetchSearchResults]);
 
   const handleRowDoubleClick = (item: { id: number }) => {
     fetchItemDetails(item.id);

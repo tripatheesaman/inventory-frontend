@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { useDebounce } from './useDebounce';
 import { API } from '@/lib/api';
 
@@ -29,12 +29,37 @@ export const useSearch = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const debouncedUniversal = useDebounce(searchParams.universal, 300);
-  const debouncedEquipmentNumber = useDebounce(searchParams.equipmentNumber, 300);
-  const debouncedPartNumber = useDebounce(searchParams.partNumber, 300);
+  const debouncedUniversal = useDebounce(searchParams.universal, 500);
+  const debouncedEquipmentNumber = useDebounce(searchParams.equipmentNumber, 500);
+  const debouncedPartNumber = useDebounce(searchParams.partNumber, 500);
+
+  // Keep track of the last search parameters to prevent duplicate requests
+  const lastSearchParams = useRef({
+    universal: '',
+    equipmentNumber: '',
+    partNumber: '',
+  });
 
   const fetchSearchResults = useCallback(async () => {
-    if (!debouncedUniversal && !debouncedEquipmentNumber && !debouncedPartNumber) {
+    const currentParams = {
+      universal: debouncedUniversal,
+      equipmentNumber: debouncedEquipmentNumber,
+      partNumber: debouncedPartNumber,
+    };
+
+    // Only proceed if the search parameters have actually changed
+    if (
+      currentParams.universal === lastSearchParams.current.universal &&
+      currentParams.equipmentNumber === lastSearchParams.current.equipmentNumber &&
+      currentParams.partNumber === lastSearchParams.current.partNumber
+    ) {
+      return;
+    }
+
+    // Update the last search parameters
+    lastSearchParams.current = currentParams;
+
+    if (!currentParams.universal && !currentParams.equipmentNumber && !currentParams.partNumber) {
       setResults(null);
       return;
     }
@@ -43,13 +68,8 @@ export const useSearch = () => {
     setError(null);
     try {
       const response = await API.get('/api/search', {
-        params: {
-          universal: debouncedUniversal,
-          equipmentNumber: debouncedEquipmentNumber,
-          partNumber: debouncedPartNumber,
-        }
+        params: currentParams
       });
-      
       setResults(response.data || []);
     } catch (error) {
       console.error('Search error:', error);
@@ -59,6 +79,10 @@ export const useSearch = () => {
       setIsLoading(false);
     }
   }, [debouncedUniversal, debouncedEquipmentNumber, debouncedPartNumber]);
+
+  useEffect(() => {
+    fetchSearchResults();
+  }, [fetchSearchResults]);
 
   const handleSearch = (type: keyof SearchParams) => (value: string) => {
     setSearchParams(prev => ({ ...prev, [type]: value }));
@@ -70,6 +94,5 @@ export const useSearch = () => {
     isLoading,
     error,
     handleSearch,
-    fetchSearchResults,
   };
 }; 
