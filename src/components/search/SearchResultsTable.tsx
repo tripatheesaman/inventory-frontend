@@ -6,10 +6,13 @@ import { cn } from '@/lib/utils';
 
 interface SearchResult {
   id: number;
-  name: string;
-  equipmentNumber: string;
+  nacCode: string;
+  itemName: string;
   partNumber: string;
-  // Add other fields as needed
+  equipmentNumber: string; // Applicable For
+  currentBalance: number;
+  location: string;
+  cardNumber: string;
 }
 
 interface SearchResultsTableProps {
@@ -28,8 +31,8 @@ export const SearchResultsTable = ({
   const parentRef = useVirtualizer({
     count: results.length,
     getScrollElement: () => document.getElementById('table-container'),
-    estimateSize: () => 50, // Estimated row height
-    overscan: 5, // Number of items to render outside of the visible area
+    estimateSize: () => 50, 
+    overscan: 5,
   });
 
   return (
@@ -41,13 +44,25 @@ export const SearchResultsTable = ({
         <thead className="bg-gray-50 sticky top-0">
           <tr>
             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              Name
+              NAC Code
             </th>
             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              Equipment Number
+              Item Name
             </th>
             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
               Part Number
+            </th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              Applicable For
+            </th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              Current Balance
+            </th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              Location
+            </th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              Card Number
             </th>
           </tr>
         </thead>
@@ -69,13 +84,25 @@ export const SearchResultsTable = ({
                 }}
               >
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                  {item.name}
+                  {item.nacCode}
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                  {item.itemName}
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                  {item.partNumber}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                   {item.equipmentNumber}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                  {item.partNumber}
+                  {item.currentBalance}
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                  {item.location}
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                  {item.cardNumber}
                 </td>
               </tr>
             );

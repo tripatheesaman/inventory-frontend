@@ -4,9 +4,13 @@ import { API } from '@/lib/api';
 
 interface SearchResult {
   id: number;
-  name: string;
-  equipmentNumber: string;
+  nacCode: string;
+  itemName: string;
   partNumber: string;
+  equipmentNumber: string; // Applicable For
+  currentBalance: number;
+  location: string;
+  cardNumber: string;
 }
 
 interface SearchParams {
@@ -21,7 +25,7 @@ export const useSearch = () => {
     equipmentNumber: '',
     partNumber: '',
   });
-  const [results, setResults] = useState<SearchResult[]>([]);
+  const [results, setResults] = useState<SearchResult[] | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -31,7 +35,7 @@ export const useSearch = () => {
 
   const fetchSearchResults = useCallback(async () => {
     if (!debouncedUniversal && !debouncedEquipmentNumber && !debouncedPartNumber) {
-      setResults([]);
+      setResults(null);
       return;
     }
 
@@ -46,10 +50,11 @@ export const useSearch = () => {
         }
       });
       
-      setResults(response.data);
+      setResults(response.data || []);
     } catch (error) {
       console.error('Search error:', error);
       setError('Failed to perform search. Please try again.');
+      setResults(null);
     } finally {
       setIsLoading(false);
     }

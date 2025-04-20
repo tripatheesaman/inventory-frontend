@@ -4,13 +4,17 @@ import { SearchResultsTable } from './SearchResultsTable';
 
 export interface SearchResult {
   id: number;
-  name: string;
-  equipmentNumber: string;
+  nacCode: string;
+  itemName: string;
   partNumber: string;
+  equipmentNumber: string; // Applicable For
+  currentBalance: number;
+  location: string;
+  cardNumber: string;
 }
 
 export interface SearchResultsProps {
-  results: SearchResult[];
+  results: SearchResult[] | null;
   isLoading: boolean;
   error: string | null;
   onRowDoubleClick: (item: SearchResult) => void;
@@ -40,6 +44,14 @@ export function SearchResults({
     return (
       <div className="flex justify-center items-center py-8">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+      </div>
+    );
+  }
+
+  if (!results) {
+    return (
+      <div className="text-center py-8 text-gray-500">
+        Enter search terms to find items
       </div>
     );
   }
