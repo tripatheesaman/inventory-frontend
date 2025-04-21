@@ -26,8 +26,11 @@ export function ItemDetailsModal({ isOpen, onClose, item }: ItemDetailsModalProp
     { label: 'Open Amount', value: `NPR ${item.openAmount.toLocaleString()}` },
   ];
 
+  const imageUrl = item.imageUrl || '/images/nepal_airlines_logo.png';
+  const imageAlt = item.altText || 'Nepal Airlines Logo';
+
   const handleImageClick = () => {
-    window.open(item.imageUrl, '_blank');
+    window.open(imageUrl, '_blank');
   };
 
   return (
@@ -56,8 +59,8 @@ export function ItemDetailsModal({ isOpen, onClose, item }: ItemDetailsModalProp
                   onClick={handleImageClick}
                 >
                   <Image
-                    src={item.imageUrl}
-                    alt={item.altText}
+                    src={imageUrl}
+                    alt={imageAlt}
                     fill
                     className="object-cover transition-transform group-hover:scale-105"
                     sizes="200px"
