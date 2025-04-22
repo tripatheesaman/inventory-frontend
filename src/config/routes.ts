@@ -22,7 +22,7 @@ export const routes: RouteConfig[] = [
     path: '/issue',
     requiresAuth: true,
     title: 'Issue Items',
-    permissions: ['issue_item'],
+    permissions: ['issue_items'],
   },
   {
     path: '/receive',

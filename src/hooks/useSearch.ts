@@ -94,5 +94,6 @@ export const useSearch = () => {
     isLoading,
     error,
     handleSearch,
+    setResults,
   };
 }; 
