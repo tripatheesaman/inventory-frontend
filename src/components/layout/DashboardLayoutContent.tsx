@@ -16,7 +16,6 @@ export default function DashboardLayoutContent({ children }: DashboardLayoutCont
   const pathname = usePathname();
   const routeConfig = getRouteConfig(pathname);
 
-  // If no route config found or route doesn't require auth, just render children
   if (!routeConfig || !routeConfig.requiresAuth) {
     return children;
   }

@@ -103,6 +103,7 @@ export default function IssuePage() {
       showErrorToast({
         title: "Error",
         message: "You must be logged in to submit an issue request.",
+        duration: 3000,
       });
       return;
     }
@@ -111,6 +112,7 @@ export default function IssuePage() {
       showErrorToast({
         title: "Error",
         message: "Your cart is empty. Please add items before submitting.",
+        duration: 3000,
       });
       return;
     }
@@ -137,6 +139,7 @@ export default function IssuePage() {
         showSuccessToast({
           title: "Success",
           message: "Issue request submitted successfully.",
+          duration: 3000,
         });
         setCart([]);
         setDate(undefined);
@@ -158,6 +161,7 @@ export default function IssuePage() {
       showErrorToast({
         title: "Error",
         message: errorMessage,
+        duration: 5000,
       });
     } finally {
       setIsSubmitting(false);

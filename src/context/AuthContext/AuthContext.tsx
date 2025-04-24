@@ -4,6 +4,7 @@ import { jwtDecode } from "jwt-decode";
 import { AuthContextProviderProps, AuthContextType, User } from "./AuthContextTypes";
 import { loginRequest } from "@/app/login/loginApiRequests/loginrequest";
 import { useRouter } from "next/navigation";
+import { API } from "@/lib/api";
 
 // Static permissions for all users
 // const STATIC_PERMISSIONS = [
@@ -38,18 +39,39 @@ export const AuthContextProvider: React.FC<AuthContextProviderProps> = ({ childr
         }
     };
 
-    const initializeAuth = () => {
+    const refreshToken = async () => {
+        try {
+            const response = await API.post('/api/auth/refresh', {}, { withCredentials: true });
+            if (response.data.accessToken) {
+                localStorage.setItem("token", response.data.accessToken);
+                const decoded: User = jwtDecode<User>(response.data.accessToken);
+                setUser(decoded);
+                setPermissions(decoded.UserInfo.permissions);
+                return true;
+            }
+            return false;
+        } catch (error) {
+            console.error("Token refresh failed", error);
+            return false;
+        }
+    };
+
+    const initializeAuth = async () => {
         const token = localStorage.getItem("token");
         if (token && validateToken(token)) {
             try {
                 const decoded: User = jwtDecode<User>(token);
-                console.log(decoded)
                 setUser(decoded);
                 setPermissions(decoded.UserInfo.permissions);
-                // Set static permissions for all users
-                // setPermissions(STATIC_PERMISSIONS);
             } catch (error) {
                 console.error("Invalid token", error);
+                localStorage.removeItem("token");
+                router.push("/login");
+            }
+        } else if (token) {
+            // Token exists but is expired, try to refresh it
+            const refreshed = await refreshToken();
+            if (!refreshed) {
                 localStorage.removeItem("token");
                 router.push("/login");
             }
@@ -63,6 +85,31 @@ export const AuthContextProvider: React.FC<AuthContextProviderProps> = ({ childr
     useEffect(() => {
         initializeAuth();
     }, []);
+
+    // Set up a timer to refresh the token before it expires
+    useEffect(() => {
+        if (!user) return;
+
+        const token = localStorage.getItem("token");
+        if (!token) return;
+
+        try {
+            const decoded: any = jwtDecode(token);
+            const expiresIn = decoded.exp - (Date.now() / 1000);
+            // Refresh token 1 minute before it expires
+            const refreshTime = (expiresIn - 60) * 1000;
+            
+            if (refreshTime > 0) {
+                const timer = setTimeout(async () => {
+                    await refreshToken();
+                }, refreshTime);
+                
+                return () => clearTimeout(timer);
+            }
+        } catch (error) {
+            console.error("Error setting up token refresh", error);
+        }
+    }, [user]);
 
     const login = async (username: string, password: string) => {
         try {

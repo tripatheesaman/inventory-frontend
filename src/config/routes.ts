@@ -19,16 +19,22 @@ export const routes: RouteConfig[] = [
     permissions: ['search_items'],
   },
   {
-    path: '/issue',
+    path: '/request',
     requiresAuth: true,
-    title: 'Issue Items',
-    permissions: ['issue_items'],
+    title: 'Request Items',
+    permissions: ['request_items'],
   },
   {
     path: '/receive',
     requiresAuth: true,
     title: 'Receive Items',
     permissions: ['receive_item'],
+  },
+  {
+    path: '/issue',
+    requiresAuth: true,
+    title: 'Issue Items',
+    permissions: ['issue_items'],
   },
   {
     path: '/reports',

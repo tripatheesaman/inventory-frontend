@@ -1,4 +1,4 @@
-export type IconName = 'home' | 'log-in' | 'log-out' | 'file-text' | 'search';
+export type IconName = 'home' | 'log-in' | 'log-out' | 'file-text' | 'search' | 'request';
 
 interface SubmenuItem {
   label: string;
@@ -28,16 +28,22 @@ export const sidebarLinks: SidebarLink[] = [
     permission: 'search_items'
   },
   { 
-    label: "Issue", 
-    href: "/issue", 
-    icon: 'log-out',
-    permission: 'issue_items'
+    label: "Request", 
+    href: "/request", 
+    icon: 'request',
+    permission: 'request_items'
   },
   { 
     label: "Receive", 
     href: "/receive", 
     icon: 'log-in',
     permission: 'receive_items'
+  },
+  { 
+    label: "Issue", 
+    href: "/issue", 
+    icon: 'log-out',
+    permission: 'issue_items'
   },
   {
     label: "Reports",
