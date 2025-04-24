@@ -7,10 +7,11 @@ export interface SearchResult {
   nacCode: string;
   itemName: string;
   partNumber: string;
-  equipmentNumber: string; // Applicable For
+  equipmentNumber: string; 
   currentBalance: number;
   location: string;
   cardNumber: string;
+  unit?: string;
 }
 
 export interface SearchResultsProps {

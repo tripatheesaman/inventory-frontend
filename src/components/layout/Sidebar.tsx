@@ -34,7 +34,7 @@ export default function Sidebar({ collapsed, onCollapse }: SidebarProps) {
   return (
     <aside className={cn("h-full bg-white border-r w-64 transition-all duration-300 overflow-y-auto", collapsed ? "w-16" : "w-64")}> 
       <div className="p-4">
-        <h2 className="text-xl font-bold">Inventory</h2>
+        <h2 className="text-xl font-bold">I</h2>
       </div>
       <nav className="px-2">
         {sidebarLinks.map(({ label, href, icon, submenu, permission }) => (
