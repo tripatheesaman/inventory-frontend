@@ -10,7 +10,7 @@ import { RequestCart } from '@/components/request/RequestCart';
 import { RequestItemForm } from '@/components/request/RequestItemForm';
 import { RequestPreviewModal } from '@/components/request/RequestPreviewModal';
 import { API } from '@/lib/api';
-import { SearchResult } from '@/components/search/SearchResults';
+import { SearchResult } from '@/types/search';
 import { useAuthContext } from '@/context/AuthContext/AuthContext';
 import { useCustomToast } from "@/components/ui/custom-toast";
 import { Input } from '@/components/ui/input';

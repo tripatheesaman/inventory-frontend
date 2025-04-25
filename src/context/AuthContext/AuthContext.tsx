@@ -5,6 +5,7 @@ import { AuthContextProviderProps, AuthContextType, User } from "./AuthContextTy
 import { loginRequest } from "@/app/login/loginApiRequests/loginrequest";
 import { useRouter } from "next/navigation";
 import { API } from "@/lib/api";
+import { FullPageSpinner } from "@/components/ui/spinner";
 
 // Static permissions for all users
 // const STATIC_PERMISSIONS = [
@@ -41,7 +42,7 @@ export const AuthContextProvider: React.FC<AuthContextProviderProps> = ({ childr
 
     const refreshToken = async () => {
         try {
-            const response = await API.post('/api/auth/refresh', {}, { withCredentials: true });
+            const response = await API.post('/auth/refresh', {}, { withCredentials: true });
             if (response.data.accessToken) {
                 localStorage.setItem("token", response.data.accessToken);
                 const decoded: User = jwtDecode<User>(response.data.accessToken);
@@ -52,6 +53,10 @@ export const AuthContextProvider: React.FC<AuthContextProviderProps> = ({ childr
             return false;
         } catch (error) {
             console.error("Token refresh failed", error);
+            localStorage.removeItem("token");
+            setUser(null);
+            setPermissions([]);
+            router.push("/login");
             return false;
         }
     };
@@ -96,8 +101,8 @@ export const AuthContextProvider: React.FC<AuthContextProviderProps> = ({ childr
         try {
             const decoded: any = jwtDecode(token);
             const expiresIn = decoded.exp - (Date.now() / 1000);
-            // Refresh token 1 minute before it expires
-            const refreshTime = (expiresIn - 60) * 1000;
+            // Refresh token 5 minutes before it expires
+            const refreshTime = (expiresIn - 300) * 1000;
             
             if (refreshTime > 0) {
                 const timer = setTimeout(async () => {
@@ -105,9 +110,13 @@ export const AuthContextProvider: React.FC<AuthContextProviderProps> = ({ childr
                 }, refreshTime);
                 
                 return () => clearTimeout(timer);
+            } else {
+                // Token is already expired or about to expire, refresh immediately
+                refreshToken();
             }
         } catch (error) {
             console.error("Error setting up token refresh", error);
+            refreshToken();
         }
     }, [user]);
 
@@ -137,7 +146,7 @@ export const AuthContextProvider: React.FC<AuthContextProviderProps> = ({ childr
     };
 
     if (isLoading) {
-        return <div>Loading...</div>;
+        return <FullPageSpinner />;
     }
 
     return (

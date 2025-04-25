@@ -1,18 +1,8 @@
 'use client'
 
+import { SearchResult } from '../../types/search';
 import { SearchResultsTable } from './SearchResultsTable';
-
-export interface SearchResult {
-  id: number;
-  nacCode: string;
-  itemName: string;
-  partNumber: string;
-  equipmentNumber: string; 
-  currentBalance: number;
-  location: string;
-  cardNumber: string;
-  unit?: string;
-}
+import { Spinner } from '@/components/ui/spinner';
 
 export interface SearchResultsProps {
   results: SearchResult[] | null;
@@ -44,7 +34,7 @@ export function SearchResults({
   if (isLoading) {
     return (
       <div className="flex justify-center items-center py-8">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+        <Spinner size="lg" variant="primary" />
       </div>
     );
   }
