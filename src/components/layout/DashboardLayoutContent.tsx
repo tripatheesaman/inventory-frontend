@@ -6,6 +6,7 @@ import ProtectedRoute from '@/lib/ProtectedRoute';
 import { usePathname } from 'next/navigation';
 import { ReactNode, useState } from 'react';
 import { getRouteConfig } from '@/config/routes';
+import { ContentSpinner } from '@/components/ui/spinner';
 
 interface DashboardLayoutContentProps {
   children: ReactNode;

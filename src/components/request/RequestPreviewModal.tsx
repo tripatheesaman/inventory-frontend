@@ -8,6 +8,7 @@ import { RequestCartItem } from '@/types/request';
 import { format } from 'date-fns';
 import { Pencil, Check, X, Trash2, Loader2 } from 'lucide-react';
 import { EquipmentSelect } from '../issue/EquipmentSelect';
+import { Spinner } from '@/components/ui/spinner';
 
 interface RequestPreviewModalProps {
   isOpen: boolean;
@@ -217,7 +218,7 @@ export function RequestPreviewModal({
             <Button onClick={onConfirm} disabled={isSubmitting}>
               {isSubmitting ? (
                 <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  <Spinner size="sm" variant="white" className="mr-2" />
                   Submitting...
                 </>
               ) : (

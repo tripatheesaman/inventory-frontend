@@ -1,4 +1,4 @@
-import { Home, LogIn, LogOut, FileText, Search } from "lucide-react";
+import { Home, LogIn, LogOut, FileText, Search, ClipboardList } from "lucide-react";
 import { IconName } from "./sidebarConfig";
 
 interface SidebarIconProps {
@@ -13,6 +13,7 @@ export const SidebarIcon = ({ name, size = 20 }: SidebarIconProps) => {
     'log-out': <LogOut size={size} />,
     'file-text': <FileText size={size} />,
     'search': <Search size={size} />,
+    'request': <ClipboardList size={size} />,
   };
 
   return icons[name];
