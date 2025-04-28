@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { RequestCartItem } from '@/types/request';
-import { SearchResult } from '@/components/search/SearchResults';
+import { SearchResult } from '@/types/search';
 import { EquipmentSelect } from '../issue/EquipmentSelect';
 
 interface RequestItemFormProps {
