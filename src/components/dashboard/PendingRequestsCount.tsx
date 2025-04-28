@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useAuthContext } from '@/context/AuthContext/AuthContext';
 import { API } from '@/lib/api';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { FileText, Eye, X, Pencil } from 'lucide-react';
+import { FileText, Eye, X, Pencil, Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Modal,
@@ -22,6 +22,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Calendar } from '@/components/ui/calendar';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
+import { useCustomToast } from '@/components/ui/custom-toast';
 
 interface PendingRequest {
   requestId: number;
@@ -35,6 +36,7 @@ interface RequestItem {
   requestNumber: string;
   itemName: string;
   partNumber: string;
+  nacCode: string;
   equipmentNumber: string;
   requestedQuantity: number;
   imageUrl: string;
@@ -46,6 +48,7 @@ interface EditItemData {
   id: number;
   itemName: string;
   partNumber: string;
+  nacCode: string;
   equipmentNumber: string;
   requestedQuantity: number;
   specifications: string;
@@ -55,14 +58,17 @@ interface EditItemData {
 }
 
 export function PendingRequestsCount() {
-  const { permissions } = useAuthContext();
+  const { permissions, user } = useAuthContext();
   const router = useRouter();
+  const { showSuccessToast, showErrorToast } = useCustomToast();
   const [pendingCount, setPendingCount] = useState<number>(0);
   const [isLoading, setIsLoading] = useState(true);
   const [isOpen, setIsOpen] = useState(false);
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
   const [isImagePreviewOpen, setIsImagePreviewOpen] = useState(false);
   const [isEditOpen, setIsEditOpen] = useState(false);
+  const [isRejectOpen, setIsRejectOpen] = useState(false);
+  const [rejectionReason, setRejectionReason] = useState('');
   const [selectedImage, setSelectedImage] = useState<string>('');
   const [pendingRequests, setPendingRequests] = useState<PendingRequest[]>([]);
   const [selectedRequest, setSelectedRequest] = useState<{
@@ -158,45 +164,137 @@ export function PendingRequestsCount() {
     if (!editData) return;
 
     try {
-      // First, upload any new images
-      const updatedItems = await Promise.all(editData.items.map(async (item) => {
-        if (item.newImage) {
-          const formData = new FormData();
-          formData.append('file', item.newImage);
-          formData.append('folder', 'request');
-          
-          const uploadResponse = await API.post('/api/upload', formData);
-          return {
-            ...item,
-            imageUrl: uploadResponse.data.path
-          };
-        }
-        return item;
-      }));
-
-      // Then update the request details
-      const response = await API.put(`/api/request/${editData.requestNumber}`, {
+      const requestData = {
         requestNumber: editData.requestNumber,
         requestDate: editData.requestDate.toISOString(),
         remarks: editData.remarks,
-        items: updatedItems.map(({ newImage, ...item }) => item)
-      });
+        items: editData.items.map(item => ({
+          id: item.id,
+          itemName: item.itemName,
+          partNumber: item.partNumber,
+          nacCode: item.nacCode,
+          equipmentNumber: item.equipmentNumber,
+          requestedQuantity: item.requestedQuantity,
+          specifications: item.specifications,
+          remarks: item.remarks,
+          imageUrl: item.imageUrl
+        }))
+      };
+
+      const response = await API.put(`/api/request/${selectedRequest?.requestNumber}`, requestData);
 
       if (response.status === 200) {
-        // Refresh the request details
-        const updatedResponse = await API.get(`/api/request/items/${editData.requestNumber}`);
-        if (updatedResponse.status === 200) {
-          setSelectedRequest({
-            items: updatedResponse.data,
-            requestNumber: editData.requestNumber,
-            requestDate: editData.requestDate.toISOString(),
-            remarks: editData.remarks
-          });
-        }
+        showSuccessToast({
+          title: "Success",
+          message: "Request updated successfully",
+          duration: 3000,
+        });
         setIsEditOpen(false);
+        handleViewDetails(selectedRequest?.requestNumber || '', selectedRequest?.requestDate || '');
+      } else {
+        throw new Error(response.data?.message || 'Failed to update request');
       }
     } catch (error) {
       console.error('Error updating request:', error);
+      showErrorToast({
+        title: "Error",
+        message: error instanceof Error ? error.message : "Failed to update request",
+        duration: 5000,
+      });
+    }
+  };
+
+  const handleApproveRequest = async () => {
+    if (!selectedRequest) return;
+
+    try {
+      const response = await API.put(`/api/request/${selectedRequest.requestNumber}/approve`, {
+        approvedBy: user?.UserInfo?.username
+      });
+
+      if (response.status === 200) {
+        showSuccessToast({
+          title: "Success",
+          message: "Request approved successfully",
+          duration: 3000,
+        });
+
+        // Refresh the pending requests count
+        const pendingResponse = await API.get('/api/request/pending');
+        const uniqueRequests = pendingResponse.data.reduce((acc: PendingRequest[], curr: PendingRequest) => {
+          if (!acc.find(req => req.requestNumber === curr.requestNumber)) {
+            acc.push(curr);
+          }
+          return acc;
+        }, []);
+        
+        setPendingRequests(uniqueRequests);
+        setPendingCount(uniqueRequests.length);
+        setIsDetailsOpen(false);
+      } else {
+        throw new Error(response.data?.message || 'Failed to approve request');
+      }
+    } catch (error) {
+      console.error('Error approving request:', error);
+      showErrorToast({
+        title: "Error",
+        message: error instanceof Error ? error.message : "Failed to approve request",
+        duration: 5000,
+      });
+    }
+  };
+
+  const handleRejectClick = () => {
+    setIsRejectOpen(true);
+  };
+
+  const handleRejectRequest = async () => {
+    if (!selectedRequest || !rejectionReason.trim()) {
+      showErrorToast({
+        title: "Error",
+        message: "Please provide a reason for rejection",
+        duration: 3000,
+      });
+      return;
+    }
+
+    try {
+      const response = await API.put(`/api/request/${selectedRequest.requestNumber}/reject`, {
+        rejectedBy: user?.UserInfo?.username,
+        rejectionReason: rejectionReason.trim()
+      });
+
+      if (response.status === 200) {
+        showSuccessToast({
+          title: "Success",
+          message: "Request rejected successfully",
+          duration: 3000,
+        });
+
+        // Refresh the pending requests count
+        const pendingResponse = await API.get('/api/request/pending');
+        const uniqueRequests = pendingResponse.data.reduce((acc: PendingRequest[], curr: PendingRequest) => {
+          if (!acc.find(req => req.requestNumber === curr.requestNumber)) {
+            acc.push(curr);
+          }
+          return acc;
+        }, []);
+        
+        setPendingRequests(uniqueRequests);
+        setPendingCount(uniqueRequests.length);
+        setIsDetailsOpen(false);
+        setIsRejectOpen(false);
+        setRejectionReason('');
+      } else {
+        throw new Error(response.data?.message || 'Failed to reject request');
+      }
+    } catch (error) {
+      console.error('Error rejecting request:', error);
+      showErrorToast({
+        title: "Error",
+        message: error instanceof Error ? error.message : "Failed to reject request",
+        duration: 5000,
+      });
     }
   };
 
@@ -269,15 +367,35 @@ export function PendingRequestsCount() {
           <ModalHeader>
             <div className="flex justify-between items-center">
               <ModalTitle>Request Details #{selectedRequest?.requestNumber}</ModalTitle>
-              <Button
-                variant="outline"
-                size="sm"
-                className="flex items-center gap-2"
-                onClick={handleEditClick}
-              >
-                <Pencil className="h-4 w-4" />
-                Edit Details
-              </Button>
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="flex items-center gap-2"
+                  onClick={handleEditClick}
+                >
+                  <Pencil className="h-4 w-4" />
+                  Edit Details
+                </Button>
+                <Button
+                  variant="default"
+                  size="sm"
+                  className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white"
+                  onClick={handleApproveRequest}
+                >
+                  <Check className="h-4 w-4" />
+                  Approve
+                </Button>
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  className="flex items-center gap-2"
+                  onClick={handleRejectClick}
+                >
+                  <X className="h-4 w-4" />
+                  Reject
+                </Button>
+              </div>
             </div>
             <ModalDescription>
               <span>Request Date: {selectedRequest?.requestDate && new Date(selectedRequest.requestDate).toLocaleDateString()}</span>
@@ -312,7 +430,7 @@ export function PendingRequestsCount() {
                       <td className="p-2">{item.specifications || '-'}</td>
                       <td className="p-2">
                         <img 
-                          src={item.imageUrl ? (item.imageUrl.startsWith('http') ? item.imageUrl : `${IMAGE_BASE_URL}${item.imageUrl.replace(/^\//, '')}`) : '/nepal_airlines_logo.png'}
+                          src={item.imageUrl ? (item.imageUrl.startsWith('http') ? item.imageUrl : `${IMAGE_BASE_URL}${item.imageUrl.replace(/^\//, '')}`) : '/images/nepal_airlines_logo.png'}
                           alt={item.itemName}
                           className="w-16 h-16 object-cover rounded cursor-pointer hover:opacity-80 transition-opacity"
                           onClick={() => item.imageUrl && handleImageClick(item.imageUrl)}
@@ -461,6 +579,18 @@ export function PendingRequestsCount() {
                         </div>
                       </div>
                     </div>
+                    <div className="flex justify-end">
+                      <Button
+                        variant="destructive"
+                        size="sm"
+                        onClick={() => setEditData(prev => prev ? {
+                          ...prev,
+                          items: prev.items.filter(i => i.id !== item.id)
+                        } : null)}
+                      >
+                        Delete Item
+                      </Button>
+                    </div>
                   </div>
                 ))}
               </div>
@@ -497,6 +627,48 @@ export function PendingRequestsCount() {
               alt="Preview"
               className="w-full h-auto max-h-[80vh] object-contain"
             />
+          </div>
+        </ModalContent>
+      </Modal>
+
+      <Modal open={isRejectOpen} onOpenChange={setIsRejectOpen}>
+        <ModalContent className="max-w-md">
+          <ModalHeader>
+            <ModalTitle>Reject Request</ModalTitle>
+            <ModalDescription>
+              Please provide a reason for rejecting this request.
+            </ModalDescription>
+          </ModalHeader>
+          <div className="space-y-4 p-4">
+            <div className="space-y-2">
+              <Label htmlFor="rejectionReason">Reason for Rejection</Label>
+              <Textarea
+                id="rejectionReason"
+                value={rejectionReason}
+                onChange={(e) => setRejectionReason(e.target.value)}
+                placeholder="Enter the reason for rejection"
+                className="min-h-[100px]"
+                required
+              />
+            </div>
+            <div className="flex justify-end gap-2">
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setIsRejectOpen(false);
+                  setRejectionReason('');
+                }}
+              >
+                Cancel
+              </Button>
+              <Button
+                variant="destructive"
+                onClick={handleRejectRequest}
+                disabled={!rejectionReason.trim()}
+              >
+                Confirm Rejection
+              </Button>
+            </div>
           </div>
         </ModalContent>
       </Modal>

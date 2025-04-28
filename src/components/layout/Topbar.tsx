@@ -16,6 +16,8 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Menu } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { NotificationBell } from './NotificationBell';
 
 interface TopBarProps {
   onToggleSidebar: () => void;
@@ -33,29 +35,31 @@ export default function TopBar({ onToggleSidebar }: TopBarProps) {
   };
 
   return (
-    <div className="w-full flex justify-between items-center px-4 py-2 border-b bg-white">
+    <div className="h-16 border-b flex items-center justify-between px-4">
+      <Button
+        variant="ghost"
+        size="icon"
+        onClick={onToggleSidebar}
+      >
+        <Menu className="h-5 w-5" />
+      </Button>
+
       <div className="flex items-center gap-4">
-        <button
-          onClick={onToggleSidebar}
-          className="p-2 rounded-md hover:bg-gray-100"
-        >
-          <Menu size={20} />
-        </button>
-        <h2 className="text-lg font-semibold">Welcome, {user?.UserInfo.name}</h2>
+        <NotificationBell />
+        <DropdownMenu>
+          <DropdownMenuTrigger>
+            <Avatar>
+              <AvatarImage src="" alt={user?.UserInfo.name} />
+              <AvatarFallback>{getInitials(user?.UserInfo.name || 'U')}</AvatarFallback>
+            </Avatar>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent className="w-40">
+            <DropdownMenuLabel>My Account</DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={logout}>Logout</DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
-      <DropdownMenu>
-        <DropdownMenuTrigger>
-          <Avatar>
-            <AvatarImage src="" alt={user?.UserInfo.name} />
-            <AvatarFallback>{getInitials(user?.UserInfo.name || 'U')}</AvatarFallback>
-          </Avatar>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent className="w-40">
-          <DropdownMenuLabel>My Account</DropdownMenuLabel>
-          <DropdownMenuSeparator />
-          <DropdownMenuItem onClick={logout}>Logout</DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
     </div>
   );
 }

@@ -9,6 +9,7 @@ import '@/styles/globals.css';
 import DashboardLayoutContent from '@/components/layout/DashboardLayoutContent';
 import { AuthContextProvider } from '@/context/AuthContext/AuthContext';
 import { Toaster } from "@/components/ui/toaster"
+import { NotificationProvider } from '@/context/NotificationContext';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -26,9 +27,11 @@ export default function RootLayout({ children }: LayoutProps) {
     <html lang="en">
       <body className={inter.className} suppressHydrationWarning>
         <AuthContextProvider>
-          <DashboardLayoutContent>
-            {children}
-          </DashboardLayoutContent>
+          <NotificationProvider>
+            <DashboardLayoutContent>
+              {children}
+            </DashboardLayoutContent>
+          </NotificationProvider>
         </AuthContextProvider>
         <Toaster />
       </body>
