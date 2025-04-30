@@ -222,11 +222,8 @@ export default function RequestPage() {
         }))
       };
 
-      // Send the request data to the backend
-      console.log('Submitting request data:', requestData);
       try {
         const response = await API.post('/api/request/create', requestData);
-        console.log('Response from server:', response);
 
         if (response.status === 200 || response.status === 201) {
           showSuccessToast({

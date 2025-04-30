@@ -48,6 +48,18 @@ export const routes: RouteConfig[] = [
     title: 'Settings',
     permissions: ['manage_settings'],
   },
+  {
+    path: '/print',
+    requiresAuth: true,
+    title: 'Print',
+    permissions: ['can_print'],
+  },
+  {
+    path: '/print/request',
+    requiresAuth: true,
+    title: 'Print Request',
+    permissions: ['can_print_request'],
+  },
 ];
 
 // Helper function to get route config by path
@@ -58,5 +70,5 @@ export const getRouteConfig = (path: string): RouteConfig | undefined => {
 // Helper function to check if user has required permissions
 export const hasRequiredPermissions = (route: RouteConfig, userPermissions: string[]): boolean => {
   if (!route.permissions) return true;
-  return route.permissions.every(permission => userPermissions.includes(permission));
+  return route.permissions.some(permission => userPermissions.includes(permission));
 }; 

@@ -57,8 +57,7 @@ API.interceptors.response.use(
       return new Promise((resolve, reject) => {
         failedQueue.push({ resolve, reject });
       })
-        .then(token => {
-          originalRequest.headers['Authorization'] = `Bearer ${token}`;
+        .then(() => {
           return API(originalRequest);
         })
         .catch(err => Promise.reject(err));
@@ -68,24 +67,17 @@ API.interceptors.response.use(
     isRefreshing = true;
     
     try {
-      // Call the refresh token endpoint - note the correct path
+      // Call the refresh token endpoint
       const response = await axios.post(`${API_BASE_URL}/auth/refresh`, {}, { withCredentials: true });
       
-      // Update the token in localStorage
-      if (response.data.accessToken) {
-        localStorage.setItem('token', response.data.accessToken);
-      }
-      
       // Process any queued requests
-      processQueue(null, response.data.accessToken);
+      processQueue(null);
       
       // Retry the original request
-      originalRequest.headers['Authorization'] = `Bearer ${response.data.accessToken}`;
       return API(originalRequest);
     } catch (refreshError) {
-      // If refresh token fails, clear token and redirect to login
+      // If refresh token fails, redirect to login
       processQueue(refreshError, null);
-      localStorage.removeItem('token');
       window.location.href = '/login';
       return Promise.reject(refreshError);
     } finally {

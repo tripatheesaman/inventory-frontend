@@ -1,4 +1,4 @@
-export type IconName = 'home' | 'log-in' | 'log-out' | 'file-text' | 'search' | 'request';
+export type IconName = 'home' | 'log-in' | 'log-out' | 'file-text' | 'search' | 'request' | 'printer';
 
 interface SubmenuItem {
   label: string;
@@ -68,4 +68,17 @@ export const sidebarLinks: SidebarLink[] = [
       },
     ],
   },
+  {
+    label: "Print",
+    href: "#",
+    icon: 'printer',
+    permission: 'can_print',
+    submenu: [
+      {
+        label: "Request",
+        href: "/print/request",
+        permission: 'can_print_request'
+      }
+    ]
+  }
 ]; 
