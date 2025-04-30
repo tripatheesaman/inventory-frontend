@@ -24,3 +24,26 @@ export interface RequestData {
   remarks: string;
   requestedBy: string;
 } 
+
+export interface RequestItem {
+  id: number;
+  partNumber: string;
+  itemName: string;
+  equipmentNumber: string;
+  requestedQuantity: number;
+  nacCode: string;
+}
+
+export interface RequestSearchResult {
+  requestNumber: string;
+  requestDate: string;
+  requestedBy: string;
+  approvalStatus: 'PENDING' | 'APPROVED' | 'REJECTED';
+  items: RequestItem[];
+}
+
+export interface RequestSearchParams {
+  universal: string;
+  equipmentNumber: string;
+  partNumber: string;
+} 
