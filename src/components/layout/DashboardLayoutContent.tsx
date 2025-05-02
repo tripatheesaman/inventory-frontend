@@ -4,7 +4,7 @@ import Sidebar from '@/components/layout/Sidebar';
 import TopBar from '@/components/layout/Topbar';
 import ProtectedRoute from '@/lib/ProtectedRoute';
 import { usePathname } from 'next/navigation';
-import { ReactNode, useState } from 'react';
+import { ReactNode, useState, useEffect } from 'react';
 import { getRouteConfig } from '@/config/routes';
 import { ContentSpinner } from '@/components/ui/spinner';
 
@@ -14,8 +14,18 @@ interface DashboardLayoutContentProps {
 
 export default function DashboardLayoutContent({ children }: DashboardLayoutContentProps) {
   const [collapsed, setCollapsed] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const pathname = usePathname();
   const routeConfig = getRouteConfig(pathname);
+
+  useEffect(() => {
+    // Simulate a minimum loading time to prevent flickering
+    const timer = setTimeout(() => {
+      setIsLoading(false);
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, [pathname]);
 
   if (!routeConfig || !routeConfig.requiresAuth) {
     return children;
@@ -28,7 +38,7 @@ export default function DashboardLayoutContent({ children }: DashboardLayoutCont
         <div className="flex-1 flex flex-col">
           <TopBar onToggleSidebar={() => setCollapsed(prev => !prev)} />
           <main className="p-6 overflow-y-auto">
-            {children}
+            {isLoading ? <ContentSpinner /> : children}
           </main>
         </div>
       </div>
