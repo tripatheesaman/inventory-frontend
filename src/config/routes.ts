@@ -28,7 +28,7 @@ export const routes: RouteConfig[] = [
     path: '/receive',
     requiresAuth: true,
     title: 'Receive Items',
-    permissions: ['receive_item'],
+    permissions: ['receive_items'],
   },
   {
     path: '/issue',

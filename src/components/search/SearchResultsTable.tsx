@@ -10,9 +10,13 @@ interface SearchResult {
   itemName: string;
   partNumber: string;
   equipmentNumber: string;
-  currentBalance: number;
-  location: string;
-  cardNumber: string;
+  currentBalance: string;
+  unit: string;
+  specifications: string;
+  imageUrl: string;
+  remarks: string;
+  requestedQuantity: number;
+  previousRate: string;
 }
 
 interface SearchResultsTableProps {
@@ -31,10 +35,13 @@ export const SearchResultsTable = ({
   const [selectedRow, setSelectedRow] = useState<number | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
 
-  const totalPages = Math.ceil(results.length / ITEMS_PER_PAGE);
+  // Ensure results is always an array
+  const safeResults = Array.isArray(results) ? results : [];
+  
+  const totalPages = Math.ceil(safeResults.length / ITEMS_PER_PAGE);
   const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
   const endIndex = startIndex + ITEMS_PER_PAGE;
-  const currentPageResults = results.slice(startIndex, endIndex);
+  const currentPageResults = safeResults.slice(startIndex, endIndex);
 
   const handlePageChange = (newPage: number) => {
     if (newPage >= 1 && newPage <= totalPages) {
@@ -42,7 +49,7 @@ export const SearchResultsTable = ({
     }
   };
 
-  if (results.length === 0) {
+  if (safeResults.length === 0) {
     return (
       <div className="text-center py-8 text-gray-500">
         No results found
@@ -59,10 +66,9 @@ export const SearchResultsTable = ({
               <th scope="col" className="px-4 py-3 w-[120px]">NAC Code</th>
               <th scope="col" className="px-4 py-3 w-[250px]">Item Name</th>
               <th scope="col" className="px-4 py-3 w-[150px]">Part Number</th>
-              <th scope="col" className="px-4 py-3 w-[150px]">Applicable For</th>
-              <th scope="col" className="px-4 py-3 w-[120px]">Current Balance</th>
-              <th scope="col" className="px-4 py-3 w-[120px]">Location</th>
-              <th scope="col" className="px-4 py-3 w-[120px]">Card Number</th>
+              <th scope="col" className="px-4 py-3 w-[150px]">Equipment Number</th>
+              <th scope="col" className="px-4 py-3 w-[120px]">Unit</th>
+              <th scope="col" className="px-4 py-3 w-[120px]">Requested Qty</th>
             </tr>
           </thead>
           <tbody>
@@ -89,13 +95,10 @@ export const SearchResultsTable = ({
                   {item.equipmentNumber}
                 </td>
                 <td className="px-4 py-3">
-                  {item.currentBalance}
-                </td>
-                <td className="px-4 py-3 max-w-[120px] truncate" title={item.location}>
-                  {item.location}
+                  {item.unit}
                 </td>
                 <td className="px-4 py-3">
-                  {item.cardNumber}
+                  {item.requestedQuantity}
                 </td>
               </tr>
             ))}
@@ -125,8 +128,8 @@ export const SearchResultsTable = ({
             <div>
               <p className="text-sm text-gray-700">
                 Showing <span className="font-medium">{startIndex + 1}</span> to{' '}
-                <span className="font-medium">{Math.min(endIndex, results.length)}</span> of{' '}
-                <span className="font-medium">{results.length}</span> results
+                <span className="font-medium">{Math.min(endIndex, safeResults.length)}</span> of{' '}
+                <span className="font-medium">{safeResults.length}</span> results
               </p>
             </div>
             <div>
