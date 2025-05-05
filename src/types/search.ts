@@ -4,12 +4,12 @@ export interface SearchResult {
   itemName: string;
   partNumber: string;
   equipmentNumber: string;
-  currentBalance: number;
   location: string;
   cardNumber: string;
-  unit?: string;
-  imageUrl?: string;
-  altText?: string;
-  openQuantity?: number;
-  openAmount?: number;
+  currentBalance: string;
+  unit: string;
+  specifications: string;
+  imageUrl: string;
+  requestedQuantity: number;
+  previousRate: string;
 } 

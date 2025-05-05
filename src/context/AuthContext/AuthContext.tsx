@@ -40,27 +40,6 @@ export const AuthContextProvider: React.FC<AuthContextProviderProps> = ({ childr
         }
     };
 
-    const refreshToken = async () => {
-        try {
-            const response = await API.post('/auth/refresh', {}, { withCredentials: true });
-            if (response.data.accessToken) {
-                localStorage.setItem("token", response.data.accessToken);
-                const decoded: User = jwtDecode<User>(response.data.accessToken);
-                setUser(decoded);
-                setPermissions(decoded.UserInfo.permissions);
-                return true;
-            }
-            return false;
-        } catch (error) {
-            console.error("Token refresh failed", error);
-            localStorage.removeItem("token");
-            setUser(null);
-            setPermissions([]);
-            router.push("/login");
-            return false;
-        }
-    };
-
     const initializeAuth = async () => {
         const token = localStorage.getItem("token");
         if (token && validateToken(token)) {
@@ -70,13 +49,6 @@ export const AuthContextProvider: React.FC<AuthContextProviderProps> = ({ childr
                 setPermissions(decoded.UserInfo.permissions);
             } catch (error) {
                 console.error("Invalid token", error);
-                localStorage.removeItem("token");
-                router.push("/login");
-            }
-        } else if (token) {
-            // Token exists but is expired, try to refresh it
-            const refreshed = await refreshToken();
-            if (!refreshed) {
                 localStorage.removeItem("token");
                 router.push("/login");
             }
@@ -90,35 +62,6 @@ export const AuthContextProvider: React.FC<AuthContextProviderProps> = ({ childr
     useEffect(() => {
         initializeAuth();
     }, []);
-
-    // Set up a timer to refresh the token before it expires
-    useEffect(() => {
-        if (!user) return;
-
-        const token = localStorage.getItem("token");
-        if (!token) return;
-
-        try {
-            const decoded: any = jwtDecode(token);
-            const expiresIn = decoded.exp - (Date.now() / 1000);
-            // Refresh token 5 minutes before it expires
-            const refreshTime = (expiresIn - 300) * 1000;
-            
-            if (refreshTime > 0) {
-                const timer = setTimeout(async () => {
-                    await refreshToken();
-                }, refreshTime);
-                
-                return () => clearTimeout(timer);
-            } else {
-                // Token is already expired or about to expire, refresh immediately
-                refreshToken();
-            }
-        } catch (error) {
-            console.error("Error setting up token refresh", error);
-            refreshToken();
-        }
-    }, [user]);
 
     const login = async (username: string, password: string) => {
         try {
