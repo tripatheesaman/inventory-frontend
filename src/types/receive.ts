@@ -9,9 +9,6 @@ export interface ReceiveCartItem {
   cardNumber: string;
   image: File | undefined;
   unit: string;
-  supplierName: string;
-  invoiceNumber: string;
-  invoiceDate: Date;
   requestedQuantity: number;
   isLocationChanged: boolean;
   isCardNumberChanged: boolean;
@@ -19,7 +16,6 @@ export interface ReceiveCartItem {
 
 export interface ReceiveData {
   receiveDate: string;
-  receiveNumber: string;
   remarks: string;
   receivedBy: string;
   items: {
@@ -30,8 +26,8 @@ export interface ReceiveData {
     equipmentNumber: string;
     imagePath: string;
     unit: string;
-    supplierName: string;
-    invoiceNumber: string;
-    invoiceDate: string;
+    requestId: number;
+    location?: string;
+    cardNumber?: string;
   }[];
 } 

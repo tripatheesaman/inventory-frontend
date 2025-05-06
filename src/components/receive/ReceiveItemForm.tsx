@@ -1,12 +1,18 @@
 'use client'
 
 import { useState, useEffect } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { ReceiveCartItem } from '@/types/receive';
-import { SearchResult } from '@/types/search';
+import { SearchResult, ReceiveSearchResult } from '@/types/search';
 import { Calendar } from '@/components/ui/calendar';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
@@ -15,7 +21,7 @@ import { useCustomToast } from '@/components/ui/custom-toast';
 interface ReceiveItemFormProps {
   isOpen: boolean;
   onClose: () => void;
-  item: SearchResult | null;
+  item: ReceiveSearchResult | null;
   onSubmit: (item: ReceiveCartItem) => void;
   isManualEntry?: boolean;
 }
@@ -30,9 +36,6 @@ export function ReceiveItemForm({ isOpen, onClose, item, onSubmit, isManualEntry
   const [image, setImage] = useState<File | null>(null);
   const [itemName, setItemName] = useState('');
   const [unit, setUnit] = useState('');
-  const [supplierName, setSupplierName] = useState('');
-  const [invoiceNumber, setInvoiceNumber] = useState('');
-  const [invoiceDate, setInvoiceDate] = useState<Date>(new Date());
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   useEffect(() => {
@@ -123,9 +126,6 @@ export function ReceiveItemForm({ isOpen, onClose, item, onSubmit, isManualEntry
         cardNumber,
         image: image || undefined,
         unit: isManualEntry ? unit : (item?.unit || ''),
-        supplierName,
-        invoiceNumber,
-        invoiceDate,
         requestedQuantity: item?.requestedQuantity || 0,
         isLocationChanged: item?.location !== location,
         isCardNumberChanged: item?.cardNumber !== cardNumber,
@@ -150,17 +150,9 @@ export function ReceiveItemForm({ isOpen, onClose, item, onSubmit, isManualEntry
     setLocation('');
     setCardNumber('');
     setImage(null);
-    setSupplierName('');
-    setInvoiceNumber('');
-    setInvoiceDate(new Date());
+    setItemName('');
+    setUnit('');
     setErrors({});
-    if (item) {
-      setItemName(processItemName(item.itemName));
-      setUnit(item.unit || '');
-    } else if (isManualEntry) {
-      setItemName('');
-      setUnit('');
-    }
   };
 
   const handleClose = () => {
@@ -177,15 +169,21 @@ export function ReceiveItemForm({ isOpen, onClose, item, onSubmit, isManualEntry
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
             <Label>Item Name</Label>
-            <Input 
-              value={itemName} 
-              disabled
+            <Input
+              value={itemName}
+              onChange={(e) => setItemName(e.target.value)}
+              disabled={!isManualEntry}
               className="bg-muted"
+              required
             />
           </div>
           <div className="space-y-2">
             <Label>NAC Code</Label>
-            <Input value={isManualEntry ? 'N/A' : item?.nacCode || ''} disabled className="bg-muted" />
+            <Input
+              value={isManualEntry ? 'N/A' : (item?.nacCode || 'N/A')}
+              disabled
+              className="bg-muted"
+            />
           </div>
           <div className="space-y-2">
             <Label htmlFor="receiveQuantity">Receive Quantity</Label>
@@ -254,7 +252,7 @@ export function ReceiveItemForm({ isOpen, onClose, item, onSubmit, isManualEntry
             {errors.cardNumber && <p className="text-sm text-red-500">{errors.cardNumber}</p>}
           </div>
           <div className="space-y-2">
-            <Label htmlFor="image">Image (Required)</Label>
+            <Label htmlFor="image">Image</Label>
             <Input
               id="image"
               type="file"
@@ -270,12 +268,9 @@ export function ReceiveItemForm({ isOpen, onClose, item, onSubmit, isManualEntry
             />
             {errors.image && <p className="text-sm text-red-500">{errors.image}</p>}
           </div>
-          <div className="flex justify-end space-x-2">
-            <Button type="button" variant="outline" onClick={handleClose}>
-              Cancel
-            </Button>
+          <DialogFooter>
             <Button type="submit">Add to Cart</Button>
-          </div>
+          </DialogFooter>
         </form>
       </DialogContent>
     </Dialog>

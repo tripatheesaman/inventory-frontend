@@ -60,6 +60,12 @@ export const routes: RouteConfig[] = [
     title: 'Print Request',
     permissions: ['can_print_request'],
   },
+  {
+    path: '/print/receive',
+    requiresAuth: true,
+    title: 'Print Receive',
+    permissions: ['can_print_receive'],
+  },
 ];
 
 // Helper function to get route config by path

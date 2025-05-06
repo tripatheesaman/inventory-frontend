@@ -50,9 +50,6 @@ export function ReceiveCart({
       location: editingItem.location,
       cardNumber: editingItem.cardNumber,
       image: editingItem.image,
-      supplierName: editingItem.supplierName,
-      invoiceNumber: editingItem.invoiceNumber,
-      invoiceDate: editingItem.invoiceDate,
     });
     setIsEditDialogOpen(false);
     setEditingItem(null);
@@ -90,17 +87,6 @@ export function ReceiveCart({
                 <p className="text-sm">
                   Card Number: {item.cardNumber}
                 </p>
-                <p className="text-sm">
-                  Supplier: {item.supplierName}
-                </p>
-                <p className="text-sm">
-                  Invoice: {item.invoiceNumber}
-                </p>
-                {item.invoiceDate && (
-                  <p className="text-sm">
-                    Invoice Date: {format(item.invoiceDate, 'PPP')}
-                  </p>
-                )}
                 {item.image && (
                   <div className="mt-2">
                     <img

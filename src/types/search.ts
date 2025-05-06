@@ -10,6 +10,13 @@ export interface SearchResult {
   unit: string;
   specifications: string;
   imageUrl: string;
-  requestedQuantity: number;
   previousRate: string;
+}
+
+export interface ReceiveSearchResult extends SearchResult {
+  requestedQuantity: number;
+  requestNumber: string;
+  requestDate: string;
+  requestedBy: string;
+  approvalStatus: string;
 } 

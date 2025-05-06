@@ -14,16 +14,17 @@ import { ReceiveCart } from '@/components/receive/ReceiveCart';
 import { ReceiveItemForm } from '@/components/receive/ReceiveItemForm';
 import { ReceivePreviewModal } from '@/components/receive/ReceivePreviewModal';
 import { API } from '@/lib/api';
-import { SearchResult } from '@/types/search';
+import { ReceiveSearchResult } from '@/types/search';
 import { useAuthContext } from '@/context/AuthContext/AuthContext';
 import { useCustomToast } from "@/components/ui/custom-toast";
 import { Label } from '@/components/ui/label';
+import { SearchResult } from '@/types/search';
 
 export default function ReceivePage() {
   const { user } = useAuthContext();
   const { showSuccessToast, showErrorToast } = useCustomToast();
   const [date, setDate] = useState<Date | undefined>(undefined);
-  const [selectedItem, setSelectedItem] = useState<SearchResult | null>(null);
+  const [selectedItem, setSelectedItem] = useState<ReceiveSearchResult | null>(null);
   const [isItemFormOpen, setIsItemFormOpen] = useState(false);
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   const [cart, setCart] = useState<ReceiveCartItem[]>([]);
@@ -38,12 +39,14 @@ export default function ReceivePage() {
     setResults,
   } = useReceiveSearch();
 
-  const handleRowDoubleClick = (item: SearchResult) => {
-    setSelectedItem(item);
-    setIsItemFormOpen(true);
+  const handleRowDoubleClick = (item: SearchResult | ReceiveSearchResult) => {
+    if ('requestedQuantity' in item) {
+      setSelectedItem(item);
+      setIsItemFormOpen(true);
+    }
   };
 
-  const handleItemSelect = (item: SearchResult) => {
+  const handleItemSelect = (item: ReceiveSearchResult) => {
     setSelectedItem(item);
     setIsItemFormOpen(true);
   };
@@ -64,7 +67,7 @@ export default function ReceivePage() {
       id: `${item.id}-${Date.now()}` // Generate unique ID by combining item ID and timestamp
     };
     
-    setResults((prevResults: SearchResult[] | null) => 
+    setResults((prevResults: ReceiveSearchResult[] | null) => 
       prevResults?.map(result => 
         result.id === Number(item.id)
           ? { ...result, currentBalance: String(Number(result.currentBalance) + item.receiveQuantity) }
@@ -80,7 +83,7 @@ export default function ReceivePage() {
   const handleRemoveFromCart = (itemId: string) => {
     const removedItem = cart.find(item => item.id === itemId);
     if (removedItem) {
-      setResults((prevResults: SearchResult[] | null) => 
+      setResults((prevResults: ReceiveSearchResult[] | null) => 
         prevResults?.map(result => 
           result.id === Number(removedItem.id)
             ? { ...result, currentBalance: String(Number(result.currentBalance) - removedItem.receiveQuantity) }
@@ -104,7 +107,7 @@ export default function ReceivePage() {
   const handleDeleteCartItem = (itemId: string) => {
     const deletedItem = cart.find(item => item.id === itemId);
     if (deletedItem) {
-      setResults((prevResults: SearchResult[] | null) => 
+      setResults((prevResults: ReceiveSearchResult[] | null) => 
         prevResults?.map(result => 
           result.id === Number(deletedItem.id)
             ? { ...result, currentBalance: String(Number(result.currentBalance) - deletedItem.receiveQuantity) }
@@ -186,7 +189,6 @@ export default function ReceivePage() {
       // Prepare receive data
       const receiveData: ReceiveData = {
         receiveDate: date.toISOString(),
-        receiveNumber: `REC-${Date.now()}`,
         remarks: '',
         receivedBy: user.UserInfo.username,
         items: cart.map((item, index) => ({
@@ -197,13 +199,12 @@ export default function ReceivePage() {
           equipmentNumber: item.equipmentNumber,
           imagePath: imagePaths[index],
           unit: item.unit || '',
-          supplierName: item.supplierName,
-          invoiceNumber: item.invoiceNumber,
-          invoiceDate: item.invoiceDate?.toISOString() || new Date().toISOString(),
+          requestId: Number(item.id.split('-')[0]), // Extract the original request ID from the combined ID
+          location: item.isLocationChanged ? item.location : undefined,
+          cardNumber: item.isCardNumberChanged ? item.cardNumber : undefined
         }))
       };
 
-      // Submit receive
       const response = await API.post('/api/receive', receiveData);
 
       if (response.status === 201) {
@@ -297,7 +298,6 @@ export default function ReceivePage() {
             onDeleteItem={handleDeleteCartItem}
             items={cart}
             date={date}
-            receiveNumber={`REC-${Date.now()}`}
             remarks=""
             isSubmitting={isSubmitting}
           />
