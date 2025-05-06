@@ -200,6 +200,8 @@ export default function ReceivePage() {
           imagePath: imagePaths[index],
           unit: item.unit || '',
           requestId: Number(item.id.split('-')[0]), // Extract the original request ID from the combined ID
+          location: item.isLocationChanged ? item.location : undefined,
+          cardNumber: item.isCardNumberChanged ? item.cardNumber : undefined
         }))
       };
 

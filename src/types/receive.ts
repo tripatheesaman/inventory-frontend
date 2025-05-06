@@ -27,5 +27,7 @@ export interface ReceiveData {
     imagePath: string;
     unit: string;
     requestId: number;
+    location?: string;
+    cardNumber?: string;
   }[];
 } 
