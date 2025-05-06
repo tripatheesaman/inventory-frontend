@@ -1,19 +1,18 @@
 'use client'
 
-import { SearchResult } from '../../types/search';
-import { SearchResultsTable } from './SearchResultsTable';
+import { SearchResult, ReceiveSearchResult } from '@/types/search';
 import { Spinner } from '@/components/ui/spinner';
 
-export interface SearchResultsProps {
-  results: SearchResult[] | null;
+interface SearchResultsProps {
+  results: (SearchResult | ReceiveSearchResult)[] | null;
   isLoading: boolean;
   error: string | null;
-  onRowDoubleClick: (item: SearchResult) => void;
+  onRowDoubleClick: (item: SearchResult | ReceiveSearchResult) => void;
   searchParams: {
     universal: string;
     equipmentNumber: string;
     partNumber: string;
-  };
+  } | null;
 }
 
 export function SearchResults({
@@ -23,44 +22,90 @@ export function SearchResults({
   onRowDoubleClick,
   searchParams,
 }: SearchResultsProps) {
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center h-32">
+        <Spinner size="lg" />
+      </div>
+    );
+  }
+
   if (error) {
     return (
-      <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
+      <div className="text-red-500 text-center p-4">
         {error}
       </div>
     );
   }
 
-  if (isLoading) {
+  if (!results || results.length === 0) {
     return (
-      <div className="flex justify-center items-center py-8">
-        <Spinner size="lg" variant="primary" />
+      <div className="text-center p-4 text-gray-500">
+        {searchParams && (searchParams.universal || searchParams.equipmentNumber || searchParams.partNumber) ? 'No results found' : 'Enter search criteria to find items'}
       </div>
-    );
-  }
-
-  if (!results) {
-    return (
-      <div className="text-center py-8 text-gray-500">
-        Enter search terms to find items
-      </div>
-    );
-  }
-
-  if (results.length > 0) {
-    return (
-      <SearchResultsTable
-        results={results}
-        onRowDoubleClick={onRowDoubleClick}
-      />
     );
   }
 
   return (
-    <div className="text-center py-8 text-gray-500">
-      {searchParams.universal || searchParams.equipmentNumber || searchParams.partNumber
-        ? "No results found"
-        : "Enter search terms to find items"}
+    <div className="overflow-x-auto">
+      <table className="w-full text-sm">
+        <thead>
+          <tr className="bg-gray-50 border-b">
+            {results.length > 0 && 'requestNumber' in results[0] ? (
+              <>
+                <th className="px-4 py-2 text-left font-medium">Request Number</th>
+                <th className="px-4 py-2 text-left font-medium">Request Date</th>
+                <th className="px-4 py-2 text-left font-medium">Item Name</th>
+                <th className="px-4 py-2 text-left font-medium">Part Number</th>
+                <th className="px-4 py-2 text-left font-medium">Requested Quantity</th>
+                <th className="px-4 py-2 text-left font-medium">Unit</th>
+                <th className="px-4 py-2 text-left font-medium">Equipment Number</th>
+              </>
+            ) : (
+              <>
+                <th className="px-4 py-2 text-left font-medium">NAC Code</th>
+                <th className="px-4 py-2 text-left font-medium">Item Name</th>
+                <th className="px-4 py-2 text-left font-medium">Part Number</th>
+                <th className="px-4 py-2 text-left font-medium">Equipment Number</th>
+                <th className="px-4 py-2 text-left font-medium">Location</th>
+                <th className="px-4 py-2 text-left font-medium">Card Number</th>
+                <th className="px-4 py-2 text-left font-medium">Current Balance</th>
+              </>
+            )}
+          </tr>
+        </thead>
+        <tbody className="divide-y">
+          {results.map((item) => (
+            <tr
+              key={item.id}
+              className="hover:bg-gray-50 cursor-pointer"
+              onDoubleClick={() => onRowDoubleClick(item)}
+            >
+              {'requestNumber' in item ? (
+                <>
+                  <td className="px-4 py-2">{item.requestNumber}</td>
+                  <td className="px-4 py-2">{new Date(item.requestDate).toLocaleDateString()}</td>
+                  <td className="px-4 py-2">{item.itemName}</td>
+                  <td className="px-4 py-2">{item.partNumber}</td>
+                  <td className="px-4 py-2">{item.requestedQuantity}</td>
+                  <td className="px-4 py-2">{item.unit}</td>
+                  <td className="px-4 py-2">{item.equipmentNumber}</td>
+                </>
+              ) : (
+                <>
+                  <td className="px-4 py-2">{item.nacCode}</td>
+                  <td className="px-4 py-2">{item.itemName}</td>
+                  <td className="px-4 py-2">{item.partNumber}</td>
+                  <td className="px-4 py-2">{item.equipmentNumber}</td>
+                  <td className="px-4 py-2">{item.location}</td>
+                  <td className="px-4 py-2">{item.cardNumber}</td>
+                  <td className="px-4 py-2">{item.currentBalance}</td>
+                </>
+              )}
+            </tr>
+          ))}
+        </tbody>
+      </table>
     </div>
   );
 } 

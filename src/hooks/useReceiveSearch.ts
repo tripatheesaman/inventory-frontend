@@ -1,7 +1,7 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { useDebounce } from './useDebounce';
 import { API } from '@/lib/api';
-import { SearchResult } from '@/types/search';
+import { ReceiveSearchResult } from '@/types/search';
 
 interface SearchParams {
   universal: string;
@@ -10,7 +10,7 @@ interface SearchParams {
 }
 
 export function useReceiveSearch() {
-  const [results, setResults] = useState<SearchResult[] | null>(null);
+  const [results, setResults] = useState<ReceiveSearchResult[] | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [searchParams, setSearchParams] = useState<SearchParams>({
@@ -56,31 +56,28 @@ export function useReceiveSearch() {
 
     setIsLoading(true);
     setError(null);
-    
+
     try {
       const response = await API.get('/api/receive/receivable/search', { params: currentParams });
-      
-      // Transform the response to match the expected structure
-      const transformedResults = response.data.flatMap((request: any) => 
-        request.items.map((item: any) => ({
-          id: item.id,
-          nacCode: item.nacCode,
-          itemName: item.itemName,
-          partNumber: item.partNumber,
-          equipmentNumber: item.equipmentNumber,
-          currentBalance: item.currentBalance,
-          unit: item.unit,
-          specifications: item.specifications,
-          imageUrl: item.imageUrl,
-          requestedQuantity: item.requestedQuantity,
-          previousRate: item.previousRate
-        }))
-      );
-
-      setResults(transformedResults);
+      console.log(response.data);
+      if (response.status === 200) {
+        // Transform the response data to flatten the items array
+        const transformedResults = response.data.flatMap((request: any) => 
+          request.items.map((item: any) => ({
+            ...item,
+            requestNumber: request.requestNumber,
+            requestDate: request.requestDate,
+            requestedBy: request.requestedBy,
+            approvalStatus: request.approvalStatus
+          }))
+        );
+        setResults(transformedResults);
+      } else {
+        setError('Failed to fetch results');
+        setResults(null);
+      }
     } catch (err) {
-      console.error('Search error:', err);
-      setError('Failed to fetch search results');
+      setError('An error occurred while searching');
       setResults(null);
     } finally {
       setIsLoading(false);
@@ -96,10 +93,10 @@ export function useReceiveSearch() {
   };
 
   return {
+    searchParams,
     results,
     isLoading,
     error,
-    searchParams,
     handleSearch,
     setResults,
   };
