@@ -49,6 +49,8 @@ interface ReceiveDetails {
   requestedImage: string;
   receivedImage: string;
   nacCode: string;
+  location?: string;
+  cardNumber?: string;
 }
 
 interface EditData {
@@ -113,7 +115,9 @@ export function PendingReceivesCount() {
           unit: response.data.unit,
           requestedImage: response.data.requestedImage,
           receivedImage: response.data.receivedImage,
-          nacCode: response.data.nacCode
+          nacCode: response.data.nacCode,
+          location: response.data.location,
+          cardNumber: response.data.cardNumber
         };
         setSelectedReceive(receiveData);
         setIsDetailsOpen(true);
@@ -450,6 +454,18 @@ export function PendingReceivesCount() {
                     <p className="text-sm font-medium text-gray-500">Unit</p>
                     <p className="text-base">{selectedReceive?.unit}</p>
                   </div>
+                  {selectedReceive?.location && (
+                    <div className="space-y-1">
+                      <p className="text-sm font-medium text-gray-500">Location</p>
+                      <p className="text-base">{selectedReceive.location}</p>
+                    </div>
+                  )}
+                  {selectedReceive?.cardNumber && (
+                    <div className="space-y-1">
+                      <p className="text-sm font-medium text-gray-500">Card Number</p>
+                      <p className="text-base">{selectedReceive.cardNumber}</p>
+                    </div>
+                  )}
                   <div className="space-y-1">
                     <p className="text-sm font-medium text-gray-500">Image</p>
                     <div className="mt-2">
