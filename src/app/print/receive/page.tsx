@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label';
 import { PrintReceiveResultsTable } from '@/components/print/PrintReceiveResultsTable';
 import { PrintReceivePreviewModal } from '@/components/print/PrintReceivePreviewModal';
 import { useToast } from '@/components/ui/use-toast';
+import { expandEquipmentNumbers } from '@/lib/utils/equipmentNumbers';
 
 interface ReceiveSearchParams {
   universal?: string;
@@ -91,7 +92,11 @@ export default function PrintReceivePage() {
   };
 
   const handleEquipmentSearch = (value: string) => {
-    setSearchParams(prev => ({ ...prev, equipmentNumber: value }));
+    // Expand equipment numbers for search
+    const expandedEquipmentNumbers = value
+      ? Array.from(expandEquipmentNumbers(value)).join(',')
+      : '';
+    setSearchParams(prev => ({ ...prev, equipmentNumber: expandedEquipmentNumbers }));
   };
 
   const handlePartSearch = (value: string) => {

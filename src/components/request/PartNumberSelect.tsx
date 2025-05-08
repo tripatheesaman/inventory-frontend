@@ -4,34 +4,33 @@ import { useState, useMemo } from 'react';
 import { Check, ChevronsUpDown } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
-import { normalizeEquipmentNumbers } from '@/lib/utils/equipmentNumbers';
 
-interface EquipmentSelectProps {
-  equipmentList: string;
+interface PartNumberSelectProps {
+  partNumberList: string;
   value: string;
   onChange: (value: string) => void;
   error?: string;
 }
 
-export function EquipmentSelect({ 
-  equipmentList, 
+export function PartNumberSelect({ 
+  partNumberList, 
   value, 
   onChange,
   error 
-}: EquipmentSelectProps) {
+}: PartNumberSelectProps) {
   const [open, setOpen] = useState(false);
   const [inputValue, setInputValue] = useState("");
 
   const suggestions = useMemo(() => {
-    if (!equipmentList) return [];
-    return equipmentList.split(',')
-      .map(equipment => equipment.trim())
-      .filter(equipment => equipment) // Remove empty strings
-      .map(equipment => ({
-        value: equipment,
-        label: normalizeEquipmentNumbers(equipment)
+    if (!partNumberList) return [];
+    return partNumberList.split(',')
+      .map(part => part.trim())
+      .filter(part => part) // Remove empty strings
+      .map(part => ({
+        value: part,
+        label: part
       }));
-  }, [equipmentList]);
+  }, [partNumberList]);
 
   const filteredSuggestions = useMemo(() => {
     const query = inputValue.toLowerCase();
@@ -62,7 +61,7 @@ export function EquipmentSelect({
           )}
           onClick={() => setOpen(!open)}
         >
-          {selectedItem ? selectedItem.label : "Select equipment..."}
+          {selectedItem ? selectedItem.label : "Select part number..."}
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
         {open && (
@@ -71,14 +70,14 @@ export function EquipmentSelect({
               <div className="flex w-full items-center border-b px-3">
                 <input
                   className="flex h-9 w-full rounded-md bg-transparent py-3 text-sm outline-none placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50"
-                  placeholder="Search equipment..."
+                  placeholder="Search part number..."
                   value={inputValue}
                   onChange={(e) => setInputValue(e.target.value)}
                 />
               </div>
               {filteredSuggestions.length === 0 ? (
                 <p className="p-4 text-sm text-center text-muted-foreground">
-                  No equipment found.
+                  No part numbers found.
                 </p>
               ) : (
                 <div className="max-h-[200px] overflow-y-auto">

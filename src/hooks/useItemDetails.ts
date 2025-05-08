@@ -25,7 +25,7 @@ export const useItemDetails = () => {
     lastFetchedId.current = id;
 
     try {
-      const response = await API.get(`/api/items/${id}`);
+      const response = await API.get(`/api/search/items/${id}`);
       setSelectedItem(response.data);
       setIsModalOpen(true);
     } catch (error) {

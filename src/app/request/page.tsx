@@ -19,6 +19,7 @@ import { Button } from '@/components/ui/button';
 import { v4 as uuidv4 } from 'uuid';
 import fs from 'fs';
 import path from 'path';
+import { expandEquipmentNumbers } from '@/lib/utils/equipmentNumbers';
 
 export default function RequestPage() {
   const { user } = useAuthContext();
@@ -40,6 +41,7 @@ export default function RequestPage() {
     error,
     handleSearch,
     setResults,
+    setSearchParams,
   } = useSearch();
 
   const handleRowDoubleClick = (item: SearchResult) => {
@@ -78,7 +80,7 @@ export default function RequestPage() {
     setResults((prevResults: SearchResult[] | null) => 
       prevResults?.map(result => 
         result.id === Number(item.id)
-          ? { ...result, currentBalance: result.currentBalance - item.requestQuantity }
+          ? { ...result, currentBalance: (Number(result.currentBalance) - item.requestQuantity).toString() }
           : result
       ) ?? null
     );
@@ -95,7 +97,7 @@ export default function RequestPage() {
       setResults((prevResults: SearchResult[] | null) => 
         prevResults?.map(result => 
           result.id === Number(removedItem.id)
-            ? { ...result, currentBalance: result.currentBalance + removedItem.requestQuantity }
+            ? { ...result, currentBalance: (Number(result.currentBalance) + removedItem.requestQuantity).toString() }
             : result
         ) ?? null
       );
@@ -119,7 +121,7 @@ export default function RequestPage() {
       setResults((prevResults: SearchResult[] | null) => 
         prevResults?.map(result => 
           result.id === Number(deletedItem.id)
-            ? { ...result, currentBalance: result.currentBalance + deletedItem.requestQuantity }
+            ? { ...result, currentBalance: (Number(result.currentBalance) + deletedItem.requestQuantity).toString() }
             : result
         ) ?? null
       );

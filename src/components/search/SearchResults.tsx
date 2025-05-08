@@ -2,6 +2,7 @@
 
 import { SearchResult, ReceiveSearchResult } from '@/types/search';
 import { Spinner } from '@/components/ui/spinner';
+import { normalizeEquipmentNumbers } from '@/lib/utils/equipmentNumbers';
 
 interface SearchResultsProps {
   results: (SearchResult | ReceiveSearchResult)[] | null;
@@ -74,29 +75,29 @@ export function SearchResults({
             )}
           </tr>
         </thead>
-        <tbody className="divide-y">
+        <tbody>
           {results.map((item) => (
             <tr
               key={item.id}
-              className="hover:bg-gray-50 cursor-pointer"
+              className="border-b hover:bg-gray-50 cursor-pointer"
               onDoubleClick={() => onRowDoubleClick(item)}
             >
               {'requestNumber' in item ? (
                 <>
                   <td className="px-4 py-2">{item.requestNumber}</td>
-                  <td className="px-4 py-2">{new Date(item.requestDate).toLocaleDateString()}</td>
+                  <td className="px-4 py-2">{item.requestDate}</td>
                   <td className="px-4 py-2">{item.itemName}</td>
                   <td className="px-4 py-2">{item.partNumber}</td>
                   <td className="px-4 py-2">{item.requestedQuantity}</td>
                   <td className="px-4 py-2">{item.unit}</td>
-                  <td className="px-4 py-2">{item.equipmentNumber}</td>
+                  <td className="px-4 py-2">{normalizeEquipmentNumbers(item.equipmentNumber)}</td>
                 </>
               ) : (
                 <>
                   <td className="px-4 py-2">{item.nacCode}</td>
                   <td className="px-4 py-2">{item.itemName}</td>
                   <td className="px-4 py-2">{item.partNumber}</td>
-                  <td className="px-4 py-2">{item.equipmentNumber}</td>
+                  <td className="px-4 py-2">{normalizeEquipmentNumbers(item.equipmentNumber)}</td>
                   <td className="px-4 py-2">{item.location}</td>
                   <td className="px-4 py-2">{item.cardNumber}</td>
                   <td className="px-4 py-2">{item.currentBalance}</td>
