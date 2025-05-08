@@ -8,7 +8,8 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { RequestCartItem } from '@/types/request';
 import { SearchResult } from '@/types/search';
-import { EquipmentSelect } from '../issue/EquipmentSelect';
+import { PartNumberSelect } from './PartNumberSelect';
+import { EquipmentRangeSelect } from './EquipmentRangeSelect';
 
 interface RequestItemFormProps {
   isOpen: boolean;
@@ -172,39 +173,21 @@ export function RequestItemForm({ isOpen, onClose, item, onSubmit, isManualEntry
           )}
           <div className="space-y-2">
             <Label htmlFor="partNumber">Part Number</Label>
-            {!isManualEntry && hasPartNumbers ? (
-              <EquipmentSelect
-                equipmentList={item.partNumber}
-                value={partNumber}
-                onChange={setPartNumber}
-              />
-            ) : (
-              <Input
-                id="partNumber"
-                value={partNumber}
-                onChange={(e) => setPartNumber(e.target.value)}
-                placeholder="Enter part number"
-              />
-            )}
+            <PartNumberSelect
+              partNumberList={hasPartNumbers ? item.partNumber : ""}
+              value={partNumber}
+              onChange={(value) => setPartNumber(value)}
+              error={errors.partNumber}
+            />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="equipmentNumber">Required For (Equipment Number)</Label>
-            {!isManualEntry && hasEquipmentNumbers ? (
-              <EquipmentSelect
-                equipmentList={item.equipmentNumber}
-                value={equipmentNumber}
-                onChange={setEquipmentNumber}
-              />
-            ) : (
-              <Input
-                id="equipmentNumber"
-                value={equipmentNumber}
-                onChange={(e) => setEquipmentNumber(e.target.value)}
-                placeholder="Enter equipment number"
-                className={errors.equipmentNumber ? "border-red-500" : ""}
-              />
-            )}
-            {errors.equipmentNumber && <p className="text-sm text-red-500">{errors.equipmentNumber}</p>}
+            <Label htmlFor="equipmentNumber">Equipment Number</Label>
+            <EquipmentRangeSelect
+              equipmentList={hasEquipmentNumbers ? item.equipmentNumber : ""}
+              value={equipmentNumber}
+              onChange={(value) => setEquipmentNumber(value)}
+              error={errors.equipmentNumber}
+            />
           </div>
           <div className="space-y-2">
             <Label htmlFor="specifications">Specifications</Label>

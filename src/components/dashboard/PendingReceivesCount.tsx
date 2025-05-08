@@ -534,30 +534,41 @@ export function PendingReceivesCount() {
       </Modal>
 
       <Modal open={isRejectOpen} onOpenChange={setIsRejectOpen}>
-        <ModalContent>
+        <ModalContent className="max-w-md">
           <ModalHeader>
             <ModalTitle>Reject Receive</ModalTitle>
             <ModalDescription>
-              Please provide a reason for rejecting this receive
+              Please provide a reason for rejecting this receive.
             </ModalDescription>
           </ModalHeader>
-          <div className="space-y-4">
+          <div className="space-y-4 p-4">
             <div className="space-y-2">
               <Label htmlFor="rejectionReason">Reason for Rejection</Label>
               <Textarea
                 id="rejectionReason"
                 value={rejectionReason}
                 onChange={(e) => setRejectionReason(e.target.value)}
-                placeholder="Enter reason for rejection"
+                placeholder="Enter the reason for rejection"
                 className="min-h-[100px]"
+                required
               />
             </div>
             <div className="flex justify-end gap-2">
-              <Button variant="outline" onClick={() => setIsRejectOpen(false)}>
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setIsRejectOpen(false);
+                  setRejectionReason('');
+                }}
+              >
                 Cancel
               </Button>
-              <Button variant="destructive" onClick={handleRejectReceive}>
-                Confirm Reject
+              <Button
+                variant="destructive"
+                onClick={handleRejectReceive}
+                disabled={!rejectionReason.trim()}
+              >
+                Confirm Rejection
               </Button>
             </div>
           </div>

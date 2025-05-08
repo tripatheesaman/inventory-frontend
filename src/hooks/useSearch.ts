@@ -1,17 +1,8 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
-import { useDebounce } from './useDebounce';
+import { useDebounce } from '@/hooks/useDebounce';
 import { API } from '@/lib/api';
-
-interface SearchResult {
-  id: number;
-  nacCode: string;
-  itemName: string;
-  partNumber: string;
-  equipmentNumber: string; // Applicable For
-  currentBalance: number;
-  location: string;
-  cardNumber: string;
-}
+import { SearchResult } from '@/types/search';
+import { expandEquipmentNumbers } from '@/lib/utils/equipmentNumbers';
 
 interface SearchParams {
   universal: string;
@@ -40,6 +31,18 @@ export const useSearch = () => {
     partNumber: '',
   });
 
+  const handleSearch = useCallback((type: keyof SearchParams) => (value: string) => {
+    if (type === 'equipmentNumber') {
+      // Expand equipment numbers for search
+      const expandedEquipmentNumbers = value
+        ? Array.from(expandEquipmentNumbers(value)).join(',')
+        : '';
+      setSearchParams(prev => ({ ...prev, [type]: expandedEquipmentNumbers }));
+    } else {
+      setSearchParams(prev => ({ ...prev, [type]: value }));
+    }
+  }, []);
+
   const fetchSearchResults = useCallback(async () => {
     const currentParams = {
       universal: debouncedUniversal,
@@ -67,8 +70,16 @@ export const useSearch = () => {
     setIsLoading(true);
     setError(null);
     try {
+      // Expand equipment numbers for search
+      const expandedEquipmentNumbers = currentParams.equipmentNumber
+        ? Array.from(expandEquipmentNumbers(currentParams.equipmentNumber)).join(',')
+        : '';
+
       const response = await API.get('/api/search', {
-        params: currentParams
+        params: {
+          ...currentParams,
+          equipmentNumber: expandedEquipmentNumbers
+        }
       });
       setResults(response.data || []);
     } catch (error) {
@@ -84,10 +95,6 @@ export const useSearch = () => {
     fetchSearchResults();
   }, [fetchSearchResults]);
 
-  const handleSearch = (type: keyof SearchParams) => (value: string) => {
-    setSearchParams(prev => ({ ...prev, [type]: value }));
-  };
-
   return {
     searchParams,
     results,
@@ -95,5 +102,6 @@ export const useSearch = () => {
     error,
     handleSearch,
     setResults,
+    setSearchParams,
   };
 }; 

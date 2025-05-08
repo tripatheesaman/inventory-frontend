@@ -31,7 +31,6 @@ export function NotificationBell() {
     } catch (error) {
       console.error('Error marking notification as read:', error);
     }
-    
     // Handle navigation based on referenceType
     switch (notification.referenceType) {
       case 'request':
@@ -42,7 +41,6 @@ export function NotificationBell() {
         break;
       case 'receive':
         router.push(`/receive/${notification.referenceNumber}?notificationId=${notification.id}`);
-        break;
       default:
         break;
     }
