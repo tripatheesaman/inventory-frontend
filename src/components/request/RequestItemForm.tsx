@@ -175,19 +175,19 @@ export function RequestItemForm({ isOpen, onClose, item, onSubmit, isManualEntry
             <Label htmlFor="partNumber">Part Number</Label>
             <PartNumberSelect
               partNumberList={hasPartNumbers ? item.partNumber : ""}
-              value={partNumber}
+                value={partNumber}
               onChange={(value) => setPartNumber(value)}
               error={errors.partNumber}
-            />
+              />
           </div>
           <div className="space-y-2">
             <Label htmlFor="equipmentNumber">Equipment Number</Label>
             <EquipmentRangeSelect
               equipmentList={hasEquipmentNumbers ? item.equipmentNumber : ""}
-              value={equipmentNumber}
+                value={equipmentNumber}
               onChange={(value) => setEquipmentNumber(value)}
               error={errors.equipmentNumber}
-            />
+              />
           </div>
           <div className="space-y-2">
             <Label htmlFor="specifications">Specifications</Label>
