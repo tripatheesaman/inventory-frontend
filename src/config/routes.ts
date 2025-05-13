@@ -66,6 +66,30 @@ export const routes: RouteConfig[] = [
     title: 'Print Receive',
     permissions: ['can_print_receive'],
   },
+  {
+    path: '/rrp',
+    requiresAuth: true,
+    title: 'RRP',
+    permissions: ['can_create_rrp'],
+  },
+  {
+    path: '/rrp/new',
+    requiresAuth: true,
+    title: 'New RRP',
+    permissions: ['can_create_rrp'],
+  },
+  {
+    path: '/rrp/items',
+    requiresAuth: true,
+    title: 'RRP Items',
+    permissions: ['can_create_rrp'],
+  },
+  {
+    path: '/rrp/preview',
+    requiresAuth: true,
+    title: 'RRP Preview',
+    permissions: ['can_create_rrp'],
+  },
 ];
 
 // Helper function to get route config by path

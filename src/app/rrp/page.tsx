@@ -1,58 +1,33 @@
 'use client';
 
-import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { API } from '@/lib/api';
 import { useCustomToast } from '@/components/ui/custom-toast';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useAuthContext } from '@/context/AuthContext/AuthContext';
-import { Loader2 } from 'lucide-react';
-
-interface RRPConfig {
-  rrpTypes: string[];
-  suppliers: string[];
-  currencies: string[];
-}
+import { useRRP } from '@/hooks/useRRP';
+import { Loader2, Receipt, Globe } from 'lucide-react';
 
 export default function RRPPage() {
   const router = useRouter();
   const { user } = useAuthContext();
   const { showErrorToast } = useCustomToast();
-  const [isLoading, setIsLoading] = useState(true);
-  const [config, setConfig] = useState<RRPConfig | null>(null);
+  const { isLoading, config } = useRRP();
 
-  useEffect(() => {
-    const checkPermission = async () => {
-      if (!user?.UserInfo?.permissions?.includes('can_create_rrp')) {
-        showErrorToast({
-          title: "Access Denied",
-          message: "You don't have permission to access this page",
-          duration: 3000,
-        });
-        router.push('/dashboard');
-        return;
-      }
+  const handleCreateRRP = (type: 'local' | 'foreign') => {
+    if (!user?.UserInfo?.permissions?.includes('can_create_rrp')) {
+      showErrorToast({
+        title: "Access Denied",
+        message: "You don't have permission to access this page",
+        duration: 3000,
+      });
+      router.push('/dashboard');
+      return;
+    }
+    router.push(`/rrp/new?type=${type}`);
+  };
 
-      try {
-        const response = await API.get('/api/rrp/config');
-        setConfig(response.data);
-      } catch (error) {
-        console.error('Error fetching RRP config:', error);
-        showErrorToast({
-          title: "Error",
-          message: "Failed to load RRP configuration",
-          duration: 3000,
-        });
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    checkPermission();
-  }, [user, router, showErrorToast]);
-
-  if (isLoading) {
+  if (isLoading || !config) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <Loader2 className="h-8 w-8 animate-spin" />
@@ -60,35 +35,33 @@ export default function RRPPage() {
     );
   }
 
-  if (!config) {
-    return null;
-  }
-
   return (
     <div className="container mx-auto p-6">
-      <Card>
-        <CardHeader>
-          <CardTitle>Receiving Receipt System</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
+      <div className="max-w-4xl mx-auto">
+        <Card className="shadow-lg">
+          <CardHeader className="text-center">
+            <CardTitle className="text-2xl font-bold">Receiving Receipt System</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-4">
               <Button 
-                onClick={() => router.push('/rrp/new?type=local')}
-                className="w-full"
+                onClick={() => handleCreateRRP('local')}
+                className="h-32 flex flex-col items-center justify-center gap-4 bg-gradient-to-br from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white"
               >
-                Create Local RRP
+                <Receipt className="h-8 w-8" />
+                <span className="text-lg font-semibold">Create Local RRP</span>
               </Button>
               <Button 
-                onClick={() => router.push('/rrp/new?type=foreign')}
-                className="w-full"
+                onClick={() => handleCreateRRP('foreign')}
+                className="h-32 flex flex-col items-center justify-center gap-4 bg-gradient-to-br from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white"
               >
-                Create Foreign RRP
+                <Globe className="h-8 w-8" />
+                <span className="text-lg font-semibold">Create Foreign RRP</span>
               </Button>
             </div>
-          </div>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 } 

@@ -1,8 +1,7 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { API } from '@/lib/api';
 import { useCustomToast } from '@/components/ui/custom-toast';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -11,16 +10,10 @@ import { Label } from '@/components/ui/label';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { format } from 'date-fns';
-import { CalendarIcon, Loader2 } from 'lucide-react';
+import { CalendarIcon, Loader2, ArrowLeft } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-
-interface RRPConfig {
-  rrpTypes: string[];
-  suppliers: string[];
-  currencies: string[];
-  lastRRPDate: string;
-}
+import { useRRP } from '@/hooks/useRRP';
 
 interface RRPDates {
   rrpDate: Date | null;
@@ -33,46 +26,26 @@ export default function NewRRPPage() {
   const searchParams = useSearchParams();
   const rrpType = searchParams.get('type');
   const { showErrorToast } = useCustomToast();
-  const [isLoading, setIsLoading] = useState(true);
-  const [config, setConfig] = useState<RRPConfig | null>(null);
+  const { config, isLoading, getLocalSuppliers, getForeignSuppliers, getCurrencies } = useRRP();
+  
+  // Initialize state from URL parameters
   const [dates, setDates] = useState<RRPDates>({
-    rrpDate: null,
-    invoiceDate: null,
-    customsDate: null,
+    rrpDate: searchParams.get('rrpDate') ? new Date(searchParams.get('rrpDate')!) : null,
+    invoiceDate: searchParams.get('invoiceDate') ? new Date(searchParams.get('invoiceDate')!) : null,
+    customsDate: searchParams.get('customsDate') ? new Date(searchParams.get('customsDate')!) : null,
   });
-  const [selectedSupplier, setSelectedSupplier] = useState<string>('');
-  const [invoiceNumber, setInvoiceNumber] = useState<string>('');
-  const [poNumber, setPoNumber] = useState<string>('');
-  const [airwayBillNumber, setAirwayBillNumber] = useState<string>('');
-  const [freightCharge, setFreightCharge] = useState<string>('0');
-  const [selectedCurrency, setSelectedCurrency] = useState<string>('');
-  const [forexRate, setForexRate] = useState<string>('');
-
-  useEffect(() => {
-    const fetchConfig = async () => {
-      try {
-        const response = await API.get('/api/rrp/config');
-        setConfig(response.data);
-      } catch (error) {
-        console.error('Error fetching RRP config:', error);
-        showErrorToast({
-          title: "Error",
-          message: "Failed to load RRP configuration",
-          duration: 3000,
-        });
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchConfig();
-  }, [showErrorToast]);
+  const [selectedSupplier, setSelectedSupplier] = useState<string>(searchParams.get('supplier') || '');
+  const [invoiceNumber, setInvoiceNumber] = useState<string>(searchParams.get('invoiceNumber') || '');
+  const [poNumber, setPoNumber] = useState<string>(searchParams.get('poNumber') || '');
+  const [airwayBillNumber, setAirwayBillNumber] = useState<string>(searchParams.get('airwayBillNumber') || '');
+  const [freightCharge, setFreightCharge] = useState<string>(searchParams.get('freightCharge') || '0');
+  const [selectedCurrency, setSelectedCurrency] = useState<string>(searchParams.get('currency') || '');
+  const [forexRate, setForexRate] = useState<string>(searchParams.get('forexRate') || '');
 
   const handleDateChange = (field: keyof RRPDates, date: Date | null) => {
     setDates(prev => {
       const newDates = { ...prev, [field]: date };
       
-      // Validate dates
       if (field === 'rrpDate' && date) {
         if (newDates.invoiceDate && newDates.invoiceDate > date) {
           newDates.invoiceDate = null;
@@ -105,9 +78,7 @@ export default function NewRRPPage() {
       return;
     }
 
-    // Navigate to items selection page with all the data
     const queryParams = new URLSearchParams({
-      type: rrpType || '',
       rrpDate: dates.rrpDate.toISOString(),
       invoiceDate: dates.invoiceDate.toISOString(),
       supplier: selectedSupplier,
@@ -139,185 +110,193 @@ export default function NewRRPPage() {
 
   return (
     <div className="container mx-auto p-6">
-      <Card>
-        <CardHeader>
-          <CardTitle>Create New {rrpType === 'foreign' ? 'Foreign' : 'Local'} RRP</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-6">
-            {/* RRP Date */}
-            <div className="space-y-2">
-              <Label>RRP Date</Label>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className={cn(
-                      "w-full justify-start text-left font-normal",
-                      !dates.rrpDate && "text-muted-foreground"
-                    )}
-                  >
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {dates.rrpDate ? format(dates.rrpDate, "PPP") : "Select date"}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0">
-                  <Calendar
-                    mode="single"
-                    selected={dates.rrpDate || undefined}
-                    onSelect={(date) => handleDateChange('rrpDate', date)}
-                    disabled={(date) => date < new Date(config.lastRRPDate)}
-                    initialFocus
-                  />
-                </PopoverContent>
-              </Popover>
+      <div className="max-w-3xl mx-auto">
+        <Card className="shadow-lg">
+          <CardHeader className="space-y-4">
+            <div className="flex items-center gap-4">
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => router.back()}
+                className="hover:bg-gray-100"
+              >
+                <ArrowLeft className="h-5 w-5" />
+              </Button>
+              <CardTitle className="text-2xl font-bold">
+                Create New {rrpType === 'foreign' ? 'Foreign' : 'Local'} RRP
+              </CardTitle>
             </div>
-
-            {/* Invoice Date */}
-            <div className="space-y-2">
-              <Label>Invoice Date</Label>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className={cn(
-                      "w-full justify-start text-left font-normal",
-                      !dates.invoiceDate && "text-muted-foreground"
-                    )}
-                  >
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {dates.invoiceDate ? format(dates.invoiceDate, "PPP") : "Select date"}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0">
-                  <Calendar
-                    mode="single"
-                    selected={dates.invoiceDate || undefined}
-                    onSelect={(date) => handleDateChange('invoiceDate', date)}
-                    disabled={(date) => dates.rrpDate ? date > dates.rrpDate : false}
-                    initialFocus
-                  />
-                </PopoverContent>
-              </Popover>
-            </div>
-
-            {/* Customs Date (Foreign only) */}
-            {rrpType === 'foreign' && (
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* RRP Date */}
               <div className="space-y-2">
-                <Label>Customs Date</Label>
+                <Label>RRP Date *</Label>
                 <Popover>
                   <PopoverTrigger asChild>
                     <Button
                       variant="outline"
                       className={cn(
                         "w-full justify-start text-left font-normal",
-                        !dates.customsDate && "text-muted-foreground"
+                        !dates.rrpDate && "text-muted-foreground"
                       )}
                     >
                       <CalendarIcon className="mr-2 h-4 w-4" />
-                      {dates.customsDate ? format(dates.customsDate, "PPP") : "Select date"}
+                      {dates.rrpDate ? format(dates.rrpDate, "PPP") : "Select date"}
                     </Button>
                   </PopoverTrigger>
                   <PopoverContent className="w-auto p-0">
                     <Calendar
-                      mode="single"
-                      selected={dates.customsDate || undefined}
-                      onSelect={(date) => handleDateChange('customsDate', date)}
-                      disabled={(date) => dates.rrpDate ? date > dates.rrpDate : false}
-                      initialFocus
+                      value={dates.rrpDate || undefined}
+                      onChange={(date: Date | null) => handleDateChange('rrpDate', date)}
+                      className="rounded-md border"
                     />
                   </PopoverContent>
                 </Popover>
               </div>
-            )}
 
-            {/* Supplier Selection */}
-            <div className="space-y-2">
-              <Label>Supplier</Label>
-              <Select value={selectedSupplier} onValueChange={setSelectedSupplier}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select supplier" />
-                </SelectTrigger>
-                <SelectContent>
-                  {config.suppliers.map((supplier) => (
-                    <SelectItem key={supplier} value={supplier}>
-                      {supplier}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              {/* Invoice Date */}
+              <div className="space-y-2">
+                <Label>Invoice Date *</Label>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className={cn(
+                        "w-full justify-start text-left font-normal",
+                        !dates.invoiceDate && "text-muted-foreground"
+                      )}
+                    >
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {dates.invoiceDate ? format(dates.invoiceDate, "PPP") : "Select date"}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0">
+                    <Calendar
+                      value={dates.invoiceDate || undefined}
+                      onChange={(date: Date | null) => handleDateChange('invoiceDate', date)}
+                      className="rounded-md border"
+                    />
+                  </PopoverContent>
+                </Popover>
+              </div>
+
+              {/* Customs Date (Foreign only) */}
+              {rrpType === 'foreign' && (
+                <div className="space-y-2">
+                  <Label>Customs Date *</Label>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className={cn(
+                          "w-full justify-start text-left font-normal",
+                          !dates.customsDate && "text-muted-foreground"
+                        )}
+                      >
+                        <CalendarIcon className="mr-2 h-4 w-4" />
+                        {dates.customsDate ? format(dates.customsDate, "PPP") : "Select date"}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0">
+                      <Calendar
+                        value={dates.customsDate || undefined}
+                        onChange={(date: Date | null) => handleDateChange('customsDate', date)}
+                        className="rounded-md border"
+                      />
+                    </PopoverContent>
+                  </Popover>
+                </div>
+              )}
+
+              {/* Supplier Selection */}
+              <div className="space-y-2">
+                <Label>Supplier *</Label>
+                <Select value={selectedSupplier} onValueChange={setSelectedSupplier}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select supplier" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {(rrpType === 'foreign' ? getForeignSuppliers() : getLocalSuppliers()).map((supplier) => (
+                      <SelectItem key={supplier} value={supplier}>
+                        {supplier}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Invoice Number */}
+              <div className="space-y-2">
+                <Label>Invoice Number *</Label>
+                <Input
+                  value={invoiceNumber}
+                  onChange={(e) => setInvoiceNumber(e.target.value)}
+                  placeholder="Enter invoice number"
+                />
+              </div>
+
+              {/* Foreign RRP specific fields */}
+              {rrpType === 'foreign' && (
+                <>
+                  <div className="space-y-2">
+                    <Label>PO Number *</Label>
+                    <Input
+                      value={poNumber}
+                      onChange={(e) => setPoNumber(e.target.value)}
+                      placeholder="Enter PO number"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label>Airway Bill Number *</Label>
+                    <Input
+                      value={airwayBillNumber}
+                      onChange={(e) => setAirwayBillNumber(e.target.value)}
+                      placeholder="Enter airway bill number"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label>Freight Charge</Label>
+                    <Input
+                      type="number"
+                      value={freightCharge}
+                      onChange={(e) => setFreightCharge(e.target.value)}
+                      placeholder="Enter freight charge"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label>Currency *</Label>
+                    <Select value={selectedCurrency} onValueChange={setSelectedCurrency}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select currency" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {getCurrencies().map((currency) => (
+                          <SelectItem key={currency} value={currency}>
+                            {currency}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label>Forex Rate *</Label>
+                    <Input
+                      type="number"
+                      value={forexRate}
+                      onChange={(e) => setForexRate(e.target.value)}
+                      placeholder="Enter forex rate"
+                    />
+                  </div>
+                </>
+              )}
             </div>
 
-            {/* Invoice Number */}
-            <div className="space-y-2">
-              <Label>Invoice Number</Label>
-              <Input
-                value={invoiceNumber}
-                onChange={(e) => setInvoiceNumber(e.target.value)}
-                placeholder="Enter invoice number"
-              />
-            </div>
-
-            {/* Foreign RRP specific fields */}
-            {rrpType === 'foreign' && (
-              <>
-                <div className="space-y-2">
-                  <Label>PO Number</Label>
-                  <Input
-                    value={poNumber}
-                    onChange={(e) => setPoNumber(e.target.value)}
-                    placeholder="Enter PO number"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label>Airway Bill Number</Label>
-                  <Input
-                    value={airwayBillNumber}
-                    onChange={(e) => setAirwayBillNumber(e.target.value)}
-                    placeholder="Enter airway bill number"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label>Freight Charge</Label>
-                  <Input
-                    type="number"
-                    value={freightCharge}
-                    onChange={(e) => setFreightCharge(e.target.value)}
-                    placeholder="Enter freight charge"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label>Currency</Label>
-                  <Select value={selectedCurrency} onValueChange={setSelectedCurrency}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select currency" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {config.currencies.map((currency) => (
-                        <SelectItem key={currency} value={currency}>
-                          {currency}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="space-y-2">
-                  <Label>Forex Rate</Label>
-                  <Input
-                    type="number"
-                    value={forexRate}
-                    onChange={(e) => setForexRate(e.target.value)}
-                    placeholder="Enter forex rate"
-                  />
-                </div>
-              </>
-            )}
-
-            <div className="flex justify-end space-x-4">
+            <div className="flex justify-end space-x-4 mt-8">
               <Button variant="outline" onClick={() => router.back()}>
                 Cancel
               </Button>
@@ -325,9 +304,9 @@ export default function NewRRPPage() {
                 Next
               </Button>
             </div>
-          </div>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 } 
