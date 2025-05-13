@@ -1,4 +1,4 @@
-export type IconName = 'home' | 'log-in' | 'log-out' | 'file-text' | 'search' | 'request' | 'printer';
+export type IconName = 'home' | 'log-in' | 'log-out' | 'file-text' | 'search' | 'request' | 'printer' | 'receipt';
 
 interface SubmenuItem {
   label: string;
@@ -44,6 +44,12 @@ export const sidebarLinks: SidebarLink[] = [
     href: "/issue", 
     icon: 'log-out',
     permission: 'issue_items'
+  },
+  {
+    label: "RRP",
+    href: "/rrp",
+    icon: 'receipt',
+    permission: 'can_create_rrp'
   },
   {
     label: "Reports",

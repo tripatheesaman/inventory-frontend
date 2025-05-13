@@ -1,4 +1,4 @@
-import { Home, LogIn, LogOut, FileText, Search, ClipboardList, Printer } from "lucide-react";
+import { Home, LogIn, LogOut, FileText, Search, ClipboardList, Printer, Receipt } from "lucide-react";
 import { IconName } from "./sidebarConfig";
 
 interface SidebarIconProps {
@@ -15,6 +15,7 @@ export const SidebarIcon = ({ name, size = 20 }: SidebarIconProps) => {
     'search': <Search size={size} />,
     'request': <ClipboardList size={size} />,
     'printer': <Printer size={size} />,
+    'receipt': <Receipt size={size} />,
   };
 
   return icons[name];
