@@ -57,8 +57,8 @@ interface CartItem extends Omit<RRPItem, 'received_quantity'> {
   customsCharge?: number;
   total: number;
   rrp_date: string;
-  currency?: string;
-  forex_rate?: number;
+  currency: string;
+  forex_rate: number;
 }
 
 export default function RRPItemsPage() {
@@ -75,11 +75,23 @@ export default function RRPItemsPage() {
     equipmentNumber: '',
     universal: '',
   });
-  const [cart, setCart] = useState<CartItem[]>([]);
+  const [cart, setCart] = useState<CartItem[]>(() => {
+    try {
+      const cartData = searchParams.get('cart');
+      return cartData ? JSON.parse(decodeURIComponent(cartData)) : [];
+    } catch (error) {
+      console.error('Error parsing cart data:', error);
+      return [];
+    }
+  });
   const [selectedItem, setSelectedItem] = useState<CartItem | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const rrpType = searchParams.get('type');
+  const rrpType = searchParams.get('type') || 'local';
   const rrpDate = searchParams.get('rrpDate');
+
+  useEffect(() => {
+    console.log('Current RRP Type:', rrpType);
+  }, [rrpType]);
 
   useEffect(() => {
     const fetchItems = async () => {
@@ -116,30 +128,57 @@ export default function RRPItemsPage() {
   }, [searchQueries, items]);
 
   const handleItemDoubleClick = (item: RRPItem) => {
+    const isForeign = rrpType === 'foreign';
+    console.log('RRP Type:', rrpType, 'Is Foreign:', isForeign);
     const cartItem: CartItem = {
       ...item,
       price: 0,
       quantity: parseInt(item.received_quantity),
       vat: false,
+      customsCharge: isForeign ? 0 : undefined,
       total: 0,
       rrp_date: rrpDate || new Date().toISOString(),
-      currency: searchParams.get('currency') || undefined,
-      forex_rate: searchParams.get('forexRate') ? parseFloat(searchParams.get('forexRate')!) : undefined,
+      currency: isForeign ? searchParams.get('currency') || 'USD' : 'NPR',
+      forex_rate: isForeign ? parseFloat(searchParams.get('forexRate') || '1') : 1,
     };
     setSelectedItem(cartItem);
     setIsDialogOpen(true);
   };
 
   const handleAddToCart = (item: CartItem, price: number, quantity: number, vat: boolean, customsCharge?: number) => {
+    const isForeign = rrpType === 'foreign';
+    
+    if (isForeign && (!customsCharge || customsCharge <= 0)) {
+      showErrorToast({
+        title: "Validation Error",
+        message: "Customs charge is required for foreign RRP",
+        duration: 3000,
+      });
+      return;
+    }
+
+    // Check if item already exists in cart
+    const existingItemIndex = cart.findIndex(cartItem => cartItem.id === item.id);
+    if (existingItemIndex !== -1) {
+      showErrorToast({
+        title: "Validation Error",
+        message: "This item is already in the cart",
+        duration: 3000,
+      });
+      return;
+    }
+
     const total = price * quantity * (vat ? 1.15 : 1) + (customsCharge || 0);
     const cartItem: CartItem = {
       ...item,
       price,
       quantity,
       vat,
-      customsCharge,
+      customsCharge: isForeign ? customsCharge : undefined,
       total,
       rrp_date: rrpDate || new Date().toISOString(),
+      currency: isForeign ? item.currency : 'NPR',
+      forex_rate: isForeign ? item.forex_rate : 1,
     };
 
     setCart(prev => [...prev, cartItem]);
@@ -167,22 +206,9 @@ export default function RRPItemsPage() {
     }
 
     try {
-      const rrpData = {
-        type: rrpType,
-        ...Object.fromEntries(searchParams.entries()),
-        rrp_prepared_by: user?.UserInfo?.username,
-        items: cart.map(item => ({
-          receive_id: item.id,
-          price: item.price,
-          quantity: item.quantity,
-          vat: item.vat,
-          customs_charge: item.customsCharge,
-          equipment_number: item.equipment_number.replace(/\s+/g, ''),
-        })),
-      };
-
-      await API.post('/api/rrp', rrpData);
-      router.push('/rrp/preview');
+      const params = new URLSearchParams(searchParams);
+      params.set('cart', encodeURIComponent(JSON.stringify(cart)));
+      router.push(`/rrp/preview?${params.toString()}`);
     } catch (error) {
       console.error('Error submitting RRP:', error);
       showErrorToast({
@@ -204,6 +230,11 @@ export default function RRPItemsPage() {
     // Ensure type parameter is included
     if (!currentParams.has('type')) {
       currentParams.set('type', rrpType || 'local');
+    }
+
+    // Preserve cart data
+    if (cart.length > 0) {
+      currentParams.set('cart', encodeURIComponent(JSON.stringify(cart)));
     }
     
     router.push(`/rrp/new?${currentParams.toString()}`);
@@ -398,6 +429,7 @@ export default function RRPItemsPage() {
               cart={cart}
               rrpDate={rrpDate || new Date().toISOString()}
               supplier={searchParams.get('supplier') || ''}
+              inspectionUser={searchParams.get('inspectionUser') || ''}
               invoiceDate={searchParams.get('invoiceDate') || ''}
               invoiceNumber={searchParams.get('invoiceNumber') || ''}
               airwayBillNumber={searchParams.get('airwayBillNumber') || undefined}
@@ -435,7 +467,7 @@ export default function RRPItemsPage() {
           <DialogContent className="sm:max-w-[425px]">
             <DialogHeader>
               <DialogTitle>
-                {selectedItem ? 'Edit Item' : 'Add Item'}
+                {selectedItem ? 'Edit Item' : 'Add Item'} ({rrpType === 'foreign' ? 'Foreign' : 'Local'} RRP)
               </DialogTitle>
             </DialogHeader>
             {selectedItem && (
@@ -473,14 +505,15 @@ export default function RRPItemsPage() {
                 {rrpType === 'foreign' && (
                   <>
                     <div className="space-y-2">
-                      <Label>Customs Charge</Label>
+                      <Label>Customs Charge *</Label>
                       <Input
                         type="number"
-                        defaultValue={selectedItem.customsCharge}
+                        defaultValue={selectedItem.customsCharge || 0}
                         onChange={(e) => setSelectedItem({
                           ...selectedItem,
                           customsCharge: parseFloat(e.target.value)
                         })}
+                        required
                       />
                     </div>
                     <div className="space-y-2">
@@ -527,6 +560,14 @@ export default function RRPItemsPage() {
                   <Button
                     onClick={() => {
                       if (selectedItem) {
+                        if (rrpType === 'foreign' && (!selectedItem.customsCharge || selectedItem.customsCharge <= 0)) {
+                          showErrorToast({
+                            title: "Validation Error",
+                            message: "Customs charge is required for foreign RRP",
+                            duration: 3000,
+                          });
+                          return;
+                        }
                         handleAddToCart(
                           selectedItem,
                           selectedItem.price,

@@ -8,6 +8,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Loader2, ArrowLeft } from 'lucide-react';
 import RRPPreview from '@/components/rrp/RRPPreview';
+import { useRRP } from '@/hooks/useRRP';
+import { useAuthContext } from '@/context/AuthContext/AuthContext';
 
 interface CartItem {
   id: number;
@@ -22,38 +24,76 @@ interface CartItem {
   price: number;
   vat: boolean;
   customsCharge?: number;
+  currency: string;
+  forex_rate: number;
 }
 
 export default function RRPPreviewPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { showErrorToast } = useCustomToast();
-  const [isLoading, setIsLoading] = useState(true);
-  const [cart, setCart] = useState<CartItem[]>([]);
-
-  useEffect(() => {
-    const fetchCart = async () => {
-      try {
-        const response = await API.get('/api/rrp/cart');
-        setCart(response.data);
-      } catch (error) {
-        console.error('Error fetching RRP cart:', error);
-        showErrorToast({
-          title: "Error",
-          message: "Failed to load RRP cart",
-          duration: 3000,
-        });
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchCart();
-  }, [showErrorToast]);
+  const { config } = useRRP();
+  const { user } = useAuthContext();
+  const [isLoading, setIsLoading] = useState(false);
+  const [cart, setCart] = useState<CartItem[]>(() => {
+    try {
+      const cartData = searchParams.get('cart');
+      return cartData ? JSON.parse(decodeURIComponent(cartData)) : [];
+    } catch (error) {
+      console.error('Error parsing cart data:', error);
+      return [];
+    }
+  });
 
   const handleSubmit = async () => {
     try {
-      await API.post('/api/rrp/submit');
+      // Prepare cart items with required details
+      const formattedCart = cart.map(item => ({
+        receive_id: item.id,
+        price: item.price, // Original price before conversion
+        vat_status: item.vat,
+        customs_charge: item.customsCharge || 0,
+        quantity: item.quantity,
+        unit: item.unit,
+        nac_code: item.nac_code,
+        item_name: item.item_name,
+        part_number: item.part_number,
+        equipment_number: item.equipment_number,
+        request_number: item.request_number,
+        request_date: item.request_date,
+        currency: item.currency,
+        forex_rate: item.forex_rate
+      }));
+
+      const submissionData = {
+        // Common details
+        type: searchParams.get('type') || 'local',
+        rrp_date: searchParams.get('rrpDate'),
+        invoice_date: searchParams.get('invoiceDate'),
+        supplier: searchParams.get('supplier'),
+        inspection_user: searchParams.get('inspectionUser'),
+        invoice_number: searchParams.get('invoiceNumber'),
+        freight_charge: parseFloat(searchParams.get('freightCharge') || '0'),
+        custom_service_charge: searchParams.get('type') === 'foreign' ? (config?.customServiceCharge || 565) : 0,
+        vat_rate: config?.vat_rate || 0,
+        created_by: user?.UserInfo?.username || 'Unknown User',
+
+        // Foreign RRP specific details
+        ...(searchParams.get('type') === 'foreign' && {
+          customs_date: searchParams.get('customsDate'),
+          po_number: searchParams.get('poNumber'),
+          airway_bill_number: searchParams.get('airwayBillNumber'),
+          currency: searchParams.get('currency'),
+          forex_rate: parseFloat(searchParams.get('forexRate') || '1')
+        }),
+
+        // Cart items
+        items: formattedCart
+      };
+      
+      console.log('Submission Data:', submissionData);
+      
+      await API.post('/api/rrp/create', submissionData);
       showErrorToast({
         title: "Success",
         message: "RRP submitted successfully",
@@ -85,7 +125,11 @@ export default function RRPPreviewPage() {
           <Button
             variant="ghost"
             size="icon"
-            onClick={() => router.back()}
+            onClick={() => {
+              const params = new URLSearchParams(searchParams);
+              params.set('cart', encodeURIComponent(JSON.stringify(cart)));
+              router.push(`/rrp/items?${params.toString()}`);
+            }}
             className="hover:bg-gray-100"
           >
             <ArrowLeft className="h-5 w-5" />
@@ -97,13 +141,14 @@ export default function RRPPreviewPage() {
           cart={cart}
           rrpDate={searchParams.get('rrpDate') || new Date().toISOString()}
           supplier={searchParams.get('supplier') || ''}
+          inspectionUser={searchParams.get('inspectionUser') || ''}
           invoiceDate={searchParams.get('invoiceDate') || ''}
           invoiceNumber={searchParams.get('invoiceNumber') || ''}
           airwayBillNumber={searchParams.get('airwayBillNumber') || undefined}
           poNumber={searchParams.get('poNumber') || undefined}
           freightCharge={parseFloat(searchParams.get('freightCharge') || '0')}
           forexRate={parseFloat(searchParams.get('forexRate') || '1')}
-          currency={searchParams.get('currency') || 'LKR'}
+          currency={searchParams.get('currency') || (searchParams.get('type') === 'foreign' ? 'USD' : 'NPR')}
           onInvoiceDateChange={(date) => {
             if (date) {
               const params = new URLSearchParams(searchParams);
