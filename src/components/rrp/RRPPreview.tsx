@@ -24,6 +24,7 @@ interface RRPPreviewProps {
   cart: CartItem[];
   rrpDate: string;
   supplier: string;
+  inspectionUser: string;
   invoiceDate: string;
   invoiceNumber: string;
   airwayBillNumber?: string;
@@ -50,12 +51,15 @@ interface CartItem {
   price: number;
   vat: boolean;
   customsCharge?: number;
+  forex_rate?: number;
+  currency: string;
 }
 
 export default function RRPPreview({
   cart,
   rrpDate,
   supplier,
+  inspectionUser,
   invoiceDate,
   invoiceNumber,
   airwayBillNumber,
@@ -69,27 +73,62 @@ export default function RRPPreview({
   onPoNumberChange,
 }: RRPPreviewProps) {
   const { config } = useRRP();
-  const vatRate = 15; // Hardcoded VAT rate of 15%
+  const vatRate = config?.vat_rate || 0;
+  const customServiceCharge = config?.customServiceCharge || 565; // Default to 565 if not found in config
+  const isForeign = currency !== 'NPR';
 
   // Calculate totals and distribute freight charge
   const calculateTotals = () => {
-    const totalItemPrice = cart.reduce((sum, item) => sum + (item.price * forexRate), 0);
+    // Ensure cart is an array and has items
+    if (!Array.isArray(cart) || cart.length === 0) {
+      return {
+        rows: [],
+        totals: {
+          itemPrice: 0,
+          freightCharge: 0,
+          customsCharge: 0,
+          customServiceCharge: 0,
+          vat: 0,
+          total: 0,
+        },
+      };
+    }
+
+    const totalItemPrice = cart.reduce((sum, item) => {
+      const itemPrice = item.price * (item.forex_rate || 1);
+      return sum + itemPrice;
+    }, 0);
+
+    // Calculate freight charge per item based on price proportion
     const freightChargePerItem = totalItemPrice > 0 
-      ? cart.map(item => (item.price * forexRate / totalItemPrice) * freightCharge)
+      ? cart.map(item => {
+          const itemPrice = item.price * (item.forex_rate || 1);
+          return (itemPrice / totalItemPrice) * freightCharge * (item.forex_rate || 1);
+        })
       : cart.map(() => freightCharge / cart.length);
 
+    // Calculate customs service charge per item based on price proportion (only for foreign RRP)
+    const customServiceChargePerItem = isForeign && totalItemPrice > 0
+      ? cart.map(item => {
+          const itemPrice = item.price * (item.forex_rate || 1);
+          return (itemPrice / totalItemPrice) * customServiceCharge * (item.forex_rate || 1);
+        })
+      : cart.map(() => 0);
+
     const rows = cart.map((item, index) => {
-      const itemPrice = item.price * forexRate;
+      const itemPrice = item.price * (item.forex_rate || 1);
       const itemFreightCharge = freightChargePerItem[index];
       const itemCustomsCharge = item.customsCharge || 0;
-      const itemVat = item.vat ? (itemPrice + itemFreightCharge + itemCustomsCharge) * (vatRate / 100) : 0;
-      const total = itemPrice + itemFreightCharge + itemCustomsCharge + itemVat;
+      const itemCustomServiceCharge = customServiceChargePerItem[index];
+      const itemVat = item.vat ? (itemPrice + itemFreightCharge + itemCustomsCharge + itemCustomServiceCharge) * (vatRate / 100) : 0;
+      const total = itemPrice + itemFreightCharge + itemCustomsCharge + itemCustomServiceCharge + itemVat;
 
       return {
         ...item,
         itemPrice,
         itemFreightCharge,
         itemCustomsCharge,
+        itemCustomServiceCharge,
         itemVat,
         total,
       };
@@ -99,12 +138,14 @@ export default function RRPPreview({
       itemPrice: acc.itemPrice + row.itemPrice,
       freightCharge: acc.freightCharge + row.itemFreightCharge,
       customsCharge: acc.customsCharge + row.itemCustomsCharge,
+      customServiceCharge: acc.customServiceCharge + row.itemCustomServiceCharge,
       vat: acc.vat + row.itemVat,
       total: acc.total + row.total,
     }), {
       itemPrice: 0,
       freightCharge: 0,
       customsCharge: 0,
+      customServiceCharge: 0,
       vat: 0,
       total: 0,
     });
@@ -115,8 +156,17 @@ export default function RRPPreview({
   const { rows, totals } = calculateTotals();
 
   // Get unique request numbers and dates
-  const requestNumbers = [...new Set(cart.map(item => item.request_number))].join(', ');
-  const requestDates = [...new Set(cart.map(item => item.request_date))].join(', ');
+  const requestNumbers = Array.isArray(cart) && cart.length > 0 
+    ? [...new Set(cart.map(item => item.request_number))].join(', ')
+    : '';
+  const requestDates = Array.isArray(cart) && cart.length > 0
+    ? [...new Set(cart.map(item => item.request_date))].join(', ')
+    : '';
+
+  // Get the currency and forex rate from the first item (they should all be the same)
+  const chosenCurrency = Array.isArray(cart) && cart.length > 0 ? cart[0].currency : currency;
+  const displayCurrency = "NPR";
+  const displayForexRate = Array.isArray(cart) && cart.length > 0 ? cart[0].forex_rate : forexRate;
 
   return (
     <div className="space-y-6">
@@ -128,6 +178,9 @@ export default function RRPPreview({
               <div className="mt-2 space-y-1">
                 <p><span className="font-semibold">RRP Date:</span> {new Date(rrpDate).toLocaleDateString()}</p>
                 <p><span className="font-semibold">Supplier:</span> {supplier}</p>
+                <p><span className="font-semibold">Inspection User:</span> {inspectionUser}</p>
+                <p><span className="font-semibold">Currency:</span> {chosenCurrency}</p>
+                {displayForexRate !== 1 && <p><span className="font-semibold">Forex Rate:</span> {displayForexRate}</p>}
               </div>
             </div>
           </div>
@@ -143,6 +196,7 @@ export default function RRPPreview({
                 <TableHead>Unit</TableHead>
                 <TableHead className="text-right">Item Price</TableHead>
                 <TableHead className="text-right">Customs Charge</TableHead>
+                {isForeign && <TableHead className="text-right">Custom Service</TableHead>}
                 <TableHead className="text-right">Freight Charge</TableHead>
                 <TableHead className="text-right">VAT</TableHead>
                 <TableHead className="text-right">Total</TableHead>
@@ -156,20 +210,22 @@ export default function RRPPreview({
                   <TableCell>{row.part_number}</TableCell>
                   <TableCell className="text-right">{row.quantity}</TableCell>
                   <TableCell>{row.unit}</TableCell>
-                  <TableCell className="text-right">{row.itemPrice.toFixed(2)} {currency}</TableCell>
-                  <TableCell className="text-right">{row.itemCustomsCharge.toFixed(2)} {currency}</TableCell>
-                  <TableCell className="text-right">{row.itemFreightCharge.toFixed(2)} {currency}</TableCell>
-                  <TableCell className="text-right">{row.itemVat.toFixed(2)} {currency}</TableCell>
-                  <TableCell className="text-right">{row.total.toFixed(2)} {currency}</TableCell>
+                  <TableCell className="text-right">{displayCurrency} {row.itemPrice.toFixed(2)}</TableCell>
+                  <TableCell className="text-right">{displayCurrency} {row.itemCustomsCharge.toFixed(2)}</TableCell>
+                  {isForeign && <TableCell className="text-right">{displayCurrency} {row.itemCustomServiceCharge.toFixed(2)}</TableCell>}
+                  <TableCell className="text-right">{displayCurrency} {row.itemFreightCharge.toFixed(2)}</TableCell>
+                  <TableCell className="text-right">{displayCurrency} {row.itemVat.toFixed(2)}</TableCell>
+                  <TableCell className="text-right">{displayCurrency} {row.total.toFixed(2)}</TableCell>
                 </TableRow>
               ))}
               <TableRow className="font-bold">
                 <TableCell colSpan={5}>Total</TableCell>
-                <TableCell className="text-right">{totals.itemPrice.toFixed(2)} {currency}</TableCell>
-                <TableCell className="text-right">{totals.customsCharge.toFixed(2)} {currency}</TableCell>
-                <TableCell className="text-right">{totals.freightCharge.toFixed(2)} {currency}</TableCell>
-                <TableCell className="text-right">{totals.vat.toFixed(2)} {currency}</TableCell>
-                <TableCell className="text-right">{totals.total.toFixed(2)} {currency}</TableCell>
+                <TableCell className="text-right">{displayCurrency} {totals.itemPrice.toFixed(2)}</TableCell>
+                <TableCell className="text-right">{displayCurrency} {totals.customsCharge.toFixed(2)}</TableCell>
+                {isForeign && <TableCell className="text-right">{displayCurrency} {totals.customServiceCharge.toFixed(2)}</TableCell>}
+                <TableCell className="text-right">{displayCurrency} {totals.freightCharge.toFixed(2)}</TableCell>
+                <TableCell className="text-right">{displayCurrency} {totals.vat.toFixed(2)}</TableCell>
+                <TableCell className="text-right">{displayCurrency} {totals.total.toFixed(2)}</TableCell>
               </TableRow>
             </TableBody>
           </Table>

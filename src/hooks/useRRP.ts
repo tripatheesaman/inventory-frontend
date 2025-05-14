@@ -12,6 +12,8 @@ interface RRPConfig {
   supplier_list_foreign: string;
   currency_list: string;
   inspection_user_details: InspectionUser[];
+  vat_rate: number;
+  customServiceCharge: number;
 }
 
 export function useRRP() {
@@ -24,6 +26,7 @@ export function useRRP() {
     if (!configLoadedRef.current) {
       try {
         const response = await API.get('/api/rrp/config');
+        console.log('RRP Config:', response.data);
         setConfig(response.data);
         configLoadedRef.current = true;
       } catch (error) {

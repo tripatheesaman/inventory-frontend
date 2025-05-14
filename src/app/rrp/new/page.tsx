@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useCustomToast } from '@/components/ui/custom-toast';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -24,10 +24,14 @@ interface RRPDates {
 export default function NewRRPPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const rrpType = searchParams.get('type');
+  const rrpType = searchParams.get('type') || 'local';
   const { showErrorToast } = useCustomToast();
   const { config, isLoading, getLocalSuppliers, getForeignSuppliers, getCurrencies } = useRRP();
   
+  useEffect(() => {
+    console.log('New RRP page - RRP Type:', rrpType); // Debug log
+  }, [rrpType]);
+
   // Initialize state from URL parameters
   const [dates, setDates] = useState<RRPDates>({
     rrpDate: searchParams.get('rrpDate') ? new Date(searchParams.get('rrpDate')!) : null,
@@ -35,6 +39,7 @@ export default function NewRRPPage() {
     customsDate: searchParams.get('customsDate') ? new Date(searchParams.get('customsDate')!) : null,
   });
   const [selectedSupplier, setSelectedSupplier] = useState<string>(searchParams.get('supplier') || '');
+  const [selectedInspectionUser, setSelectedInspectionUser] = useState<string>(searchParams.get('inspectionUser') || '');
   const [invoiceNumber, setInvoiceNumber] = useState<string>(searchParams.get('invoiceNumber') || '');
   const [poNumber, setPoNumber] = useState<string>(searchParams.get('poNumber') || '');
   const [airwayBillNumber, setAirwayBillNumber] = useState<string>(searchParams.get('airwayBillNumber') || '');
@@ -60,7 +65,7 @@ export default function NewRRPPage() {
   };
 
   const handleNext = () => {
-    if (!dates.rrpDate || !dates.invoiceDate || !selectedSupplier || !invoiceNumber) {
+    if (!dates.rrpDate || !dates.invoiceDate || !selectedSupplier || !invoiceNumber || !selectedInspectionUser) {
       showErrorToast({
         title: "Validation Error",
         message: "Please fill in all required fields",
@@ -79,9 +84,11 @@ export default function NewRRPPage() {
     }
 
     const queryParams = new URLSearchParams({
+      type: rrpType || 'local',
       rrpDate: dates.rrpDate.toISOString(),
       invoiceDate: dates.invoiceDate.toISOString(),
       supplier: selectedSupplier,
+      inspectionUser: selectedInspectionUser,
       invoiceNumber,
       ...(rrpType === 'foreign' && {
         customsDate: dates.customsDate?.toISOString() || '',
@@ -220,6 +227,23 @@ export default function NewRRPPage() {
                     {(rrpType === 'foreign' ? getForeignSuppliers() : getLocalSuppliers()).map((supplier) => (
                       <SelectItem key={supplier} value={supplier}>
                         {supplier}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Inspection User Selection */}
+              <div className="space-y-2">
+                <Label>Inspection User *</Label>
+                <Select value={selectedInspectionUser} onValueChange={setSelectedInspectionUser}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select inspection user" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {config.inspection_user_details.map((user) => (
+                      <SelectItem key={user.name} value={user.name}>
+                        {user.name} - {user.designation}
                       </SelectItem>
                     ))}
                   </SelectContent>
