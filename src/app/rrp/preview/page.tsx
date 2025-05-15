@@ -31,7 +31,7 @@ interface CartItem {
 export default function RRPPreviewPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { showErrorToast } = useCustomToast();
+  const { showErrorToast, showSuccessToast } = useCustomToast();
   const { config } = useRRP();
   const { user } = useAuthContext();
   const [isLoading, setIsLoading] = useState(false);
@@ -94,7 +94,7 @@ export default function RRPPreviewPage() {
       console.log('Submission Data:', submissionData);
       
       await API.post('/api/rrp/create', submissionData);
-      showErrorToast({
+      showSuccessToast({
         title: "Success",
         message: "RRP submitted successfully",
         duration: 3000,

@@ -33,7 +33,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import RRPPreview from '@/components/rrp/RRPPreview';
 
 interface RRPItem {
   id: number;
@@ -421,47 +420,6 @@ export default function RRPItemsPage() {
             </CardContent>
           </Card>
         </div>
-
-        {/* Preview Section */}
-        {cart.length > 0 && (
-          <div className="mt-6">
-            <RRPPreview
-              cart={cart}
-              rrpDate={rrpDate || new Date().toISOString()}
-              supplier={searchParams.get('supplier') || ''}
-              inspectionUser={searchParams.get('inspectionUser') || ''}
-              invoiceDate={searchParams.get('invoiceDate') || ''}
-              invoiceNumber={searchParams.get('invoiceNumber') || ''}
-              airwayBillNumber={searchParams.get('airwayBillNumber') || undefined}
-              poNumber={searchParams.get('poNumber') || undefined}
-              freightCharge={parseFloat(searchParams.get('freightCharge') || '0')}
-              forexRate={parseFloat(searchParams.get('forexRate') || '1')}
-              currency={searchParams.get('currency') || 'LKR'}
-              onInvoiceDateChange={(date) => {
-                if (date) {
-                  const params = new URLSearchParams(searchParams);
-                  params.set('invoiceDate', date.toISOString());
-                  router.push(`/rrp/items?${params.toString()}`);
-                }
-              }}
-              onInvoiceNumberChange={(value) => {
-                const params = new URLSearchParams(searchParams);
-                params.set('invoiceNumber', value);
-                router.push(`/rrp/items?${params.toString()}`);
-              }}
-              onAirwayBillNumberChange={(value) => {
-                const params = new URLSearchParams(searchParams);
-                params.set('airwayBillNumber', value);
-                router.push(`/rrp/items?${params.toString()}`);
-              }}
-              onPoNumberChange={(value) => {
-                const params = new URLSearchParams(searchParams);
-                params.set('poNumber', value);
-                router.push(`/rrp/items?${params.toString()}`);
-              }}
-            />
-          </div>
-        )}
 
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogContent className="sm:max-w-[425px]">
