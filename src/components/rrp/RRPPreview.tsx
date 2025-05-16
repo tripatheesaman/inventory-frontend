@@ -19,6 +19,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { useRRP } from '@/hooks/useRRP';
+import { useCustomToast } from '@/components/ui/custom-toast';
 
 interface RRPPreviewProps {
   cart: CartItem[];
@@ -73,14 +74,101 @@ export default function RRPPreview({
   onPoNumberChange,
 }: RRPPreviewProps) {
   const { config } = useRRP();
+  const { showErrorToast, showSuccessToast } = useCustomToast();
   const vatRate = config?.vat_rate || 0;
   const customServiceCharge = config?.customServiceCharge || 565; // Default to 565 if not found in config
   const isForeign = currency !== 'NPR';
 
   // Calculate totals and distribute freight charge
   const calculateTotals = () => {
-    // Ensure cart is an array and has items
-    if (!Array.isArray(cart) || cart.length === 0) {
+    try {
+      // Ensure cart is an array and has items
+      if (!Array.isArray(cart) || cart.length === 0) {
+        showErrorToast({
+          title: "Error",
+          message: "Cart is empty or invalid",
+          duration: 3000,
+        });
+        return {
+          rows: [],
+          totals: {
+            itemPrice: 0,
+            freightCharge: 0,
+            customsCharge: 0,
+            customServiceCharge: 0,
+            vat: 0,
+            total: 0,
+          },
+        };
+      }
+
+      const totalItemPrice = cart.reduce((sum, item) => {
+        if (typeof item.price !== 'number' || isNaN(item.price)) {
+          throw new Error(`Invalid price for item: ${item.item_name}`);
+        }
+        const itemPrice = item.price * (item.forex_rate || 1);
+        return sum + itemPrice;
+      }, 0);
+
+      // Calculate freight charge per item based on price proportion
+      const freightChargePerItem = totalItemPrice > 0 
+        ? cart.map(item => {
+            const itemPrice = item.price * (item.forex_rate || 1);
+            return (itemPrice / totalItemPrice) * freightCharge * (item.forex_rate || 1);
+          })
+        : cart.map(() => freightCharge / cart.length);
+
+      // Calculate customs service charge per item based on price proportion (only for foreign RRP)
+      const customServiceChargePerItem = isForeign && totalItemPrice > 0
+        ? cart.map(item => {
+            const itemPrice = item.price * (item.forex_rate || 1);
+            return (itemPrice / totalItemPrice) * customServiceCharge;
+          })
+        : cart.map(() => 0);
+
+      const rows = cart.map((item, index) => {
+        const itemPrice = item.price * (item.forex_rate || 1);
+        const itemFreightCharge = freightChargePerItem[index];
+        const itemCustomsCharge = item.customsCharge || 0;
+        const itemCustomServiceCharge = customServiceChargePerItem[index];
+        const itemVat = item.vat ? (itemPrice + itemFreightCharge + itemCustomsCharge + itemCustomServiceCharge) * (vatRate / 100) : 0;
+        const total = itemPrice + itemFreightCharge + itemCustomsCharge + itemCustomServiceCharge + itemVat;
+
+        return {
+          ...item,
+          itemPrice,
+          itemFreightCharge,
+          itemCustomsCharge,
+          itemCustomServiceCharge,
+          itemVat,
+          total,
+        };
+      });
+
+      const totals = rows.reduce((acc, row) => ({
+        itemPrice: acc.itemPrice + row.itemPrice,
+        freightCharge: acc.freightCharge + row.itemFreightCharge,
+        customsCharge: acc.customsCharge + row.itemCustomsCharge,
+        customServiceCharge: acc.customServiceCharge + row.itemCustomServiceCharge,
+        vat: acc.vat + row.itemVat,
+        total: acc.total + row.total,
+      }), {
+        itemPrice: 0,
+        freightCharge: 0,
+        customsCharge: 0,
+        customServiceCharge: 0,
+        vat: 0,
+        total: 0,
+      });
+
+      return { rows, totals };
+    } catch (error) {
+      console.error('Error calculating totals:', error);
+      showErrorToast({
+        title: "Calculation Error",
+        message: error instanceof Error ? error.message : "Failed to calculate totals",
+        duration: 5000,
+      });
       return {
         rows: [],
         totals: {
@@ -93,64 +181,6 @@ export default function RRPPreview({
         },
       };
     }
-
-    const totalItemPrice = cart.reduce((sum, item) => {
-      const itemPrice = item.price * (item.forex_rate || 1);
-      return sum + itemPrice;
-    }, 0);
-
-    // Calculate freight charge per item based on price proportion
-    const freightChargePerItem = totalItemPrice > 0 
-      ? cart.map(item => {
-          const itemPrice = item.price * (item.forex_rate || 1);
-          return (itemPrice / totalItemPrice) * freightCharge * (item.forex_rate || 1);
-        })
-      : cart.map(() => freightCharge / cart.length);
-
-    // Calculate customs service charge per item based on price proportion (only for foreign RRP)
-    const customServiceChargePerItem = isForeign && totalItemPrice > 0
-      ? cart.map(item => {
-          const itemPrice = item.price * (item.forex_rate || 1);
-          return (itemPrice / totalItemPrice) * customServiceCharge * (item.forex_rate || 1);
-        })
-      : cart.map(() => 0);
-
-    const rows = cart.map((item, index) => {
-      const itemPrice = item.price * (item.forex_rate || 1);
-      const itemFreightCharge = freightChargePerItem[index];
-      const itemCustomsCharge = item.customsCharge || 0;
-      const itemCustomServiceCharge = customServiceChargePerItem[index];
-      const itemVat = item.vat ? (itemPrice + itemFreightCharge + itemCustomsCharge + itemCustomServiceCharge) * (vatRate / 100) : 0;
-      const total = itemPrice + itemFreightCharge + itemCustomsCharge + itemCustomServiceCharge + itemVat;
-
-      return {
-        ...item,
-        itemPrice,
-        itemFreightCharge,
-        itemCustomsCharge,
-        itemCustomServiceCharge,
-        itemVat,
-        total,
-      };
-    });
-
-    const totals = rows.reduce((acc, row) => ({
-      itemPrice: acc.itemPrice + row.itemPrice,
-      freightCharge: acc.freightCharge + row.itemFreightCharge,
-      customsCharge: acc.customsCharge + row.itemCustomsCharge,
-      customServiceCharge: acc.customServiceCharge + row.itemCustomServiceCharge,
-      vat: acc.vat + row.itemVat,
-      total: acc.total + row.total,
-    }), {
-      itemPrice: 0,
-      freightCharge: 0,
-      customsCharge: 0,
-      customServiceCharge: 0,
-      vat: 0,
-      total: 0,
-    });
-
-    return { rows, totals };
   };
 
   const { rows, totals } = calculateTotals();

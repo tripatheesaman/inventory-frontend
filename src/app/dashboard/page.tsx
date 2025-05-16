@@ -7,6 +7,7 @@ Purpose: Dashboard Home
 
 import { PendingRequestsCount } from '@/components/dashboard/PendingRequestsCount';
 import { PendingReceivesCount } from '@/components/dashboard/PendingReceivesCount';
+import { PendingRRPCount } from '@/components/dashboard/PendingRRPCount';
 
 export default function DashboardPage() {
   return (
@@ -16,6 +17,7 @@ export default function DashboardPage() {
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           <PendingRequestsCount />
           <PendingReceivesCount />
+          <PendingRRPCount />
         </div>
       </div>
     </div>
