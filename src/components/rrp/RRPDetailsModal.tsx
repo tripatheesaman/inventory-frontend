@@ -14,6 +14,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogFooter,
+  DialogDescription,
 } from '@/components/ui/dialog';
 import {
   Table,
@@ -32,6 +33,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { format } from 'date-fns';
+import { Trash2 } from 'lucide-react';
 
 interface RRPDetailsModalProps {
   isOpen: boolean;
@@ -55,6 +57,7 @@ interface RRPDetailsModalProps {
   onApprove: () => void;
   onReject: (reason: string) => void;
   onEdit: (data: any) => void;
+  onDeleteItem: (itemId: number) => void;
   config: {
     supplier_list_local: string;
     supplier_list_foreign: string;
@@ -92,6 +95,7 @@ export function RRPDetailsModal({
   onApprove,
   onReject,
   onEdit,
+  onDeleteItem,
   config,
 }: RRPDetailsModalProps) {
   const { getCurrencies } = useRRP();
@@ -99,6 +103,7 @@ export function RRPDetailsModal({
   const [isEditMode, setIsEditMode] = useState(false);
   const [isRejectDialogOpen, setIsRejectDialogOpen] = useState(false);
   const [rejectionReason, setRejectionReason] = useState('');
+  const [itemToDelete, setItemToDelete] = useState<number | null>(null);
   const [editData, setEditData] = useState<{
     items: EditItemData[];
     rrpNumber: string;
@@ -135,22 +140,42 @@ export function RRPDetailsModal({
     setIsEditMode(true);
   };
 
+  const handleForexRateChange = (value: number) => {
+    if (!editData) return;
+
+    // Update the forex rate for all items
+    const updatedItems = editData.items.map(item => ({
+      ...item,
+      forex_rate: value
+    }));
+
+    setEditData({
+      ...editData,
+      forexRate: value,
+      items: updatedItems
+    });
+  };
+
   const handleSaveEdit = () => {
     if (!editData) return;
 
-    // Ensure all numeric values are properly handled before sending
+    // Calculate new totals for each item
     const processedData = {
       ...editData,
-      items: editData.items.map(item => ({
-        ...item,
-        freight_charge: parseFloat(item.freight_charge?.toString() || '0') || 0,
-        customs_charge: parseFloat(item.customs_charge?.toString() || '0') || 0,
-        customs_service_charge: parseFloat(item.customs_service_charge?.toString() || '0') || 0,
-        item_price: parseFloat(item.item_price?.toString() || '0') || 0,
-        vat_percentage: parseFloat(item.vat_percentage?.toString() || '0') || 0,
-        forex_rate: parseFloat(item.forex_rate?.toString() || '1') || 1,
-        received_quantity: parseFloat(item.received_quantity?.toString() || '0') || 0
-      }))
+      items: editData.items.map(item => {
+        const itemTotals = calculateItemTotal(item);
+        return {
+          ...item,
+          freight_charge: parseFloat(item.freight_charge?.toString() || '0') || 0,
+          customs_charge: parseFloat(item.customs_charge?.toString() || '0') || 0,
+          customs_service_charge: parseFloat(item.customs_service_charge?.toString() || '0') || 0,
+          item_price: parseFloat(item.item_price?.toString() || '0') || 0,
+          vat_percentage: parseFloat(item.vat_percentage?.toString() || '0') || 0,
+          forex_rate: parseFloat(item.forex_rate?.toString() || '1') || 1,
+          received_quantity: parseFloat(item.received_quantity?.toString() || '0') || 0,
+          total_amount: itemTotals.total // Use the newly calculated total
+        };
+      })
     };
 
     onEdit(processedData);
@@ -279,6 +304,23 @@ export function RRPDetailsModal({
 
   const currentItems = editData?.items || rrpData.items;
   const totals = calculateTotals(currentItems);
+
+  const handleDeleteItem = (itemId: number) => {
+    setItemToDelete(itemId);
+  };
+
+  const confirmDeleteItem = () => {
+    if (itemToDelete !== null && editData) {
+      // Remove the item from editData
+      const updatedItems = editData.items.filter(item => item.id !== itemToDelete);
+      setEditData({
+        ...editData,
+        items: updatedItems
+      });
+      onDeleteItem(itemToDelete);
+      setItemToDelete(null);
+    }
+  };
 
   return (
     <>
@@ -481,7 +523,7 @@ export function RRPDetailsModal({
                           value={isEditMode ? editData?.forexRate?.toString() || '' : rrpData.forexRate?.toString() || ''}
                           onChange={(e) => {
                             const value = e.target.value === '' ? 1 : parseFloat(e.target.value);
-                            setEditData(prev => prev ? { ...prev, forexRate: value } : null);
+                            handleForexRateChange(value);
                           }}
                           disabled={!isEditMode}
                         />
@@ -517,6 +559,7 @@ export function RRPDetailsModal({
                         )}
                         <TableHead className="min-w-[120px] text-right">Forex Rate</TableHead>
                         <TableHead className="min-w-[120px] text-right">Total</TableHead>
+                        {isEditMode && <TableHead className="min-w-[100px] text-right">Actions</TableHead>}
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -712,10 +755,8 @@ export function RRPDetailsModal({
                                   type="number"
                                   value={editData?.items[index].forex_rate?.toString() || ''}
                                   onChange={(e) => {
-                                    const newItems = [...(editData?.items || [])];
                                     const value = e.target.value === '' ? 1 : parseFloat(e.target.value);
-                                    newItems[index] = { ...newItems[index], forex_rate: value };
-                                    setEditData(prev => prev ? { ...prev, items: newItems } : null);
+                                    handleForexRateChange(value);
                                   }}
                                   className="h-10"
                                 />
@@ -730,6 +771,18 @@ export function RRPDetailsModal({
                                 {itemTotals.total.toFixed(2)}
                               </div>
                             </TableCell>
+                            {isEditMode && (
+                              <TableCell className="py-4 text-right">
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  onClick={() => handleDeleteItem(item.id)}
+                                  className="h-8 w-8 text-destructive hover:text-destructive/90"
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              </TableCell>
+                            )}
                           </TableRow>
                         );
                       })}
@@ -829,6 +882,26 @@ export function RRPDetailsModal({
               </Button>
             </DialogFooter>
           </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={itemToDelete !== null} onOpenChange={() => setItemToDelete(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Delete Item</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to delete this item? This action cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setItemToDelete(null)}>
+              Cancel
+            </Button>
+            <Button variant="destructive" onClick={confirmDeleteItem}>
+              Delete
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </>

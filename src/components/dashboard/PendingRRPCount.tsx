@@ -81,6 +81,7 @@ export function PendingRRPCount() {
   const [isOpen, setIsOpen] = useState(false);
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
   const [pendingRRPs, setPendingRRPs] = useState<PendingRRP[]>([]);
+  const [allRRPItems, setAllRRPItems] = useState<PendingRRP[]>([]);
   const [config, setConfig] = useState<Config | null>(null);
   const [selectedRRP, setSelectedRRP] = useState<{
     items: any[];
@@ -113,23 +114,24 @@ export function PendingRRPCount() {
 
       const response = await API.get('/api/rrp/pending');
       const data = response.data as PendingRRPResponse;
-      console.log(data);
+      
       // Store config
       setConfig(data.config);
       
-      // Group items by RRP number
-      const rrpGroups = data.pendingRRPs.reduce((acc: { [key: string]: PendingRRP[] }, item: PendingRRP) => {
+      // Store all items
+      setAllRRPItems(data.pendingRRPs);
+      
+      // Create a list of unique RRPs with their first record
+      const uniqueRRPs = data.pendingRRPs.reduce((acc: { [key: string]: PendingRRP }, item: PendingRRP) => {
         if (!acc[item.rrp_number]) {
-          acc[item.rrp_number] = [];
+          acc[item.rrp_number] = item;
         }
-        acc[item.rrp_number].push(item);
         return acc;
       }, {});
-
-      setPendingRRPs(data.pendingRRPs);
-      setPendingCount(Object.keys(rrpGroups).length);
+      
+      setPendingRRPs(Object.values(uniqueRRPs));
+      setPendingCount(Object.keys(uniqueRRPs).length);
     } catch (error) {
-      console.error('Error fetching pending RRPs:', error);
       showErrorToast({
         title: "Error",
         message: "Failed to fetch pending RRPs",
@@ -141,7 +143,8 @@ export function PendingRRPCount() {
   };
 
   const handleViewDetails = (rrpNumber: string, rrpDate: string) => {
-    const rrpItems = pendingRRPs.filter(rrp => rrp.rrp_number === rrpNumber);
+    // Get all items for this RRP number from allRRPItems
+    const rrpItems = allRRPItems.filter(rrp => rrp.rrp_number === rrpNumber);
     if (rrpItems.length === 0) return;
 
     const firstItem = rrpItems[0];
@@ -183,10 +186,12 @@ export function PendingRRPCount() {
   };
 
   const handleApproveRRP = async () => {
-    if (!selectedRRP) return;
+    if (!selectedRRP || !user?.UserInfo?.username) return;
 
     try {
-      await API.post(`/api/rrp/approve/${selectedRRP.rrpNumber}`);
+      await API.post(`/api/rrp/approve/${selectedRRP.rrpNumber}`, {
+        approved_by: user.UserInfo.username
+      });
       showSuccessToast({
         title: "Success",
         message: "RRP approved successfully",
@@ -195,7 +200,6 @@ export function PendingRRPCount() {
       setIsDetailsOpen(false);
       fetchPendingCount();
     } catch (error) {
-      console.error('Error approving RRP:', error);
       showErrorToast({
         title: "Error",
         message: "Failed to approve RRP",
@@ -205,10 +209,13 @@ export function PendingRRPCount() {
   };
 
   const handleRejectRRP = async (reason: string) => {
-    if (!selectedRRP) return;
+    if (!selectedRRP || !user?.UserInfo?.username) return;
 
     try {
-      await API.post(`/api/rrp/reject/${selectedRRP.rrpNumber}`, { reason });
+      await API.post(`/api/rrp/reject/${selectedRRP.rrpNumber}`, {
+        rejected_by: user.UserInfo.username,
+        rejection_reason: reason
+      });
       showSuccessToast({
         title: "Success",
         message: "RRP rejected successfully",
@@ -217,7 +224,6 @@ export function PendingRRPCount() {
       setIsDetailsOpen(false);
       fetchPendingCount();
     } catch (error) {
-      console.error('Error rejecting RRP:', error);
       showErrorToast({
         title: "Error",
         message: "Failed to reject RRP",
@@ -230,20 +236,77 @@ export function PendingRRPCount() {
     if (!selectedRRP) return;
 
     try {
-        console.log(data);
-      await API.put(`/api/rrp/update/${selectedRRP.rrpNumber}`, data);
-      showSuccessToast({
-        title: "Success",
-        message: "RRP updated successfully",
-        duration: 3000,
-      });
-      setIsDetailsOpen(false);
-      fetchPendingCount();
+      // Transform the data to match the backend's expected format
+      const transformedData = {
+        rrp_number: data.rrpNumber,
+        date: data.rrpDate,
+        type: data.type,
+        supplier_name: data.supplier,
+        inspection_user: data.inspectionUser,
+        invoice_number: data.invoiceNumber,
+        invoice_date: data.invoiceDate,
+        freight_charge: data.freightCharge,
+        customs_date: data.customsDate,
+        po_number: data.poNumber,
+        airway_bill_number: data.airwayBillNumber,
+        currency: data.currency,
+        forex_rate: data.forexRate,
+        items: data.items.map((item: any) => ({
+          id: item.id,
+          item_name: item.item_name,
+          part_number: item.part_number,
+          nac_code: item.nac_code,
+          equipment_number: item.equipment_number,
+          received_quantity: item.received_quantity,
+          unit: item.unit,
+          item_price: item.item_price,
+          vat_percentage: item.vat_percentage,
+          customs_charge: item.customs_charge,
+          customs_service_charge: item.customs_service_charge,
+          currency: item.currency,
+          forex_rate: item.forex_rate,
+          freight_charge: item.freight_charge,
+          total_amount: item.total_amount
+        }))
+      };
+
+      const response = await API.put(`/api/rrp/update/${selectedRRP.rrpNumber}`, transformedData);
+      
+      if (response.status === 200) {
+        showSuccessToast({
+          title: "Success",
+          message: "RRP updated successfully",
+          duration: 3000,
+        });
+        setIsDetailsOpen(false);
+        fetchPendingCount();
+      } else {
+        throw new Error('Failed to update RRP');
+      }
     } catch (error) {
-      console.error('Error updating RRP:', error);
       showErrorToast({
         title: "Error",
         message: "Failed to update RRP",
+        duration: 3000,
+      });
+    }
+  };
+
+  const handleDeleteItem = async (itemId: number) => {
+    if (!selectedRRP) return;
+
+    try {
+      await API.delete(`/api/rrp/item/${itemId}`);
+      showSuccessToast({
+        title: "Success",
+        message: "Item deleted successfully",
+        duration: 3000,
+      });
+      fetchPendingCount();
+    } catch (error) {
+      showErrorToast({
+        title: "Error",
+        message: "Failed to delete item",
         duration: 3000,
       });
     }
@@ -320,6 +383,7 @@ export function PendingRRPCount() {
           onApprove={handleApproveRRP}
           onReject={handleRejectRRP}
           onEdit={handleEditRRP}
+          onDeleteItem={handleDeleteItem}
           config={config!}
         />
       )}
