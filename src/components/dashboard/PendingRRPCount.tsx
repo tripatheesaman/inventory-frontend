@@ -17,6 +17,7 @@ import {
 import { useRouter } from 'next/navigation';
 import { useCustomToast } from '@/components/ui/custom-toast';
 import { RRPDetailsModal } from '@/components/rrp/RRPDetailsModal';
+import { useNotification } from '@/context/NotificationContext';
 
 interface PendingRRP {
   id: number;
@@ -76,6 +77,7 @@ export function PendingRRPCount() {
   const { permissions, user } = useAuthContext();
   const router = useRouter();
   const { showSuccessToast, showErrorToast } = useCustomToast();
+  const { markAsRead } = useNotification();
   const [pendingCount, setPendingCount] = useState<number>(0);
   const [isLoading, setIsLoading] = useState(true);
   const [isOpen, setIsOpen] = useState(false);
@@ -192,6 +194,14 @@ export function PendingRRPCount() {
       await API.post(`/api/rrp/approve/${selectedRRP.rrpNumber}`, {
         approved_by: user.UserInfo.username
       });
+
+      // Mark notification as read if it exists
+      const searchParams = new URLSearchParams(window.location.search);
+      const notificationId = searchParams.get('notificationId');
+      if (notificationId) {
+        await markAsRead(Number(notificationId));
+      }
+
       showSuccessToast({
         title: "Success",
         message: "RRP approved successfully",
@@ -216,6 +226,14 @@ export function PendingRRPCount() {
         rejected_by: user.UserInfo.username,
         rejection_reason: reason
       });
+
+      // Mark notification as read if it exists
+      const searchParams = new URLSearchParams(window.location.search);
+      const notificationId = searchParams.get('notificationId');
+      if (notificationId) {
+        await markAsRead(Number(notificationId));
+      }
+
       showSuccessToast({
         title: "Success",
         message: "RRP rejected successfully",
@@ -273,6 +291,13 @@ export function PendingRRPCount() {
       const response = await API.put(`/api/rrp/update/${selectedRRP.rrpNumber}`, transformedData);
       
       if (response.status === 200) {
+        // Mark notification as read if it exists
+        const searchParams = new URLSearchParams(window.location.search);
+        const notificationId = searchParams.get('notificationId');
+        if (notificationId) {
+          await markAsRead(Number(notificationId));
+        }
+
         showSuccessToast({
           title: "Success",
           message: "RRP updated successfully",

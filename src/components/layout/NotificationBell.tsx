@@ -41,6 +41,10 @@ export function NotificationBell() {
         break;
       case 'receive':
         router.push(`/receive/${notification.referenceNumber}?notificationId=${notification.id}`);
+        break;
+      case 'rrp':
+        router.push(`/rrp/${notification.referenceNumber}?notificationId=${notification.id}`);
+        break;
       default:
         break;
     }
