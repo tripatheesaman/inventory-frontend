@@ -28,9 +28,6 @@ export default function NewRRPPage() {
   const { showErrorToast } = useCustomToast();
   const { config, isLoading, getLocalSuppliers, getForeignSuppliers, getCurrencies } = useRRP();
   
-  useEffect(() => {
-    console.log('New RRP page - RRP Type:', rrpType); // Debug log
-  }, [rrpType]);
 
   // Initialize state from URL parameters
   const [dates, setDates] = useState<RRPDates>({
@@ -43,6 +40,7 @@ export default function NewRRPPage() {
   const [invoiceNumber, setInvoiceNumber] = useState<string>(searchParams.get('invoiceNumber') || '');
   const [poNumber, setPoNumber] = useState<string>(searchParams.get('poNumber') || '');
   const [airwayBillNumber, setAirwayBillNumber] = useState<string>(searchParams.get('airwayBillNumber') || '');
+  const [customsNumber, setCustomsNumber] = useState<string>(searchParams.get('customsNumber') || '');
   const [freightCharge, setFreightCharge] = useState<string>(searchParams.get('freightCharge') || '0');
   const [selectedCurrency, setSelectedCurrency] = useState<string>(searchParams.get('currency') || '');
   const [forexRate, setForexRate] = useState<string>(searchParams.get('forexRate') || '');
@@ -74,7 +72,7 @@ export default function NewRRPPage() {
       return;
     }
 
-    if (rrpType === 'foreign' && (!dates.customsDate || !poNumber || !airwayBillNumber || !selectedCurrency || !forexRate)) {
+    if (rrpType === 'foreign' && (!dates.customsDate || !poNumber || !airwayBillNumber || !selectedCurrency || !forexRate || !customsNumber)) {
       showErrorToast({
         title: "Validation Error",
         message: "Please fill in all required fields for foreign RRP",
@@ -94,6 +92,7 @@ export default function NewRRPPage() {
         customsDate: dates.customsDate?.toISOString() || '',
         poNumber,
         airwayBillNumber,
+        customsNumber,
         freightCharge,
         currency: selectedCurrency,
         forexRate,
@@ -263,6 +262,40 @@ export default function NewRRPPage() {
               {/* Foreign RRP specific fields */}
               {rrpType === 'foreign' && (
                 <>
+                  <div className="space-y-2">
+                    <Label>Customs Date *</Label>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant="outline"
+                          className={cn(
+                            "w-full justify-start text-left font-normal",
+                            !dates.customsDate && "text-muted-foreground"
+                          )}
+                        >
+                          <CalendarIcon className="mr-2 h-4 w-4" />
+                          {dates.customsDate ? format(dates.customsDate, "PPP") : "Select date"}
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0">
+                        <Calendar
+                          value={dates.customsDate || undefined}
+                          onChange={(date: Date | null) => handleDateChange('customsDate', date)}
+                          className="rounded-md border"
+                        />
+                      </PopoverContent>
+                    </Popover>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label>Customs Number *</Label>
+                    <Input
+                      value={customsNumber}
+                      onChange={(e) => setCustomsNumber(e.target.value)}
+                      placeholder="Enter customs number"
+                    />
+                  </div>
+
                   <div className="space-y-2">
                     <Label>PO Number *</Label>
                     <Input

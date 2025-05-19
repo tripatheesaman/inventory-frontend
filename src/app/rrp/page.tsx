@@ -24,7 +24,6 @@ export default function RRPPage() {
       router.push('/dashboard');
       return;
     }
-    console.log('Creating RRP of type:', type);
     router.push(`/rrp/new?type=${type}`);
   };
 

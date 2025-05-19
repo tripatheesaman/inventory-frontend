@@ -26,6 +26,7 @@ interface RRPSearchResult {
   invoiceDate: string;
   poNumber: string | null;
   airwayBillNumber: string | null;
+  customsNumber: string | null;
   inspectionDetails: {
     inspection_user: string;
     inspection_details: Record<string, any>;
@@ -71,7 +72,6 @@ export default function PrintRRPPage() {
     setError(null);
     try {
       const response = await API.get('/api/rrp/search', { params });
-      console.log(response.data);
       setResults(response.data);
     } catch (err) {
       setError('Failed to fetch RRPs. Please try again.');

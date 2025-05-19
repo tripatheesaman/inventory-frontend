@@ -81,6 +81,7 @@ export default function RRPPreviewPage() {
         // Foreign RRP specific details
         ...(searchParams.get('type') === 'foreign' && {
           customs_date: searchParams.get('customsDate'),
+          customs_number: searchParams.get('customsNumber'),
           po_number: searchParams.get('poNumber'),
           airway_bill_number: searchParams.get('airwayBillNumber'),
           currency: searchParams.get('currency'),
@@ -144,6 +145,7 @@ export default function RRPPreviewPage() {
           invoiceNumber={searchParams.get('invoiceNumber') || ''}
           airwayBillNumber={searchParams.get('airwayBillNumber') || undefined}
           poNumber={searchParams.get('poNumber') || undefined}
+          customsNumber={searchParams.get('customsNumber') || undefined}
           freightCharge={parseFloat(searchParams.get('freightCharge') || '0')}
           forexRate={parseFloat(searchParams.get('forexRate') || '1')}
           currency={searchParams.get('currency') || (searchParams.get('type') === 'foreign' ? 'USD' : 'NPR')}
@@ -167,6 +169,11 @@ export default function RRPPreviewPage() {
           onPoNumberChange={(value) => {
             const params = new URLSearchParams(searchParams);
             params.set('poNumber', value);
+            router.push(`/rrp/preview?${params.toString()}`);
+          }}
+          onCustomsNumberChange={(value) => {
+            const params = new URLSearchParams(searchParams);
+            params.set('customsNumber', value);
             router.push(`/rrp/preview?${params.toString()}`);
           }}
         />
