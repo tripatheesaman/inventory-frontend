@@ -91,8 +91,6 @@ export default function RRPPreviewPage() {
         items: formattedCart
       };
       
-      console.log('Submission Data:', submissionData);
-      
       await API.post('/api/rrp/create', submissionData);
       showSuccessToast({
         title: "Success",

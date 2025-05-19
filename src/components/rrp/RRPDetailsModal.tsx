@@ -34,6 +34,7 @@ import {
 } from '@/components/ui/select';
 import { format } from 'date-fns';
 import { Trash2 } from 'lucide-react';
+import { useNotification } from '@/context/NotificationContext';
 
 interface RRPDetailsModalProps {
   isOpen: boolean;
@@ -54,10 +55,10 @@ interface RRPDetailsModalProps {
     currency?: string;
     forexRate?: number;
   };
-  onApprove: () => void;
-  onReject: (reason: string) => void;
+  onApprove?: () => void;
+  onReject?: (reason: string) => void;
   onEdit: (data: any) => void;
-  onDeleteItem: (itemId: number) => void;
+  onDeleteItem?: (itemId: number) => void;
   config: {
     supplier_list_local: string;
     supplier_list_foreign: string;
@@ -68,6 +69,7 @@ interface RRPDetailsModalProps {
     vat_rate: number;
     customServiceCharge?: number;
   };
+  isEditOnly?: boolean;
 }
 
 interface EditItemData {
@@ -97,9 +99,11 @@ export function RRPDetailsModal({
   onEdit,
   onDeleteItem,
   config,
+  isEditOnly = false,
 }: RRPDetailsModalProps) {
   const { getCurrencies } = useRRP();
   const { showErrorToast } = useCustomToast();
+  const { markAsRead } = useNotification();
   const [isEditMode, setIsEditMode] = useState(false);
   const [isRejectDialogOpen, setIsRejectDialogOpen] = useState(false);
   const [rejectionReason, setRejectionReason] = useState('');
@@ -156,7 +160,7 @@ export function RRPDetailsModal({
     });
   };
 
-  const handleSaveEdit = () => {
+  const handleSaveEdit = async () => {
     if (!editData) return;
 
     // Calculate new totals for each item
@@ -173,14 +177,23 @@ export function RRPDetailsModal({
           vat_percentage: parseFloat(item.vat_percentage?.toString() || '0') || 0,
           forex_rate: parseFloat(item.forex_rate?.toString() || '1') || 1,
           received_quantity: parseFloat(item.received_quantity?.toString() || '0') || 0,
-          total_amount: itemTotals.total // Use the newly calculated total
+          total_amount: itemTotals.total
         };
       })
     };
 
-    onEdit(processedData);
-    setIsEditMode(false);
-    setEditData(null);
+    try {
+      await onEdit(processedData);
+      setIsEditMode(false);
+      setEditData(null);
+    } catch (error) {
+      console.error('Error saving RRP:', error);
+      showErrorToast({
+        title: "Error",
+        message: "Failed to save RRP changes",
+        duration: 3000,
+      });
+    }
   };
 
   const handleCancelEdit = () => {
@@ -188,7 +201,28 @@ export function RRPDetailsModal({
     setEditData(null);
   };
 
-  const handleReject = () => {
+  const handleApprove = async () => {
+    if (!onApprove) return;
+    try {
+      await onApprove();
+    
+      const searchParams = new URLSearchParams(window.location.search);
+      const notificationId = searchParams.get('notificationId');
+      if (notificationId) {
+        await markAsRead(Number(notificationId));
+      }
+    } catch (error) {
+      console.error('Error approving RRP:', error);
+      showErrorToast({
+        title: "Error",
+        message: "Failed to approve RRP",
+        duration: 3000,
+      });
+    }
+  };
+
+  const handleReject = async () => {
+    if (!onReject) return;
     if (!rejectionReason.trim()) {
       showErrorToast({
         title: "Validation Error",
@@ -197,9 +231,25 @@ export function RRPDetailsModal({
       });
       return;
     }
-    onReject(rejectionReason);
-    setIsRejectDialogOpen(false);
-    setRejectionReason('');
+
+    try {
+      await onReject(rejectionReason);
+      // Mark notification as read if it exists
+      const searchParams = new URLSearchParams(window.location.search);
+      const notificationId = searchParams.get('notificationId');
+      if (notificationId) {
+        await markAsRead(Number(notificationId));
+      }
+      setIsRejectDialogOpen(false);
+      setRejectionReason('');
+    } catch (error) {
+      console.error('Error rejecting RRP:', error);
+      showErrorToast({
+        title: "Error",
+        message: "Failed to reject RRP",
+        duration: 3000,
+      });
+    }
   };
 
   const calculateItemTotal = (item: EditItemData) => {
@@ -306,17 +356,20 @@ export function RRPDetailsModal({
   const totals = calculateTotals(currentItems);
 
   const handleDeleteItem = (itemId: number) => {
+    if (!onDeleteItem) return;
     setItemToDelete(itemId);
   };
 
   const confirmDeleteItem = () => {
-    if (itemToDelete !== null && editData) {
-      // Remove the item from editData
+    if (itemToDelete !== null && editData && onDeleteItem) {
+      // Update the editData state first
       const updatedItems = editData.items.filter(item => item.id !== itemToDelete);
       setEditData({
         ...editData,
         items: updatedItems
       });
+      
+      // Call the onDeleteItem callback
       onDeleteItem(itemToDelete);
       setItemToDelete(null);
     }
@@ -833,14 +886,18 @@ export function RRPDetailsModal({
             <DialogFooter className="flex justify-end space-x-4">
               {!isEditMode ? (
                 <>
-                  <Button variant="outline" onClick={() => setIsRejectDialogOpen(true)}>
-                    Reject
-                  </Button>
+                  {!isEditOnly && (
+                    <>
+                      <Button variant="outline" onClick={() => setIsRejectDialogOpen(true)}>
+                        Reject
+                      </Button>
+                      <Button onClick={handleApprove}>
+                        Approve
+                      </Button>
+                    </>
+                  )}
                   <Button onClick={handleEditClick}>
                     Edit
-                  </Button>
-                  <Button onClick={onApprove}>
-                    Approve
                   </Button>
                 </>
               ) : (
