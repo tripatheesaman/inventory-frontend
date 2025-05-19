@@ -67,6 +67,12 @@ export const routes: RouteConfig[] = [
     permissions: ['can_print_receive'],
   },
   {
+    path: '/print/rrp',
+    requiresAuth: true,
+    title: 'Print RRP',
+    permissions: ['can_print_rrp'],
+  },
+  {
     path: '/rrp',
     requiresAuth: true,
     title: 'RRP',

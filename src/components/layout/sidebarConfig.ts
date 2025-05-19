@@ -89,6 +89,11 @@ export const sidebarLinks: SidebarLink[] = [
         label: "Receive",
         href: "/print/receive",
         permission: 'can_print_receive'
+      },
+      {
+        label: "RRP",
+        href: "/print/rrp",
+        permission: 'can_print_rrp'
       }
     ]
   }

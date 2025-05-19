@@ -32,7 +32,6 @@ export default function PrintRequestPage() {
     try {
       const response = await API.get('/api/request/search', { params });
       setResults(response.data);
-      console.log(response.data);
     } catch (err) {
       setError('Failed to fetch requests. Please try again.');
       console.error('Search error:', err);
