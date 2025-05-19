@@ -22,6 +22,7 @@ interface RRPDetails {
   customsDate?: string;
   poNumber?: string;
   airwayBillNumber?: string;
+  customsNumber?: string;
   currency?: string;
   forexRate?: number;
 }
@@ -54,7 +55,6 @@ export default function RRPDetailsPage({ params }: { params: Promise<{ id: strin
       try {
         const response = await API.get(`/api/rrp/items/${resolvedParams.id}`);
         const data = response.data;
-
         // Transform the data to match our interface
         const firstItem = data.rrpDetails[0];
         const isForeign = firstItem.currency !== 'NPR';
@@ -88,6 +88,7 @@ export default function RRPDetailsPage({ params }: { params: Promise<{ id: strin
           customsDate: isForeign ? firstItem.customs_date : undefined,
           poNumber: isForeign ? (firstItem.po_number || undefined) : undefined,
           airwayBillNumber: isForeign ? (firstItem.airway_bill_number || undefined) : undefined,
+          customsNumber: isForeign ? (firstItem.customs_number || undefined) : undefined,
           currency: isForeign ? firstItem.currency : undefined,
           forexRate: isForeign ? parseFloat(firstItem.forex_rate) : undefined
         };
@@ -133,6 +134,7 @@ export default function RRPDetailsPage({ params }: { params: Promise<{ id: strin
         invoice_number: data.invoiceNumber,
         invoice_date: data.invoiceDate,
         customs_date: data.customsDate,
+        customs_number: data.customsNumber,
         po_number: data.poNumber,
         airway_bill_number: data.airwayBillNumber,
         inspection_user: data.inspectionUser,
@@ -153,7 +155,6 @@ export default function RRPDetailsPage({ params }: { params: Promise<{ id: strin
       };
 
       const response = await API.put(`/api/rrp/update/${data.rrpNumber}`, transformedData);
-      console.log(data.rrpNumber);
       // Check if the update was successful
       if (response.status === 200 && response.data) {
         if (notificationId) {

@@ -17,6 +17,7 @@ interface RRPSearchResult {
   invoiceDate: string;
   poNumber: string | null;
   airwayBillNumber: string | null;
+  customsNumber: string | null;
   inspectionDetails: {
     inspection_user: string;
     inspection_details: Record<string, any>;
@@ -173,6 +174,36 @@ export const PrintRRPResultsTable = ({
                 {expandedRows.has(rrp.rrpNumber) && (
                   <tr className="bg-gray-50">
                     <td colSpan={6} className="px-4 py-3">
+                      <div className="grid grid-cols-2 gap-4 mb-4">
+                        <div>
+                          <p className="text-sm font-medium">Invoice Number</p>
+                          <p>{rrp.invoiceNumber}</p>
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium">Invoice Date</p>
+                          <p>{new Date(rrp.invoiceDate).toLocaleDateString()}</p>
+                        </div>
+                        {rrp.type === 'foreign' && (
+                          <>
+                            <div>
+                              <p className="text-sm font-medium">PO Number</p>
+                              <p>{rrp.poNumber || 'N/A'}</p>
+                            </div>
+                            <div>
+                              <p className="text-sm font-medium">Airway Bill Number</p>
+                              <p>{rrp.airwayBillNumber || 'N/A'}</p>
+                            </div>
+                            <div>
+                              <p className="text-sm font-medium">Customs Number</p>
+                              <p>{rrp.customsNumber || 'N/A'}</p>
+                            </div>
+                            <div>
+                              <p className="text-sm font-medium">Customs Date</p>
+                              <p>{rrp.customsDate ? new Date(rrp.customsDate).toLocaleDateString() : 'N/A'}</p>
+                            </div>
+                          </>
+                        )}
+                      </div>
                       <table className="w-full">
                         <thead>
                           <tr className="text-xs uppercase text-gray-500">

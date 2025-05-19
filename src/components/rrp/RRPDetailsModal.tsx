@@ -54,6 +54,7 @@ interface RRPDetailsModalProps {
     airwayBillNumber?: string;
     currency?: string;
     forexRate?: number;
+    customsNumber?: string;
   };
   onApprove?: () => void;
   onReject?: (reason: string) => void;
@@ -123,6 +124,7 @@ export function RRPDetailsModal({
     airwayBillNumber?: string;
     currency?: string;
     forexRate?: number;
+    customsNumber?: string;
   } | null>(null);
 
   const handleEditClick = () => {
@@ -514,6 +516,29 @@ export function RRPDetailsModal({
                   {rrpData.type === 'foreign' && (
                     <>
                       <div className="space-y-2">
+                        <Label>Customs Date</Label>
+                        {isEditMode ? (
+                          <Calendar
+                            value={editData?.customsDate ? new Date(editData.customsDate) : undefined}
+                            onChange={(date: Date | null) => setEditData(prev => prev ? { ...prev, customsDate: date?.toISOString() || '' } : null)}
+                            className="rounded-md border"
+                          />
+                        ) : (
+                          <Input
+                            value={rrpData.customsDate ? new Date(rrpData.customsDate).toLocaleDateString() : '-'}
+                            disabled
+                          />
+                        )}
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Customs Number</Label>
+                        <Input
+                          value={isEditMode ? (editData?.customsNumber || '') : (rrpData.customsNumber || '')}
+                          onChange={(e) => setEditData(prev => prev ? { ...prev, customsNumber: e.target.value } : null)}
+                          disabled={!isEditMode}
+                        />
+                      </div>
+                      <div className="space-y-2">
                         <Label>PO Number</Label>
                         <Input
                           value={isEditMode ? editData?.poNumber : rrpData.poNumber}
@@ -528,21 +553,6 @@ export function RRPDetailsModal({
                           onChange={(e) => setEditData(prev => prev ? { ...prev, airwayBillNumber: e.target.value } : null)}
                           disabled={!isEditMode}
                         />
-                      </div>
-                      <div className="space-y-2">
-                        <Label>Customs Date</Label>
-                        {isEditMode ? (
-                          <Calendar
-                            value={editData?.customsDate ? new Date(editData.customsDate) : undefined}
-                            onChange={(date: Date | null) => setEditData(prev => prev ? { ...prev, customsDate: date?.toISOString() || '' } : null)}
-                            className="rounded-md border"
-                          />
-                        ) : (
-                          <Input
-                            value={rrpData.customsDate ? new Date(rrpData.customsDate).toLocaleDateString() : '-'}
-                            disabled
-                          />
-                        )}
                       </div>
                       <div className="space-y-2">
                         <Label>Currency</Label>

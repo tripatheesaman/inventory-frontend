@@ -89,10 +89,6 @@ export default function RRPItemsPage() {
   const rrpDate = searchParams.get('rrpDate');
 
   useEffect(() => {
-    console.log('Current RRP Type:', rrpType);
-  }, [rrpType]);
-
-  useEffect(() => {
     const fetchItems = async () => {
       try {
         const response = await API.get('/api/rrp/items');
@@ -431,23 +427,27 @@ export default function RRPItemsPage() {
             {selectedItem && (
               <div className="space-y-4">
                 <div className="space-y-2">
-                  <Label>Price</Label>
+                  <Label>Price *</Label>
                   <Input
                     type="number"
-                    defaultValue={selectedItem.price}
+                    defaultValue={selectedItem.price?.toString() || '0'}
                     onChange={(e) => setSelectedItem({
                       ...selectedItem,
                       price: parseFloat(e.target.value)
                     })}
+                    required
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label>Quantity</Label>
+                  <Label>Quantity *</Label>
                   <Input
                     type="number"
-                    value={selectedItem.quantity}
-                    disabled
-                    className="bg-gray-100"
+                    defaultValue={selectedItem.quantity?.toString() || '0'}
+                    onChange={(e) => setSelectedItem({
+                      ...selectedItem,
+                      quantity: parseInt(e.target.value)
+                    })}
+                    required
                   />
                 </div>
                 <div className="flex items-center space-x-2">
@@ -466,7 +466,7 @@ export default function RRPItemsPage() {
                       <Label>Customs Charge *</Label>
                       <Input
                         type="number"
-                        defaultValue={selectedItem.customsCharge || 0}
+                        defaultValue={selectedItem.customsCharge?.toString() || '0'}
                         onChange={(e) => setSelectedItem({
                           ...selectedItem,
                           customsCharge: parseFloat(e.target.value)
@@ -478,7 +478,7 @@ export default function RRPItemsPage() {
                       <Label>Forex Rate</Label>
                       <Input
                         type="number"
-                        defaultValue={selectedItem.forex_rate}
+                        defaultValue={selectedItem.forex_rate?.toString() || '1'}
                         onChange={(e) => setSelectedItem({
                           ...selectedItem,
                           forex_rate: parseFloat(e.target.value)

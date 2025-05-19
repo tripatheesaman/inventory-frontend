@@ -34,6 +34,7 @@ interface PendingRRP {
   invoice_date: string;
   po_number: string | null;
   airway_bill_number: string | null;
+  customs_number: string | null;
   inspection_details: {
     inspection_user: string;
     inspection_details: Record<string, any>;
@@ -98,6 +99,7 @@ export function PendingRRPCount() {
     customsDate?: string;
     poNumber?: string;
     airwayBillNumber?: string;
+    customsNumber?: string;
     currency?: string;
     forexRate?: number;
   } | null>(null);
@@ -116,7 +118,6 @@ export function PendingRRPCount() {
 
       const response = await API.get('/api/rrp/pending');
       const data = response.data as PendingRRPResponse;
-      
       // Store config
       setConfig(data.config);
       
@@ -181,6 +182,7 @@ export function PendingRRPCount() {
       customsDate: isForeign ? firstItem.customs_date : undefined,
       poNumber: isForeign ? (firstItem.po_number || undefined) : undefined,
       airwayBillNumber: isForeign ? (firstItem.airway_bill_number || undefined) : undefined,
+      customsNumber: isForeign ? (firstItem.customs_number || undefined) : undefined,
       currency: isForeign ? firstItem.currency : undefined,
       forexRate: isForeign ? parseFloat(firstItem.forex_rate) : undefined
     });
@@ -264,6 +266,7 @@ export function PendingRRPCount() {
         invoice_number: data.invoiceNumber,
         invoice_date: data.invoiceDate,
         freight_charge: data.freightCharge,
+        customs_number: data.customsNumber,
         customs_date: data.customsDate,
         po_number: data.poNumber,
         airway_bill_number: data.airwayBillNumber,

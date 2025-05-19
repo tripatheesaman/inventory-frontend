@@ -30,6 +30,7 @@ interface RRPPreviewProps {
   invoiceNumber: string;
   airwayBillNumber?: string;
   poNumber?: string;
+  customsNumber?: string;
   freightCharge: number;
   forexRate: number;
   currency: string;
@@ -37,6 +38,7 @@ interface RRPPreviewProps {
   onInvoiceNumberChange: (value: string) => void;
   onAirwayBillNumberChange: (value: string) => void;
   onPoNumberChange: (value: string) => void;
+  onCustomsNumberChange: (value: string) => void;
 }
 
 interface CartItem {
@@ -65,6 +67,7 @@ export default function RRPPreview({
   invoiceNumber,
   airwayBillNumber,
   poNumber,
+  customsNumber,
   freightCharge,
   forexRate,
   currency,
@@ -72,6 +75,7 @@ export default function RRPPreview({
   onInvoiceNumberChange,
   onAirwayBillNumberChange,
   onPoNumberChange,
+  onCustomsNumberChange,
 }: RRPPreviewProps) {
   const { config } = useRRP();
   const { showErrorToast, showSuccessToast } = useCustomToast();
@@ -307,6 +311,16 @@ export default function RRPPreview({
             </div>
 
             <div className="space-y-4">
+              {customsNumber !== undefined && (
+                <div className="space-y-2">
+                  <Label>Customs Number</Label>
+                  <Input
+                    value={customsNumber}
+                    onChange={(e) => onCustomsNumberChange(e.target.value)}
+                  />
+                </div>
+              )}
+
               {airwayBillNumber !== undefined && (
                 <div className="space-y-2">
                   <Label>Airway Bill Number</Label>
