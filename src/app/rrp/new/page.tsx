@@ -241,7 +241,7 @@ export default function NewRRPPage() {
                   </SelectTrigger>
                   <SelectContent>
                     {config.inspection_user_details.map((user) => (
-                      <SelectItem key={user.name} value={user.name}>
+                      <SelectItem key={user.name} value={`${user.name},${user.designation}`}>
                         {user.name} - {user.designation}
                       </SelectItem>
                     ))}

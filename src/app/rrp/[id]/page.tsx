@@ -81,7 +81,7 @@ export default function RRPDetailsPage({ params }: { params: Promise<{ id: strin
           rrpDate: firstItem.date,
           type: isForeign ? 'foreign' : 'local',
           supplier: firstItem.supplier_name,
-          inspectionUser: firstItem.inspection_details.inspection_user,
+          inspectionUser: `${firstItem.inspection_details.inspection_user},${firstItem.inspection_details.inspection_details?.designation || ''}`,
           invoiceNumber: firstItem.invoice_number,
           invoiceDate: firstItem.invoice_date,
           freightCharge: parseFloat(firstItem.freight_charge) || 0,
