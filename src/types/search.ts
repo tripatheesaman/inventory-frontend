@@ -11,6 +11,8 @@ export interface SearchResult {
   specifications: string;
   imageUrl: string;
   previousRate: string;
+  trueBalance: number;
+  averageCostPerUnit: number;
 }
 
 export interface ReceiveSearchResult extends SearchResult {

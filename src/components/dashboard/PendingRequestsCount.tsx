@@ -61,7 +61,7 @@ export function PendingRequestsCount() {
   const { permissions, user } = useAuthContext();
   const router = useRouter();
   const { showSuccessToast, showErrorToast } = useCustomToast();
-  const [pendingCount, setPendingCount] = useState<number>(0);
+  const [pendingCount, setPendingCount] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isOpen, setIsOpen] = useState(false);
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
@@ -302,54 +302,63 @@ export function PendingRequestsCount() {
     return null;
   }
 
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-24">
+        <div className="animate-spin rounded-full h-6 w-6 border-2 border-[#003594] border-t-transparent"></div>
+      </div>
+    );
+  }
+
   return (
     <>
       <Modal open={isOpen} onOpenChange={setIsOpen}>
         <ModalTrigger asChild>
-          <Card className="cursor-pointer hover:bg-accent/50 transition-colors">
+          <Card className="cursor-pointer hover:bg-[#003594]/5 transition-colors border-[#002a6e]/10">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Pending Requests</CardTitle>
-              <FileText className="h-4 w-4 text-muted-foreground" />
+              <CardTitle className="text-base font-semibold text-[#003594]">Pending Requests</CardTitle>
+              <FileText className="h-5 w-5 text-[#003594]" />
             </CardHeader>
             <CardContent>
               {isLoading ? (
-                <div className="text-2xl font-bold">...</div>
+                <div className="text-3xl font-bold text-[#003594]">...</div>
               ) : (
-                <div className="text-2xl font-bold">{pendingCount}</div>
+                <div className="text-3xl font-bold text-[#003594]">{pendingCount ?? 0}</div>
               )}
+              <p className="text-sm text-gray-500 mt-1">Requests awaiting approval</p>
             </CardContent>
           </Card>
         </ModalTrigger>
         <ModalContent className="max-w-3xl">
           <ModalHeader>
-            <ModalTitle>Pending Requests</ModalTitle>
+            <ModalTitle className="text-[#003594]">Pending Requests</ModalTitle>
             <ModalDescription>
-              You have {pendingCount} pending request{pendingCount !== 1 ? 's' : ''} that need your attention.
+              You have {pendingCount ?? 0} pending request{pendingCount !== 1 ? 's' : ''} that need your attention.
             </ModalDescription>
           </ModalHeader>
           <div className="mt-4 space-y-4">
             {pendingRequests.map((request) => (
               <div
                 key={request.requestId}
-                className="rounded-lg border p-4 hover:bg-accent/50"
+                className="rounded-lg border border-[#002a6e]/10 p-4 hover:bg-[#003594]/5 transition-colors"
               >
                 <div className="grid grid-cols-4 gap-4 items-center">
                   <div>
-                    <p className="text-sm font-medium">Request #</p>
-                    <p className="text-lg">{request.requestNumber}</p>
+                    <p className="text-sm font-medium text-gray-600">Request #</p>
+                    <p className="text-lg font-semibold text-[#003594]">{request.requestNumber}</p>
                   </div>
                   <div>
-                    <p className="text-sm font-medium">Date</p>
-                    <p className="text-lg">{new Date(request.requestDate).toLocaleDateString()}</p>
+                    <p className="text-sm font-medium text-gray-600">Date</p>
+                    <p className="text-lg font-semibold text-[#003594]">{new Date(request.requestDate).toLocaleDateString()}</p>
                   </div>
                   <div>
-                    <p className="text-sm font-medium">Requested By</p>
-                    <p className="text-lg">{request.requestedBy}</p>
+                    <p className="text-sm font-medium text-gray-600">Requested By</p>
+                    <p className="text-lg font-semibold text-[#003594]">{request.requestedBy}</p>
                   </div>
                   <div className="flex justify-end">
                     <Button
                       onClick={() => handleViewDetails(request.requestNumber, request.requestDate)}
-                      className="flex items-center gap-2"
+                      className="flex items-center gap-2 bg-[#003594] hover:bg-[#002a6e] text-white"
                     >
                       <Eye className="h-4 w-4" />
                       View Details

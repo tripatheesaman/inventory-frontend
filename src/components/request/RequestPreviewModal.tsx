@@ -157,40 +157,42 @@ export function RequestPreviewModal({
 }: RequestPreviewModalProps) {
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-3xl">
+      <DialogContent className="max-w-3xl bg-white rounded-xl shadow-sm border border-[#002a6e]/10">
         <DialogHeader>
-          <DialogTitle>Preview Request</DialogTitle>
-          <DialogDescription>
+          <DialogTitle className="text-xl font-bold bg-gradient-to-r from-[#003594] to-[#d2293b] bg-clip-text text-transparent">
+            Preview Request
+          </DialogTitle>
+          <DialogDescription className="text-gray-600">
             Review your request before submitting
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-4">
-          <div className="flex justify-between items-center">
-            <p className="text-sm text-gray-500">
-              Request Number: {requestNumber}
+          <div className="flex justify-between items-center bg-[#003594]/5 p-4 rounded-lg">
+            <p className="text-sm font-medium text-[#003594]">
+              Request Number: <span className="text-gray-900">{requestNumber}</span>
             </p>
-            <p className="text-sm text-gray-500">
-              Request Date: {format(date, 'PPP')}
+            <p className="text-sm font-medium text-[#003594]">
+              Request Date: <span className="text-gray-900">{format(date, 'PPP')}</span>
             </p>
-            <p className="text-sm text-gray-500">
-              Total Items: {items.length}
+            <p className="text-sm font-medium text-[#003594]">
+              Total Items: <span className="text-gray-900">{items.length}</span>
             </p>
           </div>
           
-          <div className="border rounded-lg">
+          <div className="border border-[#002a6e]/10 rounded-lg overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="bg-gray-50 border-b">
-                    <th className="px-4 py-2 text-left font-medium">NAC Code</th>
-                    <th className="px-4 py-2 text-left font-medium">Item Name</th>
-                    <th className="px-4 py-2 text-left font-medium">Equipment</th>
-                    <th className="px-4 py-2 text-left font-medium">Quantity</th>
-                    <th className="px-4 py-2 text-left font-medium">Part Number</th>
-                    <th className="px-4 py-2 text-left font-medium">Actions</th>
+                  <tr className="bg-[#003594]/5">
+                    <th className="px-4 py-3 text-left text-xs font-medium text-[#003594] uppercase tracking-wider">NAC Code</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-[#003594] uppercase tracking-wider">Item Name</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-[#003594] uppercase tracking-wider">Equipment</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-[#003594] uppercase tracking-wider">Quantity</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-[#003594] uppercase tracking-wider">Part Number</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-[#003594] uppercase tracking-wider">Actions</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y">
+                <tbody className="divide-y divide-[#002a6e]/10">
                   {items.map((item) => (
                     <EditableRow
                       key={item.id}
@@ -205,24 +207,34 @@ export function RequestPreviewModal({
           </div>
 
           {remarks && (
-            <div className="border rounded-lg p-4">
-              <h3 className="font-medium mb-2">Remarks:</h3>
-              <p className="text-sm">{remarks}</p>
+            <div className="bg-gray-50 border border-[#002a6e]/10 rounded-lg p-4">
+              <h3 className="text-sm font-medium text-[#003594] mb-2">Remarks</h3>
+              <p className="text-sm text-gray-900">{remarks}</p>
             </div>
           )}
 
-          <DialogFooter>
-            <Button variant="outline" onClick={onClose} disabled={isSubmitting}>
+          <DialogFooter className="flex justify-end gap-3 pt-4">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={onClose}
+              className="border-[#002a6e]/10 hover:bg-gray-50"
+            >
               Cancel
             </Button>
-            <Button onClick={onConfirm} disabled={isSubmitting}>
+            <Button
+              type="button"
+              onClick={onConfirm}
+              disabled={isSubmitting}
+              className="bg-[#003594] hover:bg-[#d2293b] text-white transition-colors"
+            >
               {isSubmitting ? (
                 <>
-                  <Spinner size="sm" variant="white" className="mr-2" />
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                   Submitting...
                 </>
               ) : (
-                'Confirm Submit'
+                'Submit Request'
               )}
             </Button>
           </DialogFooter>

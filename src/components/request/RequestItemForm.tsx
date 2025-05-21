@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -10,6 +10,7 @@ import { RequestCartItem } from '@/types/request';
 import { SearchResult } from '@/types/search';
 import { PartNumberSelect } from './PartNumberSelect';
 import { EquipmentRangeSelect } from './EquipmentRangeSelect';
+import { Loader2 } from 'lucide-react';
 
 interface RequestItemFormProps {
   isOpen: boolean;
@@ -28,6 +29,7 @@ export function RequestItemForm({ isOpen, onClose, item, onSubmit, isManualEntry
   const [itemName, setItemName] = useState<string>('');
   const [unit, setUnit] = useState<string>('');
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Process item name to take only the first part if there's a comma
   const processItemName = (name: string) => {
@@ -74,31 +76,34 @@ export function RequestItemForm({ isOpen, onClose, item, onSubmit, isManualEntry
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Validate form
     if (!validateForm()) {
       return;
     }
     
-    // For selected item, we need the item to exist
     if (!isManualEntry && !item) return;
 
-    const cartItem: RequestCartItem = {
-      id: isManualEntry ? 'N/A' : (item?.id?.toString() || 'N/A'),
-      nacCode: isManualEntry ? 'N/A' : (item?.nacCode || 'N/A'),
-      itemName: itemName,
-      requestQuantity,
-      partNumber: partNumber || 'N/A',
-      equipmentNumber,
-      specifications: specifications || '',
-      image: image || undefined,
-      unit: isManualEntry ? unit : (item?.unit || ''),
-    };
+    setIsSubmitting(true);
+    try {
+      const cartItem: RequestCartItem = {
+        id: isManualEntry ? 'N/A' : (item?.id?.toString() || 'N/A'),
+        nacCode: isManualEntry ? 'N/A' : (item?.nacCode || 'N/A'),
+        itemName: itemName,
+        requestQuantity,
+        partNumber: partNumber || 'N/A',
+        equipmentNumber,
+        specifications: specifications || '',
+        image: image || undefined,
+        unit: isManualEntry ? unit : (item?.unit || ''),
+      };
 
-    onSubmit(cartItem);
-    resetForm();
+      await onSubmit(cartItem);
+      resetForm();
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const resetForm = () => {
@@ -128,96 +133,126 @@ export function RequestItemForm({ isOpen, onClose, item, onSubmit, isManualEntry
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="max-w-2xl w-[95vw] bg-white rounded-xl shadow-sm border border-[#002a6e]/10">
         <DialogHeader>
-          <DialogTitle>{isManualEntry ? 'Add New Item' : 'Add Item to Request'}</DialogTitle>
+          <DialogTitle className="text-xl font-bold bg-gradient-to-r from-[#003594] to-[#d2293b] bg-clip-text text-transparent">
+            {isManualEntry ? 'Add New Item' : 'Add Item to Request'}
+          </DialogTitle>
+          <DialogDescription className="text-gray-600">
+            {isManualEntry ? 'Enter the details for the new item' : 'Review and modify item details before adding to request'}
+          </DialogDescription>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
-            <Label>Item Name</Label>
-            <Input 
-              value={itemName} 
-              onChange={(e) => setItemName(e.target.value)}
-              placeholder="Enter item name"
-              className={errors.itemName ? "border-red-500" : ""}
-            />
-            {errors.itemName && <p className="text-sm text-red-500">{errors.itemName}</p>}
-          </div>
-          <div className="space-y-2">
-            <Label>NAC Code</Label>
-            <Input value={isManualEntry ? 'N/A' : item?.nacCode || ''} disabled />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="requestQuantity">Request Quantity</Label>
-            <Input
-              id="requestQuantity"
-              type="number"
-              min="1"
-              value={requestQuantity}
-              onChange={(e) => setRequestQuantity(Number(e.target.value))}
-              required
-            />
-          </div>
-          {isManualEntry && (
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-2">
-              <Label htmlFor="unit">Unit</Label>
-              <Input
-                id="unit"
-                value={unit}
-                onChange={(e) => setUnit(e.target.value)}
-                placeholder="Enter unit (e.g., pcs, kg, etc.)"
-                className={errors.unit ? "border-red-500" : ""}
+              <Label className="text-sm font-medium text-[#003594]">Item Name</Label>
+              <Input 
+                value={itemName} 
+                onChange={(e) => setItemName(e.target.value)}
+                placeholder="Enter item name"
+                className={`mt-1 ${errors.itemName ? "border-red-500" : "border-[#002a6e]/10 focus:border-[#003594]"}`}
               />
-              {errors.unit && <p className="text-sm text-red-500">{errors.unit}</p>}
+              {errors.itemName && <p className="text-sm text-red-500">{errors.itemName}</p>}
             </div>
-          )}
-          <div className="space-y-2">
-            <Label htmlFor="partNumber">Part Number</Label>
-            <PartNumberSelect
-              partNumberList={hasPartNumbers ? item.partNumber : ""}
+            <div className="space-y-2">
+              <Label className="text-sm font-medium text-[#003594]">NAC Code</Label>
+              <Input 
+                value={isManualEntry ? 'N/A' : item?.nacCode || ''} 
+                disabled 
+                className="mt-1 bg-gray-50 border-[#002a6e]/10"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="requestQuantity" className="text-sm font-medium text-[#003594]">Request Quantity</Label>
+              <Input
+                id="requestQuantity"
+                type="number"
+                min="1"
+                value={requestQuantity}
+                onChange={(e) => setRequestQuantity(Number(e.target.value))}
+                required
+                className="mt-1 border-[#002a6e]/10 focus:border-[#003594]"
+              />
+            </div>
+            {isManualEntry && (
+              <div className="space-y-2">
+                <Label htmlFor="unit" className="text-sm font-medium text-[#003594]">Unit</Label>
+                <Input
+                  id="unit"
+                  value={unit}
+                  onChange={(e) => setUnit(e.target.value)}
+                  placeholder="Enter unit (e.g., pcs, kg, etc.)"
+                  className={`mt-1 ${errors.unit ? "border-red-500" : "border-[#002a6e]/10 focus:border-[#003594]"}`}
+                />
+                {errors.unit && <p className="text-sm text-red-500">{errors.unit}</p>}
+              </div>
+            )}
+            <div className="space-y-2">
+              <Label htmlFor="partNumber" className="text-sm font-medium text-[#003594]">Part Number</Label>
+              <PartNumberSelect
+                partNumberList={item?.partNumber || ""}
                 value={partNumber}
-              onChange={(value) => setPartNumber(value)}
-              error={errors.partNumber}
+                onChange={(value) => setPartNumber(value)}
+                error={errors.partNumber}
               />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="equipmentNumber">Equipment Number</Label>
-            <EquipmentRangeSelect
-              equipmentList={hasEquipmentNumbers ? item.equipmentNumber : ""}
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="equipmentNumber" className="text-sm font-medium text-[#003594]">Equipment Number</Label>
+              <EquipmentRangeSelect
+                equipmentList={item?.equipmentNumber || ""}
                 value={equipmentNumber}
-              onChange={(value) => setEquipmentNumber(value)}
-              error={errors.equipmentNumber}
+                onChange={(value) => setEquipmentNumber(value)}
+                error={errors.equipmentNumber}
               />
+            </div>
           </div>
+
           <div className="space-y-2">
-            <Label htmlFor="specifications">Specifications</Label>
+            <Label htmlFor="specifications" className="text-sm font-medium text-[#003594]">Specifications</Label>
             <Textarea
               id="specifications"
               value={specifications}
               onChange={(e) => setSpecifications(e.target.value)}
-              placeholder="Enter specifications"
+              placeholder="Enter any specifications or additional details"
+              className="mt-1 border-[#002a6e]/10 focus:border-[#003594] min-h-[100px]"
             />
           </div>
+
           <div className="space-y-2">
-            <Label htmlFor="image">Image (Optional)</Label>
+            <Label htmlFor="image" className="text-sm font-medium text-[#003594]">Image (Optional)</Label>
             <Input
               id="image"
               type="file"
               accept="image/*"
-              onChange={(e) => {
-                const file = e.target.files?.[0];
-                if (file) {
-                  setImage(file);
-                }
-              }}
+              onChange={(e) => setImage(e.target.files?.[0] || null)}
+              className="mt-1 border-[#002a6e]/10 focus:border-[#003594] file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-medium file:bg-[#003594] file:text-white hover:file:bg-[#d2293b] file:transition-colors"
             />
           </div>
-          <div className="flex justify-end space-x-2">
-            <Button type="button" variant="outline" onClick={handleClose}>
+
+          <DialogFooter className="flex justify-end gap-3 pt-4">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={handleClose}
+              className="border-[#002a6e]/10 hover:bg-gray-50"
+            >
               Cancel
             </Button>
-            <Button type="submit">Add to Cart</Button>
-          </div>
+            <Button
+              type="submit"
+              disabled={isSubmitting}
+              className="bg-[#003594] hover:bg-[#d2293b] text-white transition-colors"
+            >
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Adding...
+                </>
+              ) : (
+                'Add Item'
+              )}
+            </Button>
+          </DialogFooter>
         </form>
       </DialogContent>
     </Dialog>

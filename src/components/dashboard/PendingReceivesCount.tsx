@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useAuthContext } from '@/context/AuthContext/AuthContext';
 import { API } from '@/lib/api';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { FileText, Eye, X, Pencil, Check } from 'lucide-react';
+import { FileText, Eye, X, Pencil, Check, Package } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Modal,
@@ -62,7 +62,7 @@ export function PendingReceivesCount() {
   const { permissions, user } = useAuthContext();
   const router = useRouter();
   const { showSuccessToast, showErrorToast } = useCustomToast();
-  const [pendingCount, setPendingCount] = useState<number>(0);
+  const [pendingCount, setPendingCount] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isOpen, setIsOpen] = useState(false);
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
@@ -273,26 +273,36 @@ export function PendingReceivesCount() {
     return null;
   }
 
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-24">
+        <div className="animate-spin rounded-full h-6 w-6 border-2 border-[#003594] border-t-transparent"></div>
+      </div>
+    );
+  }
+
   return (
     <>
       <Modal open={isOpen} onOpenChange={setIsOpen}>
         <ModalTrigger asChild>
-          <Card className="cursor-pointer hover:bg-accent/50 transition-colors">
+          <Card className="cursor-pointer hover:bg-[#003594]/5 transition-colors border-[#002a6e]/10">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Pending Receives</CardTitle>
-              <FileText className="h-4 w-4 text-muted-foreground" />
+              <CardTitle className="text-base font-semibold text-[#003594]">Pending Receives</CardTitle>
+              <FileText className="h-5 w-5 text-[#003594]" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{isLoading ? '...' : pendingCount}</div>
-              <p className="text-xs text-muted-foreground">
-                {pendingCount === 0 ? 'No pending receives' : 'Receives awaiting approval'}
-              </p>
+              {isLoading ? (
+                <div className="text-3xl font-bold text-[#003594]">...</div>
+              ) : (
+                <div className="text-3xl font-bold text-[#003594]">{pendingCount ?? 0}</div>
+              )}
+              <p className="text-sm text-gray-500 mt-1">Items awaiting receipt</p>
             </CardContent>
           </Card>
         </ModalTrigger>
         <ModalContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
           <ModalHeader>
-            <ModalTitle>Pending Receives</ModalTitle>
+            <ModalTitle className="text-[#003594]">Pending Receives</ModalTitle>
             <ModalDescription>
               Review and manage pending receives
             </ModalDescription>
@@ -302,33 +312,33 @@ export function PendingReceivesCount() {
             {pendingReceives.map((receive) => (
               <div
                 key={receive.id}
-                className="rounded-lg border p-4 hover:bg-accent/50 cursor-pointer transition-colors"
+                className="rounded-lg border border-[#002a6e]/10 p-4 hover:bg-[#003594]/5 cursor-pointer transition-colors"
                 onDoubleClick={() => handleViewDetails(receive.id)}
               >
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                   <div className="space-y-1">
-                    <p className="text-sm font-medium text-gray-500">NAC Code</p>
-                    <p className="text-base font-semibold">{receive.nacCode}</p>
+                    <p className="text-sm font-medium text-gray-600">NAC Code</p>
+                    <p className="text-base font-semibold text-[#003594]">{receive.nacCode}</p>
                   </div>
                   <div className="space-y-1">
-                    <p className="text-sm font-medium text-gray-500">Item Name</p>
-                    <p className="text-base font-semibold">{receive.itemName}</p>
+                    <p className="text-sm font-medium text-gray-600">Item Name</p>
+                    <p className="text-base font-semibold text-[#003594]">{receive.itemName}</p>
                   </div>
                   <div className="space-y-1">
-                    <p className="text-sm font-medium text-gray-500">Part Number</p>
-                    <p className="text-base font-semibold">{receive.partNumber}</p>
+                    <p className="text-sm font-medium text-gray-600">Part Number</p>
+                    <p className="text-base font-semibold text-[#003594]">{receive.partNumber}</p>
                   </div>
                   <div className="space-y-1">
-                    <p className="text-sm font-medium text-gray-500">Received Quantity</p>
-                    <p className="text-base font-semibold">{receive.receivedQuantity}</p>
+                    <p className="text-sm font-medium text-gray-600">Received Quantity</p>
+                    <p className="text-base font-semibold text-[#003594]">{receive.receivedQuantity}</p>
                   </div>
                   <div className="space-y-1">
-                    <p className="text-sm font-medium text-gray-500">Equipment Number</p>
-                    <p className="text-base font-semibold">{receive.equipmentNumber || 'N/A'}</p>
+                    <p className="text-sm font-medium text-gray-600">Equipment Number</p>
+                    <p className="text-base font-semibold text-[#003594]">{receive.equipmentNumber || 'N/A'}</p>
                   </div>
                   <div className="space-y-1">
-                    <p className="text-sm font-medium text-gray-500">Received Date</p>
-                    <p className="text-base font-semibold">{new Date(receive.receiveDate).toLocaleDateString()}</p>
+                    <p className="text-sm font-medium text-gray-600">Received Date</p>
+                    <p className="text-base font-semibold text-[#003594]">{new Date(receive.receiveDate).toLocaleDateString()}</p>
                   </div>
                 </div>
                 <div className="mt-3 text-xs text-gray-500">

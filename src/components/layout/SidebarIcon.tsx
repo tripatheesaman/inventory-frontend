@@ -1,21 +1,25 @@
-import { Home, LogIn, LogOut, FileText, Search, ClipboardList, Printer, Receipt } from "lucide-react";
+import { Home, LogIn, LogOut, FileText, Search, ClipboardList, Printer, Receipt, Calendar, Printer as PrintIcon } from "lucide-react";
 import { IconName } from "./sidebarConfig";
+import { cn } from "@/lib/utils";
 
 interface SidebarIconProps {
   name: IconName;
   size?: number;
+  className?: string;
 }
 
-export const SidebarIcon = ({ name, size = 20 }: SidebarIconProps) => {
+export const SidebarIcon = ({ name, size = 20, className }: SidebarIconProps) => {
   const icons: Record<IconName, React.ReactNode> = {
-    'home': <Home size={size} />,
-    'log-in': <LogIn size={size} />,
-    'log-out': <LogOut size={size} />,
-    'file-text': <FileText size={size} />,
-    'search': <Search size={size} />,
-    'request': <ClipboardList size={size} />,
-    'printer': <Printer size={size} />,
-    'receipt': <Receipt size={size} />,
+    'home': <Home size={size} className={className} />,
+    'log-in': <LogIn size={size} className={className} />,
+    'log-out': <LogOut size={size} className={className} />,
+    'file-text': <FileText size={size} className={className} />,
+    'search': <Search size={size} className={className} />,
+    'request': <ClipboardList size={size} className={className} />,
+    'printer': <Printer size={size} className={className} />,
+    'receipt': <Receipt size={size} className={className} />,
+    'calendar': <Calendar size={size} className={className} />,
+    'print': <PrintIcon size={size} className={className} />,
   };
 
   return icons[name];

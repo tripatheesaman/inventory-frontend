@@ -33,10 +33,22 @@ export function ReceiveCart({
 }: ReceiveCartProps) {
   const [editingItem, setEditingItem] = useState<ReceiveCartItem | null>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [editFormData, setEditFormData] = useState<Partial<ReceiveCartItem>>({});
 
   const handleEdit = (item: ReceiveCartItem) => {
     setEditingItem(item);
     setIsEditDialogOpen(true);
+    setEditFormData({
+      itemName: item.itemName,
+      nacCode: item.nacCode,
+      partNumber: item.partNumber,
+      equipmentNumber: item.equipmentNumber,
+      location: item.location,
+      cardNumber: item.cardNumber,
+      receiveQuantity: item.receiveQuantity,
+      unit: item.unit,
+      image: item.image,
+    });
   };
 
   const handleUpdate = (e: React.FormEvent<HTMLFormElement>) => {
@@ -53,6 +65,29 @@ export function ReceiveCart({
     });
     setIsEditDialogOpen(false);
     setEditingItem(null);
+  };
+
+  const handleEditSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    if (!editingItem) return;
+
+    onUpdateItem(editingItem.id, {
+      receiveQuantity: editFormData.receiveQuantity,
+      partNumber: editFormData.partNumber,
+      equipmentNumber: editFormData.equipmentNumber,
+      location: editFormData.location,
+      cardNumber: editFormData.cardNumber,
+      image: editFormData.image,
+    });
+    setIsEditDialogOpen(false);
+    setEditingItem(null);
+  };
+
+  const handleEditImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setEditFormData(prev => ({ ...prev, image: file }));
+    }
   };
 
   return (
@@ -129,123 +164,155 @@ export function ReceiveCart({
       </div>
 
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent className="sm:max-w-[425px]">
+        <DialogContent className="sm:max-w-2xl w-[95vw] bg-white">
           <DialogHeader>
-            <DialogTitle>Edit Item</DialogTitle>
+            <DialogTitle className="text-2xl font-bold bg-gradient-to-r from-[#003594] to-[#d2293b] bg-clip-text text-transparent">
+              Edit Item Details
+            </DialogTitle>
+            <p className="text-sm text-gray-500 mt-1">
+              Update the item details in your receive
+            </p>
           </DialogHeader>
-          {editingItem && (
-            <form onSubmit={handleUpdate} className="space-y-4">
-              <div className="space-y-2">
-                <Label>Item Name</Label>
-                <Input value={editingItem.itemName} disabled />
+
+          <form onSubmit={handleEditSubmit} className="space-y-6 mt-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-4">
+                <div>
+                  <Label htmlFor="editItemName" className="text-sm font-medium text-[#003594]">Item Name</Label>
+                  <Input
+                    id="editItemName"
+                    value={editFormData.itemName}
+                    onChange={(e) => setEditFormData(prev => ({ ...prev, itemName: e.target.value }))}
+                    className="mt-1 border-[#002a6e]/10 focus:border-[#003594] focus:ring-[#003594]/20"
+                    readOnly
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="editNacCode" className="text-sm font-medium text-[#003594]">NAC Code</Label>
+                  <Input
+                    id="editNacCode"
+                    value={editFormData.nacCode}
+                    onChange={(e) => setEditFormData(prev => ({ ...prev, nacCode: e.target.value }))}
+                    className="mt-1 border-[#002a6e]/10 focus:border-[#003594] focus:ring-[#003594]/20"
+                    readOnly
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="editPartNumber" className="text-sm font-medium text-[#003594]">Part Number</Label>
+                  <Input
+                    id="editPartNumber"
+                    value={editFormData.partNumber}
+                    onChange={(e) => setEditFormData(prev => ({ ...prev, partNumber: e.target.value }))}
+                    className="mt-1 border-[#002a6e]/10 focus:border-[#003594] focus:ring-[#003594]/20"
+                    readOnly
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="editEquipmentNumber" className="text-sm font-medium text-[#003594]">Equipment Number</Label>
+                  <Input
+                    id="editEquipmentNumber"
+                    value={editFormData.equipmentNumber}
+                    onChange={(e) => setEditFormData(prev => ({ ...prev, equipmentNumber: e.target.value }))}
+                    className="mt-1 border-[#002a6e]/10 focus:border-[#003594] focus:ring-[#003594]/20"
+                    readOnly
+                  />
+                </div>
               </div>
-              <div className="space-y-2">
-                <Label>NAC Code</Label>
-                <Input value={editingItem.nacCode} disabled />
+
+              <div className="space-y-4">
+                <div>
+                  <Label htmlFor="editReceiveQuantity" className="text-sm font-medium text-[#003594]">Receive Quantity</Label>
+                  <Input
+                    id="editReceiveQuantity"
+                    type="number"
+                    value={editFormData.receiveQuantity}
+                    onChange={(e) => setEditFormData(prev => ({ ...prev, receiveQuantity: Number(e.target.value) }))}
+                    className="mt-1 border-[#002a6e]/10 focus:border-[#003594] focus:ring-[#003594]/20"
+                    min="1"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="editUnit" className="text-sm font-medium text-[#003594]">Unit</Label>
+                  <Input
+                    id="editUnit"
+                    value={editFormData.unit}
+                    onChange={(e) => setEditFormData(prev => ({ ...prev, unit: e.target.value }))}
+                    className="mt-1 border-[#002a6e]/10 focus:border-[#003594] focus:ring-[#003594]/20"
+                    placeholder="Enter unit"
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="editLocation" className="text-sm font-medium text-[#003594]">Location</Label>
+                  <Input
+                    id="editLocation"
+                    value={editFormData.location}
+                    onChange={(e) => {
+                      setEditFormData(prev => ({ 
+                        ...prev, 
+                        location: e.target.value,
+                        isLocationChanged: true
+                      }));
+                    }}
+                    className="mt-1 border-[#002a6e]/10 focus:border-[#003594] focus:ring-[#003594]/20"
+                    placeholder="Enter location"
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="editCardNumber" className="text-sm font-medium text-[#003594]">Card Number</Label>
+                  <Input
+                    id="editCardNumber"
+                    value={editFormData.cardNumber}
+                    onChange={(e) => {
+                      setEditFormData(prev => ({ 
+                        ...prev, 
+                        cardNumber: e.target.value,
+                        isCardNumberChanged: true
+                      }));
+                    }}
+                    className="mt-1 border-[#002a6e]/10 focus:border-[#003594] focus:ring-[#003594]/20"
+                    placeholder="Enter card number"
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="editImage" className="text-sm font-medium text-[#003594]">Item Image</Label>
+                  <div className="mt-1">
+                    <Input
+                      id="editImage"
+                      type="file"
+                      accept="image/*"
+                      onChange={handleEditImageChange}
+                      className="border-[#002a6e]/10 focus:border-[#003594] focus:ring-[#003594]/20 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-medium file:bg-[#003594] file:text-white hover:file:bg-[#d2293b] transition-colors"
+                    />
+                  </div>
+                </div>
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="receiveQuantity">Receive Quantity</Label>
-                <Input
-                  id="receiveQuantity"
-                  type="number"
-                  min="1"
-                  value={editingItem.receiveQuantity}
-                  onChange={(e) =>
-                    setEditingItem({
-                      ...editingItem,
-                      receiveQuantity: Number(e.target.value),
-                    })
-                  }
-                  required
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="partNumber">Part Number</Label>
-                <Input
-                  id="partNumber"
-                  value={editingItem.partNumber}
-                  onChange={(e) =>
-                    setEditingItem({
-                      ...editingItem,
-                      partNumber: e.target.value,
-                    })
-                  }
-                  placeholder="Enter part number"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="equipmentNumber">Equipment Number</Label>
-                <Input
-                  id="equipmentNumber"
-                  value={editingItem.equipmentNumber}
-                  onChange={(e) =>
-                    setEditingItem({
-                      ...editingItem,
-                      equipmentNumber: e.target.value,
-                    })
-                  }
-                  placeholder="Enter equipment number"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="location">Location</Label>
-                <Input
-                  id="location"
-                  value={editingItem.location}
-                  onChange={(e) =>
-                    setEditingItem({
-                      ...editingItem,
-                      location: e.target.value,
-                    })
-                  }
-                  placeholder="Enter location"
-                  required
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="cardNumber">Card Number</Label>
-                <Input
-                  id="cardNumber"
-                  value={editingItem.cardNumber}
-                  onChange={(e) =>
-                    setEditingItem({
-                      ...editingItem,
-                      cardNumber: e.target.value,
-                    })
-                  }
-                  placeholder="Enter card number"
-                  required
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="image">Image</Label>
-                <Input
-                  id="image"
-                  type="file"
-                  accept="image/*"
-                  onChange={(e) => {
-                    const file = e.target.files?.[0];
-                    if (file) {
-                      setEditingItem({
-                        ...editingItem,
-                        image: file,
-                      });
-                    }
-                  }}
-                />
-              </div>
-              <div className="flex justify-end space-x-2">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => setIsEditDialogOpen(false)}
-                >
-                  Cancel
-                </Button>
-                <Button type="submit">Update</Button>
-              </div>
-            </form>
-          )}
+            </div>
+
+            <div className="flex justify-end gap-4 pt-4 border-t border-[#002a6e]/10">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setIsEditDialogOpen(false)}
+                className="border-[#002a6e]/10 hover:bg-[#003594]/5 hover:text-[#003594] transition-colors"
+              >
+                Cancel
+              </Button>
+              <Button
+                type="submit"
+                className="bg-[#003594] hover:bg-[#d2293b] text-white transition-colors"
+              >
+                Save Changes
+              </Button>
+            </div>
+          </form>
         </DialogContent>
       </Dialog>
     </div>

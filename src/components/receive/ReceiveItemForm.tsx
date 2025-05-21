@@ -17,6 +17,7 @@ import { Calendar } from '@/components/ui/calendar';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { useCustomToast } from '@/components/ui/custom-toast';
+import { Loader2 } from 'lucide-react';
 
 interface ReceiveItemFormProps {
   isOpen: boolean;
@@ -26,253 +27,231 @@ interface ReceiveItemFormProps {
   isManualEntry?: boolean;
 }
 
-export function ReceiveItemForm({ isOpen, onClose, item, onSubmit, isManualEntry = false }: ReceiveItemFormProps) {
+export const ReceiveItemForm = ({
+  isOpen,
+  onClose,
+  item,
+  onSubmit,
+  isManualEntry = false
+}: ReceiveItemFormProps) => {
   const { showErrorToast } = useCustomToast();
-  const [receiveQuantity, setReceiveQuantity] = useState<number>(1);
-  const [partNumber, setPartNumber] = useState('');
-  const [equipmentNumber, setEquipmentNumber] = useState('');
-  const [location, setLocation] = useState('');
-  const [cardNumber, setCardNumber] = useState('');
-  const [image, setImage] = useState<File | null>(null);
-  const [itemName, setItemName] = useState('');
-  const [unit, setUnit] = useState('');
-  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [formData, setFormData] = useState<ReceiveCartItem>({
+    id: '',
+    nacCode: '',
+    partNumber: '',
+    itemName: '',
+    receiveQuantity: 0,
+    requestedQuantity: 0,
+    equipmentNumber: '',
+    image: undefined,
+    unit: '',
+    location: '',
+    cardNumber: '',
+    isLocationChanged: false,
+    isCardNumberChanged: false
+  });
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     if (item) {
-      setItemName(processItemName(item.itemName));
-      setUnit(item.unit || '');
-      setPartNumber(item.partNumber || '');
-      setEquipmentNumber(item.equipmentNumber || '');
-      setLocation(item.location || '');
-      setCardNumber(item.cardNumber || '');
+      setFormData({
+        id: item.id.toString(),
+        nacCode: item.nacCode,
+        partNumber: item.partNumber || '',
+        itemName: item.itemName,
+        receiveQuantity: item.requestedQuantity,
+        requestedQuantity: item.requestedQuantity,
+        equipmentNumber: item.equipmentNumber,
+        image: undefined,
+        unit: item.unit || '',
+        location: item.location || '',
+        cardNumber: item.cardNumber || '',
+        isLocationChanged: false,
+        isCardNumberChanged: false
+      });
     }
   }, [item]);
 
-  const processItemName = (name: string): string => {
-    return name.split(',')[0].trim();
-  };
-
-  const validateForm = () => {
-    const newErrors: Record<string, string> = {};
-
-    if (!itemName.trim()) {
-      newErrors.itemName = 'Item name is required';
-    }
-
-    if (!partNumber.trim()) {
-      newErrors.partNumber = 'Part number is required';
-    }
-
-    if (!equipmentNumber.trim()) {
-      newErrors.equipmentNumber = 'Equipment number is required';
-    }
-
-    if (!location.trim()) {
-      newErrors.location = 'Location is required';
-    }
-
-    if (!cardNumber.trim()) {
-      newErrors.cardNumber = 'Card number is required';
-    }
-
-    if (!image) {
-      newErrors.image = 'Image is required';
-    }
-
-    if (receiveQuantity <= 0) {
-      newErrors.receiveQuantity = 'Receive quantity must be greater than 0';
-    } else if (item && receiveQuantity > item.requestedQuantity) {
-      newErrors.receiveQuantity = `Receive quantity cannot be greater than requested quantity (${item.requestedQuantity})`;
-    }
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (!validateForm()) {
-      return;
-    }
-    
-    if (!isManualEntry && !item) return;
-
+    setIsSubmitting(true);
     try {
-      // Upload image first
-      const formData = new FormData();
-      formData.append('file', image!);
-      formData.append('folder', 'receive');
-      
-      const uploadResponse = await fetch('/api/upload', {
-        method: 'POST',
-        body: formData,
-      });
-      
-      if (!uploadResponse.ok) {
-        const errorData = await uploadResponse.json();
-        throw new Error(errorData.error || 'Failed to upload image');
-      }
-
-      const cartItem: ReceiveCartItem = {
-        id: isManualEntry ? 'N/A' : (item?.id?.toString() || 'N/A'),
-        nacCode: isManualEntry ? 'N/A' : (item?.nacCode || 'N/A'),
-        itemName: itemName,
-        receiveQuantity,
-        partNumber,
-        equipmentNumber,
-        location,
-        cardNumber,
-        image: image || undefined,
-        unit: isManualEntry ? unit : (item?.unit || ''),
-        requestedQuantity: item?.requestedQuantity || 0,
-        isLocationChanged: item?.location !== location,
-        isCardNumberChanged: item?.cardNumber !== cardNumber,
-      };
-
-      onSubmit(cartItem);
-      resetForm();
+      await onSubmit(formData);
+      onClose();
     } catch (error) {
-      console.error('Error uploading image:', error);
-      showErrorToast({
-        title: "Image Upload Error",
-        message: "Failed to upload image. Please try again.",
-        duration: 5000,
-      });
+      console.error('Error submitting form:', error);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
-  const resetForm = () => {
-    setReceiveQuantity(1);
-    setPartNumber('');
-    setEquipmentNumber('');
-    setLocation('');
-    setCardNumber('');
-    setImage(null);
-    setItemName('');
-    setUnit('');
-    setErrors({});
-  };
-
-  const handleClose = () => {
-    resetForm();
-    onClose();
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setFormData(prev => ({ ...prev, image: file }));
+    }
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-[425px] max-h-[90vh] overflow-y-auto">
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="sm:max-w-2xl w-[95vw] bg-white">
         <DialogHeader>
-          <DialogTitle>{isManualEntry ? 'Add New Item' : 'Add Item to Receive'}</DialogTitle>
+          <DialogTitle className="text-2xl font-bold bg-gradient-to-r from-[#003594] to-[#d2293b] bg-clip-text text-transparent">
+            Receive Item Details
+          </DialogTitle>
+          <p className="text-sm text-gray-500 mt-1">
+            Review and confirm the item details before receiving
+          </p>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
-            <Label>Item Name</Label>
-            <Input
-              value={itemName}
-              onChange={(e) => setItemName(e.target.value)}
-              disabled={!isManualEntry}
-              className="bg-muted"
-              required
-            />
+
+        <form onSubmit={handleSubmit} className="space-y-6 mt-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="space-y-4">
+              <div>
+                <Label htmlFor="nacCode" className="text-sm font-medium text-[#003594]">NAC Code</Label>
+                <Input
+                  id="nacCode"
+                  value={formData.nacCode}
+                  onChange={(e) => setFormData(prev => ({ ...prev, nacCode: e.target.value }))}
+                  className="mt-1 border-[#002a6e]/10 focus:border-[#003594] focus:ring-[#003594]/20"
+                  readOnly
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="partNumber" className="text-sm font-medium text-[#003594]">Part Number</Label>
+                <Input
+                  id="partNumber"
+                  value={formData.partNumber}
+                  onChange={(e) => setFormData(prev => ({ ...prev, partNumber: e.target.value }))}
+                  className="mt-1 border-[#002a6e]/10 focus:border-[#003594] focus:ring-[#003594]/20"
+                  readOnly
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="itemName" className="text-sm font-medium text-[#003594]">Item Name</Label>
+                <Input
+                  id="itemName"
+                  value={formData.itemName}
+                  onChange={(e) => setFormData(prev => ({ ...prev, itemName: e.target.value }))}
+                  className="mt-1 border-[#002a6e]/10 focus:border-[#003594] focus:ring-[#003594]/20"
+                  readOnly
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="equipmentNumber" className="text-sm font-medium text-[#003594]">Equipment Number</Label>
+                <Input
+                  id="equipmentNumber"
+                  value={formData.equipmentNumber}
+                  onChange={(e) => setFormData(prev => ({ ...prev, equipmentNumber: e.target.value }))}
+                  className="mt-1 border-[#002a6e]/10 focus:border-[#003594] focus:ring-[#003594]/20"
+                  readOnly
+                />
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              <div>
+                <Label htmlFor="receiveQuantity" className="text-sm font-medium text-[#003594]">Receive Quantity</Label>
+                <Input
+                  id="receiveQuantity"
+                  type="number"
+                  value={formData.receiveQuantity}
+                  onChange={(e) => setFormData(prev => ({ ...prev, receiveQuantity: Number(e.target.value) }))}
+                  className="mt-1 border-[#002a6e]/10 focus:border-[#003594] focus:ring-[#003594]/20"
+                  min="1"
+                  required
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="unit" className="text-sm font-medium text-[#003594]">Unit</Label>
+                <Input
+                  id="unit"
+                  value={formData.unit}
+                  onChange={(e) => setFormData(prev => ({ ...prev, unit: e.target.value }))}
+                  className="mt-1 border-[#002a6e]/10 focus:border-[#003594] focus:ring-[#003594]/20"
+                  placeholder="Enter unit"
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="location" className="text-sm font-medium text-[#003594]">Location</Label>
+                <Input
+                  id="location"
+                  value={formData.location}
+                  onChange={(e) => {
+                    setFormData(prev => ({ 
+                      ...prev, 
+                      location: e.target.value,
+                      isLocationChanged: true
+                    }));
+                  }}
+                  className="mt-1 border-[#002a6e]/10 focus:border-[#003594] focus:ring-[#003594]/20"
+                  placeholder="Enter location"
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="cardNumber" className="text-sm font-medium text-[#003594]">Card Number</Label>
+                <Input
+                  id="cardNumber"
+                  value={formData.cardNumber}
+                  onChange={(e) => {
+                    setFormData(prev => ({ 
+                      ...prev, 
+                      cardNumber: e.target.value,
+                      isCardNumberChanged: true
+                    }));
+                  }}
+                  className="mt-1 border-[#002a6e]/10 focus:border-[#003594] focus:ring-[#003594]/20"
+                  placeholder="Enter card number"
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="image" className="text-sm font-medium text-[#003594]">Item Image</Label>
+                <div className="mt-1">
+                  <Input
+                    id="image"
+                    type="file"
+                    accept="image/*"
+                    onChange={handleImageChange}
+                    className="border-[#002a6e]/10 focus:border-[#003594] focus:ring-[#003594]/20 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-medium file:bg-[#003594] file:text-white hover:file:bg-[#d2293b] transition-colors"
+                  />
+                </div>
+              </div>
+            </div>
           </div>
-          <div className="space-y-2">
-            <Label>NAC Code</Label>
-            <Input
-              value={isManualEntry ? 'N/A' : (item?.nacCode || 'N/A')}
-              disabled
-              className="bg-muted"
-            />
+
+          <div className="flex justify-end gap-4 pt-4 border-t border-[#002a6e]/10">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={onClose}
+              className="border-[#002a6e]/10 hover:bg-[#003594]/5 hover:text-[#003594] transition-colors"
+            >
+              Cancel
+            </Button>
+            <Button
+              type="submit"
+              disabled={isSubmitting}
+              className="bg-[#003594] hover:bg-[#d2293b] text-white transition-colors"
+            >
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Receiving...
+                </>
+              ) : (
+                'Receive Item'
+              )}
+            </Button>
           </div>
-          <div className="space-y-2">
-            <Label htmlFor="receiveQuantity">Receive Quantity</Label>
-            <Input
-              id="receiveQuantity"
-              type="number"
-              min="1"
-              value={receiveQuantity}
-              onChange={(e) => setReceiveQuantity(Number(e.target.value))}
-              required
-              className={errors.receiveQuantity ? "border-red-500" : ""}
-            />
-            {errors.receiveQuantity && <p className="text-sm text-red-500">{errors.receiveQuantity}</p>}
-            {item?.requestedQuantity && (
-              <p className="text-sm text-muted-foreground">
-                Requested Quantity: {item.requestedQuantity}
-              </p>
-            )}
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="partNumber">Part Number</Label>
-            <Input
-              id="partNumber"
-              value={partNumber}
-              onChange={(e) => setPartNumber(e.target.value)}
-              placeholder="Enter part number"
-              className={errors.partNumber ? "border-red-500" : ""}
-              required
-            />
-            {errors.partNumber && <p className="text-sm text-red-500">{errors.partNumber}</p>}
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="equipmentNumber">Equipment Number</Label>
-            <Input
-              id="equipmentNumber"
-              value={equipmentNumber}
-              onChange={(e) => setEquipmentNumber(e.target.value)}
-              placeholder="Enter equipment number"
-              className={errors.equipmentNumber ? "border-red-500" : ""}
-              required
-            />
-            {errors.equipmentNumber && <p className="text-sm text-red-500">{errors.equipmentNumber}</p>}
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="location">Location</Label>
-            <Input
-              id="location"
-              value={location}
-              onChange={(e) => setLocation(e.target.value)}
-              placeholder="Enter location"
-              className={errors.location ? "border-red-500" : ""}
-              required
-            />
-            {errors.location && <p className="text-sm text-red-500">{errors.location}</p>}
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="cardNumber">Card Number</Label>
-            <Input
-              id="cardNumber"
-              value={cardNumber}
-              onChange={(e) => setCardNumber(e.target.value)}
-              placeholder="Enter card number"
-              className={errors.cardNumber ? "border-red-500" : ""}
-              required
-            />
-            {errors.cardNumber && <p className="text-sm text-red-500">{errors.cardNumber}</p>}
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="image">Image</Label>
-            <Input
-              id="image"
-              type="file"
-              accept="image/*"
-              onChange={(e) => {
-                const file = e.target.files?.[0];
-                if (file) {
-                  setImage(file);
-                }
-              }}
-              className={errors.image ? "border-red-500" : ""}
-              required
-            />
-            {errors.image && <p className="text-sm text-red-500">{errors.image}</p>}
-          </div>
-          <DialogFooter>
-            <Button type="submit">Add to Cart</Button>
-          </DialogFooter>
         </form>
       </DialogContent>
     </Dialog>
   );
-} 
+}; 

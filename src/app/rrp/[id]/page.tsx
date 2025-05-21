@@ -161,7 +161,7 @@ export default function RRPDetailsPage({ params }: { params: Promise<{ id: strin
           // Mark as read
           await markAsRead(Number(notificationId));
           // Delete the notification
-          await API.delete(`/api/notifications/${notificationId}`);
+          await API.delete(`/api/notifications/delete/${notificationId}`);
           // Remove the notification from the URL
           const newUrl = window.location.pathname;
           window.history.replaceState({}, '', newUrl);

@@ -12,4 +12,6 @@ export interface ItemDetails {
   openAmount: number;
   imageUrl: string;
   altText: string;
+  trueBalance: number;
+  averageCostPerUnit: number;
 } 
