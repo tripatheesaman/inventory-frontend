@@ -1,14 +1,13 @@
 'use client'
 
-import { SearchResult, ReceiveSearchResult } from '@/types/search';
-import { Spinner } from '@/components/ui/spinner';
-import { normalizeEquipmentNumbers } from '@/lib/utils/equipmentNumbers';
+import { ReceiveSearchResult } from '@/types/search';
+import { format } from 'date-fns';
 
-interface SearchResultsProps {
-  results: (SearchResult | ReceiveSearchResult)[] | null;
+interface ReceiveSearchResultsProps {
+  results: ReceiveSearchResult[] | null;
   isLoading: boolean;
   error: string | null;
-  onRowDoubleClick: (item: SearchResult | ReceiveSearchResult) => void;
+  onRowDoubleClick: (item: ReceiveSearchResult) => void;
   searchParams: {
     universal: string;
     equipmentNumber: string;
@@ -17,14 +16,14 @@ interface SearchResultsProps {
   canViewFullDetails: boolean;
 }
 
-export const SearchResults = ({ 
-  results, 
-  isLoading, 
-  error, 
-  onRowDoubleClick, 
+export const ReceiveSearchResults = ({
+  results,
+  isLoading,
+  error,
+  onRowDoubleClick,
   searchParams,
-  canViewFullDetails 
-}: SearchResultsProps) => {
+  canViewFullDetails
+}: ReceiveSearchResultsProps) => {
   if (isLoading) {
     return (
       <div className="flex justify-center items-center py-12">
@@ -56,25 +55,25 @@ export const SearchResults = ({
         <thead>
           <tr className="bg-[#003594]/5">
             <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-[#003594] uppercase tracking-wider">
-              NAC Code
+              Request Number
             </th>
             <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-[#003594] uppercase tracking-wider">
-              Part Number
+              Request Date
+            </th>
+            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-[#003594] uppercase tracking-wider">
+              NAC Code
             </th>
             <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-[#003594] uppercase tracking-wider">
               Item Name
             </th>
             <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-[#003594] uppercase tracking-wider">
-              Current Balance
+              Part Number
+            </th>
+            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-[#003594] uppercase tracking-wider">
+              Requested Quantity
             </th>
             <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-[#003594] uppercase tracking-wider">
               Equipment Number
-            </th>
-            <th scope="col" className="px-6 py-3 text-center text-xs font-medium text-[#003594] uppercase tracking-wider">
-              Location
-            </th>
-            <th scope="col" className="px-6 py-3 text-center text-xs font-medium text-[#003594] uppercase tracking-wider">
-              Card Number
             </th>
           </tr>
         </thead>
@@ -87,28 +86,30 @@ export const SearchResults = ({
             >
               <td className="px-6 py-4 whitespace-nowrap">
                 <div className="text-sm font-medium text-[#003594] group-hover:text-[#d2293b] transition-colors">
-                  {item.nacCode}
+                  {item.requestNumber}
                 </div>
               </td>
               <td className="px-6 py-4 whitespace-nowrap">
-                <div className="text-sm text-gray-900">{item.partNumber}</div>
+                <div className="text-sm text-gray-900">
+                  {format(new Date(item.requestDate), 'PPP')}
+                </div>
+              </td>
+              <td className="px-6 py-4 whitespace-nowrap">
+                <div className="text-sm text-gray-900">{item.nacCode}</div>
               </td>
               <td className="px-6 py-4">
                 <div className="text-sm text-gray-900">{item.itemName}</div>
               </td>
               <td className="px-6 py-4 whitespace-nowrap">
+                <div className="text-sm text-gray-900">{item.partNumber || 'NA'}</div>
+              </td>
+              <td className="px-6 py-4 whitespace-nowrap">
                 <div className="text-sm text-center font-medium text-[#003594] group-hover:text-[#d2293b] transition-colors">
-                  {item.currentBalance}
+                  {item.requestedQuantity}
                 </div>
               </td>
               <td className="px-6 py-4 whitespace-nowrap">
                 <div className="text-sm text-gray-900">{item.equipmentNumber}</div>
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap">
-                <div className="text-sm text-gray-900 text-center">{item.location}</div>
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap">
-                <div className="text-sm text-gray-900 text-center">{item.cardNumber}</div>
               </td>
             </tr>
           ))}

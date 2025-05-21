@@ -27,7 +27,13 @@ export default function Layout({ children }: { children: React.ReactNode }) {
 
   const requiredPermission = Object.entries(routePermissionMap).find(([route]) => path.startsWith(route))?.[1];
 
-  if (false && requiredPermission && permissions && !permissions.includes(requiredPermission as string)) {
+  // Check if user has access to dashboard layout
+  if (!permissions?.includes('can_access_dashboard')) {
+    return <Unauthorized />;
+  }
+
+  // Check route-specific permissions
+  if (requiredPermission && permissions && !permissions.includes(requiredPermission as string)) {
     return <Unauthorized />;
   }
 

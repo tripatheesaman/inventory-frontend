@@ -1,9 +1,10 @@
-export type IconName = 'home' | 'log-in' | 'log-out' | 'file-text' | 'search' | 'request' | 'printer' | 'receipt';
+export type IconName = 'home' | 'log-in' | 'log-out' | 'file-text' | 'search' | 'request' | 'printer' | 'receipt' | 'calendar' | 'print';
 
 interface SubmenuItem {
   label: string;
   href: string;
   permission?: string;
+  icon?: IconName;
 }
 
 interface SidebarLink {
@@ -60,17 +61,20 @@ export const sidebarLinks: SidebarLink[] = [
       { 
         label: "Daily", 
         href: "/reports/daily",
-        permission: 'view_daily_reports'
+        permission: 'view_daily_reports',
+        icon: 'calendar'
       },
       { 
         label: "Weekly", 
         href: "/reports/weekly",
-        permission: 'view_weekly_reports'
+        permission: 'view_weekly_reports',
+        icon: 'calendar'
       },
       { 
         label: "Monthly", 
         href: "/reports/monthly",
-        permission: 'view_monthly_reports'
+        permission: 'view_monthly_reports',
+        icon: 'calendar'
       },
     ],
   },
@@ -83,17 +87,20 @@ export const sidebarLinks: SidebarLink[] = [
       {
         label: "Request",
         href: "/print/request",
-        permission: 'can_print_request'
+        permission: 'can_print_request',
+        icon: 'print'
       },
       {
         label: "Receive",
         href: "/print/receive",
-        permission: 'can_print_receive'
+        permission: 'can_print_receive',
+        icon: 'print'
       },
       {
         label: "RRP",
         href: "/print/rrp",
-        permission: 'can_print_rrp'
+        permission: 'can_print_rrp',
+        icon: 'print'
       }
     ]
   }

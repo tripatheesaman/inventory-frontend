@@ -1,20 +1,19 @@
 /** @type {import('tailwindcss').Config} */
-module.exports = {
+export default {
   content: [
-    './src/app/login/components/loginForm.tsx',
+    './src/pages/**/*.{js,ts,jsx,tsx,mdx}',
+    './src/components/**/*.{js,ts,jsx,tsx,mdx}',
+    './src/app/**/*.{js,ts,jsx,tsx,mdx}',
   ],
+  darkMode: 'class',
   theme: {
-    extend: {
-      colors: {
-        brand: {
-          light: '#93c5fd',
-          DEFAULT: '#3b82f6',
-          dark: '#1e3a8a',
-        },
-        customGreen: '#22c55e',
-        danger: '#ef4444',
-      },
-    },
+    colors: {
+      primary: '#003594',
+      secondary: '#d2293b',
+      background: '#ffffff',
+      foreground: '#000000',
+      border: '#e2e8f0'
+    }
   },
   plugins: [],
-}
+} 

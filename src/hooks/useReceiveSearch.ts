@@ -59,7 +59,6 @@ export function useReceiveSearch() {
 
     try {
       const response = await API.get('/api/receive/search/receivables', { params: currentParams });
-      console.log(response.data);
       if (response.status === 200) {
         // Transform the response data to flatten the items array
         const transformedResults = response.data.flatMap((request: any) => 

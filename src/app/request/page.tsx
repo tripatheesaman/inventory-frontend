@@ -1,8 +1,7 @@
 'use client'
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Calendar } from '@/components/ui/calendar';
-import { cn } from '@/lib/utils';
 import { SearchControls, SearchResults } from '@/components/search';
 import { useSearch } from '@/hooks/useSearch';
 import { RequestCartItem, RequestData } from '@/types/request';
@@ -16,13 +15,10 @@ import { useCustomToast } from "@/components/ui/custom-toast";
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
-import { v4 as uuidv4 } from 'uuid';
-import fs from 'fs';
-import path from 'path';
-import { expandEquipmentNumbers } from '@/lib/utils/equipmentNumbers';
 
 export default function RequestPage() {
-  const { user } = useAuthContext();
+  const { user, permissions } = useAuthContext();
+  const canViewFullDetails = permissions.includes('can_view_full_item_details_in_search');
   const { showSuccessToast, showErrorToast } = useCustomToast();
   const [date, setDate] = useState<Date | undefined>(undefined);
   const [requestNumber, setRequestNumber] = useState<string>('');
@@ -33,6 +29,7 @@ export default function RequestPage() {
   const [cart, setCart] = useState<RequestCartItem[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [remarks, setRemarks] = useState<string>('');
+  const [isLoadingLastRequest, setIsLoadingLastRequest] = useState(true);
 
   const {
     searchParams,
@@ -43,6 +40,33 @@ export default function RequestPage() {
     setResults,
     setSearchParams,
   } = useSearch();
+
+  useEffect(() => {
+    const fetchLastRequestInfo = async () => {
+      try {
+        const response = await API.get('/api/request/getlastrequestinfo');
+        console.log(response.data)
+        if (response.status === 200 && response.data) {
+          const { requestNumber: lastRequestNumber, requestDate } = response.data;
+          setRequestNumber(lastRequestNumber || '');
+          if (requestDate) {
+            setDate(new Date(requestDate));
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching last request info:', error);
+        showErrorToast({
+          title: "Error",
+          message: "Failed to fetch last request information",
+          duration: 3000,
+        });
+      } finally {
+        setIsLoadingLastRequest(false);
+      }
+    };
+
+    fetchLastRequestInfo();
+  }, []);
 
   const handleRowDoubleClick = (item: SearchResult) => {
     setSelectedItem(item);
@@ -276,101 +300,136 @@ export default function RequestPage() {
   };
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-bold text-gray-900">Request Items</h1>
-          <div className="flex flex-col gap-4">
-            <div className="w-[200px]">
-              <Button onClick={handleManualEntry} className="w-full">
-                Request New Item
-              </Button>
+    <div className="min-h-screen bg-gray-50">
+      <div className="container mx-auto px-4 py-8">
+        <div className="space-y-8">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <div>
+              <h1 className="text-3xl font-bold bg-gradient-to-r from-[#003594] to-[#d2293b] bg-clip-text text-transparent">Create Request</h1>
+              <p className="text-gray-600 mt-1">Request items from inventory</p>
             </div>
-            <div className="flex items-center gap-4">
-              <div className="flex flex-col gap-2">
-                <Label htmlFor="requestNumber">Request Number</Label>
-                <Input
-                  id="requestNumber"
-                  value={requestNumber}
-                  onChange={(e) => setRequestNumber(e.target.value)}
-                  placeholder="Enter request number"
-                  className="w-[200px]"
+            <div className="flex items-center gap-2">
+              <div className="h-2 w-2 rounded-full bg-[#d2293b] animate-pulse"></div>
+              <span className="text-sm text-gray-600">Live Request</span>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            {/* Left Column - Search and Results */}
+            <div className="lg:col-span-2 space-y-8">
+              <div className="bg-white rounded-xl shadow-sm border border-[#002a6e]/10 p-6 hover:border-[#d2293b]/20 transition-colors">
+                <SearchControls
+                  onUniversalSearch={handleSearch('universal')}
+                  onEquipmentSearch={handleSearch('equipmentNumber')}
+                  onPartSearch={handleSearch('partNumber')}
                 />
               </div>
-              <div className="w-[240px]">
-                <Label>Request Date</Label>
-                <Calendar
-                  value={date}
-                  onChange={(newDate: Date | null) => setDate(newDate ?? undefined)}
-                  className={cn(
-                    "w-full rounded-md border shadow mt-2",
-                    !date && "text-muted-foreground"
-                  )}
+
+              <div className="bg-white rounded-xl shadow-sm border border-[#002a6e]/10 p-6 hover:border-[#d2293b]/20 transition-colors">
+                {isLoading ? (
+                  <div className="flex items-center justify-center h-24">
+                    <div className="animate-spin rounded-full h-6 w-6 border-2 border-[#003594] border-t-transparent"></div>
+                  </div>
+                ) : (
+                  <SearchResults
+                    results={results}
+                    isLoading={isLoading}
+                    error={error}
+                    onRowDoubleClick={handleRowDoubleClick}
+                    searchParams={searchParams}
+                    canViewFullDetails={canViewFullDetails}
+                  />
+                )}
+              </div>
+            </div>
+
+            {/* Right Column - Request Form and Cart */}
+            <div className="space-y-8">
+              <div className="bg-white rounded-xl shadow-sm border border-[#002a6e]/10 p-6 hover:border-[#d2293b]/20 transition-colors">
+                <div className="space-y-4">
+                  <div>
+                    <Label htmlFor="requestNumber" className="text-sm font-medium text-[#003594]">Request Number</Label>
+                    <Input
+                      id="requestNumber"
+                      value={requestNumber}
+                      onChange={(e) => setRequestNumber(e.target.value)}
+                      className="mt-1"
+                      placeholder="Enter request number"
+                      disabled={isLoadingLastRequest}
+                    />
+                  </div>
+                  <div>
+                    <Label className="text-sm font-medium text-[#003594]">Request Date</Label>
+                    <div className="mt-1">
+                      <Calendar
+                        value={date}
+                        onChange={(newDate) => setDate(newDate ?? undefined)}
+                        className="rounded-md border"
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <Label htmlFor="remarks" className="text-sm font-medium text-[#003594]">Remarks</Label>
+                    <textarea
+                      id="remarks"
+                      value={remarks}
+                      onChange={(e) => setRemarks(e.target.value)}
+                      className="mt-1 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                      rows={3}
+                      placeholder="Enter any remarks"
+                    />
+                  </div>
+                  <Button
+                    onClick={handleManualEntry}
+                    className="w-full bg-[#003594] hover:bg-[#d2293b] text-white transition-colors"
+                  >
+                    Request New Item
+                  </Button>
+                </div>
+              </div>
+
+              <div className="bg-white rounded-xl shadow-sm border border-[#002a6e]/10 p-6 hover:border-[#d2293b]/20 transition-colors">
+                <RequestCart
+                  items={cart}
+                  onRemoveItem={handleRemoveFromCart}
+                  onUpdateItem={handleUpdateCartItem}
+                  onDeleteItem={handleDeleteCartItem}
+                  onSubmit={handlePreviewSubmit}
+                  isSubmitDisabled={!date || !requestNumber.trim() || cart.length === 0}
+                  isSubmitting={isSubmitting}
+                  remarks={remarks}
+                  onRemarksChange={setRemarks}
                 />
               </div>
             </div>
           </div>
         </div>
-
-        <div className="space-y-6">
-          <SearchControls
-            onUniversalSearch={handleSearch('universal')}
-            onEquipmentSearch={handleSearch('equipmentNumber')}
-            onPartSearch={handleSearch('partNumber')}
-          />
-
-          <div className="border rounded-lg">
-            <SearchResults
-              results={results}
-              isLoading={isLoading}
-              error={error}
-              onRowDoubleClick={handleRowDoubleClick}
-              searchParams={searchParams}
-            />
-          </div>
-        </div>
-
-        <div className="space-y-6">
-          <RequestCart
-            items={cart}
-            onRemoveItem={handleRemoveFromCart}
-            onUpdateItem={handleUpdateCartItem}
-            onDeleteItem={handleDeleteCartItem}
-            onSubmit={handlePreviewSubmit}
-            isSubmitDisabled={!date || !requestNumber.trim() || cart.length === 0}
-            isSubmitting={isSubmitting}
-            remarks={remarks}
-            onRemarksChange={setRemarks}
-          />
-        </div>
-
-        <RequestItemForm
-          isOpen={isItemFormOpen}
-          onClose={() => {
-            setIsItemFormOpen(false);
-            setSelectedItem(null);
-            setIsManualEntry(false);
-          }}
-          item={selectedItem}
-          onSubmit={handleAddToCart}
-          isManualEntry={isManualEntry}
-        />
-
-        {date && requestNumber && (
-          <RequestPreviewModal
-            isOpen={isPreviewOpen}
-            onClose={() => setIsPreviewOpen(false)}
-            onConfirm={handleConfirmSubmit}
-            onUpdateItem={handleUpdateCartItem}
-            onDeleteItem={handleDeleteCartItem}
-            items={cart}
-            date={date}
-            requestNumber={requestNumber}
-            remarks={remarks}
-            isSubmitting={isSubmitting}
-          />
-        )}
       </div>
+
+      <RequestItemForm
+        isOpen={isItemFormOpen}
+        onClose={() => {
+          setIsItemFormOpen(false);
+          setSelectedItem(null);
+          setIsManualEntry(false);
+        }}
+        item={selectedItem}
+        onSubmit={handleAddToCart}
+        isManualEntry={isManualEntry}
+      />
+
+      <RequestPreviewModal
+        isOpen={isPreviewOpen}
+        onClose={() => setIsPreviewOpen(false)}
+        onConfirm={handleConfirmSubmit}
+        onUpdateItem={handleUpdateCartItem}
+        onDeleteItem={handleDeleteCartItem}
+        items={cart}
+        date={date || new Date()}
+        requestNumber={requestNumber}
+        remarks={remarks}
+        isSubmitting={isSubmitting}
+      />
     </div>
   );
 }
