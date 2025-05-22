@@ -23,7 +23,7 @@ export function PrintRequestResults({
 }: PrintRequestResultsProps) {
   if (error) {
     return (
-      <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
+      <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
         {error}
       </div>
     );
@@ -31,8 +31,8 @@ export function PrintRequestResults({
 
   if (isLoading) {
     return (
-      <div className="flex justify-center items-center py-8">
-        <Spinner size="lg" variant="primary" />
+      <div className="flex justify-center items-center py-12">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#003594]"></div>
       </div>
     );
   }
@@ -40,8 +40,9 @@ export function PrintRequestResults({
   // Only show "Enter search terms" if no search has been performed
   if (!results && !searchParams.universal && !searchParams.equipmentNumber && !searchParams.partNumber) {
     return (
-      <div className="text-center py-8 text-gray-500">
-        Enter search terms to find requests
+      <div className="text-center py-12 text-gray-500">
+        <p className="text-lg font-medium text-[#003594]">Welcome to Print Request</p>
+        <p className="mt-2">Enter search terms to find requests</p>
       </div>
     );
   }
@@ -49,8 +50,9 @@ export function PrintRequestResults({
   // Show "No results found" if search was performed but returned empty array
   if (Array.isArray(results) && results.length === 0) {
     return (
-      <div className="text-center py-8 text-gray-500">
-        No results found
+      <div className="text-center py-12 text-gray-500">
+        <p className="text-lg font-medium text-[#003594]">No Results Found</p>
+        <p className="mt-2">Try adjusting your search criteria</p>
       </div>
     );
   }

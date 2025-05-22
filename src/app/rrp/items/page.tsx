@@ -124,7 +124,6 @@ export default function RRPItemsPage() {
 
   const handleItemDoubleClick = (item: RRPItem) => {
     const isForeign = rrpType === 'foreign';
-    console.log('RRP Type:', rrpType, 'Is Foreign:', isForeign);
     const cartItem: CartItem = {
       ...item,
       price: 0,
@@ -238,79 +237,84 @@ export default function RRPItemsPage() {
   if (isLoading || isConfigLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <Loader2 className="h-8 w-8 animate-spin" />
+        <Loader2 className="h-8 w-8 animate-spin text-[#003594]" />
       </div>
     );
   }
 
   return (
-    <div className="container mx-auto p-6">
+    <div className="container mx-auto p-6 bg-gray-50 min-h-screen">
       <div className="max-w-7xl mx-auto">
         <div className="flex items-center gap-4 mb-6">
           <Button
             variant="ghost"
             size="icon"
             onClick={handleBack}
-            className="hover:bg-gray-100"
+            className="hover:bg-[#003594]/5 text-[#003594]"
           >
             <ArrowLeft className="h-5 w-5" />
           </Button>
-          <h1 className="text-2xl font-bold">RRP Items</h1>
+          <h1 className="text-2xl font-bold bg-gradient-to-r from-[#003594] to-[#d2293b] bg-clip-text text-transparent">
+            RRP Items
+          </h1>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Items Section */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Available Items</CardTitle>
+          <Card className="border-[#002a6e]/10 hover:border-[#d2293b]/20 transition-all duration-300 shadow-sm">
+            <CardHeader className="bg-[#003594]/5 border-b border-[#002a6e]/10">
+              <CardTitle className="text-lg font-semibold text-[#003594]">Available Items</CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="p-6">
               <div className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div className="space-y-2">
-                    <Label>Part Number</Label>
+                    <Label className="text-sm font-medium text-[#003594]">Part Number</Label>
                     <Input
                       value={searchQueries.partNumber}
                       onChange={(e) => setSearchQueries(prev => ({ ...prev, partNumber: e.target.value }))}
                       placeholder="Search by part number"
+                      className="border-[#002a6e]/10 focus:ring-[#003594]"
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label>Equipment Number</Label>
+                    <Label className="text-sm font-medium text-[#003594]">Equipment Number</Label>
                     <Input
                       value={searchQueries.equipmentNumber}
                       onChange={(e) => setSearchQueries(prev => ({ ...prev, equipmentNumber: e.target.value }))}
                       placeholder="Search by equipment number"
+                      className="border-[#002a6e]/10 focus:ring-[#003594]"
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label>Universal Search</Label>
+                    <Label className="text-sm font-medium text-[#003594]">Universal Search</Label>
                     <Input
                       value={searchQueries.universal}
                       onChange={(e) => setSearchQueries(prev => ({ ...prev, universal: e.target.value }))}
                       placeholder="Search by NAC code, item name, or request number"
+                      className="border-[#002a6e]/10 focus:ring-[#003594]"
                     />
                   </div>
                 </div>
 
-                <div className="border rounded-lg overflow-hidden">
+                <div className="border border-[#002a6e]/10 rounded-lg overflow-hidden">
                   <Table>
                     <TableHeader>
-                      <TableRow>
-                        <TableHead>Request Number</TableHead>
-                        <TableHead>NAC Code</TableHead>
-                        <TableHead>Item Name</TableHead>
-                        <TableHead>Part Number</TableHead>
-                        <TableHead>Equipment Number</TableHead>
-                        <TableHead className="text-right">Quantity</TableHead>
-                        <TableHead>Unit</TableHead>
+                      <TableRow className="bg-[#003594]/5 hover:bg-[#003594]/10">
+                        <TableHead className="text-[#003594] font-semibold">Request Number</TableHead>
+                        <TableHead className="text-[#003594] font-semibold">NAC Code</TableHead>
+                        <TableHead className="text-[#003594] font-semibold">Item Name</TableHead>
+                        <TableHead className="text-[#003594] font-semibold">Part Number</TableHead>
+                        <TableHead className="text-[#003594] font-semibold">Equipment Number</TableHead>
+                        <TableHead className="text-[#003594] font-semibold text-right">Quantity</TableHead>
+                        <TableHead className="text-[#003594] font-semibold">Unit</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
                       {filteredItems.map((item) => (
                         <TableRow
                           key={item.id}
-                          className="cursor-pointer hover:bg-gray-50"
+                          className="cursor-pointer hover:bg-[#003594]/5 transition-colors"
                           onDoubleClick={() => handleItemDoubleClick(item)}
                         >
                           <TableCell>{item.request_number}</TableCell>
@@ -330,39 +334,39 @@ export default function RRPItemsPage() {
           </Card>
 
           {/* Cart Section */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Selected Items</CardTitle>
+          <Card className="border-[#002a6e]/10 hover:border-[#d2293b]/20 transition-all duration-300 shadow-sm">
+            <CardHeader className="bg-[#003594]/5 border-b border-[#002a6e]/10">
+              <CardTitle className="text-lg font-semibold text-[#003594]">Selected Items</CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="p-6">
               <div className="space-y-4">
-                <div className="border rounded-lg overflow-hidden">
+                <div className="border border-[#002a6e]/10 rounded-lg overflow-hidden">
                   <Table>
                     <TableHeader>
-                      <TableRow>
-                        <TableHead>Request Number</TableHead>
-                        <TableHead>NAC Code</TableHead>
-                        <TableHead>Item Name</TableHead>
-                        <TableHead>Part Number</TableHead>
-                        <TableHead>Equipment Number</TableHead>
-                        <TableHead className="text-right">Price</TableHead>
+                      <TableRow className="bg-[#003594]/5 hover:bg-[#003594]/10">
+                        <TableHead className="text-[#003594] font-semibold">Request Number</TableHead>
+                        <TableHead className="text-[#003594] font-semibold">NAC Code</TableHead>
+                        <TableHead className="text-[#003594] font-semibold">Item Name</TableHead>
+                        <TableHead className="text-[#003594] font-semibold">Part Number</TableHead>
+                        <TableHead className="text-[#003594] font-semibold">Equipment Number</TableHead>
+                        <TableHead className="text-[#003594] font-semibold text-right">Price</TableHead>
                         {rrpType === 'foreign' && (
                           <>
-                            <TableHead className="text-right">Customs</TableHead>
-                            <TableHead className="text-right">Forex</TableHead>
-                            <TableHead>Currency</TableHead>
+                            <TableHead className="text-[#003594] font-semibold text-right">Customs</TableHead>
+                            <TableHead className="text-[#003594] font-semibold text-right">Forex</TableHead>
+                            <TableHead className="text-[#003594] font-semibold">Currency</TableHead>
                           </>
                         )}
-                        <TableHead className="text-right">Quantity</TableHead>
-                        <TableHead>Unit</TableHead>
-                        <TableHead>VAT</TableHead>
-                        <TableHead className="text-right">Total</TableHead>
-                        <TableHead>Actions</TableHead>
+                        <TableHead className="text-[#003594] font-semibold text-right">Quantity</TableHead>
+                        <TableHead className="text-[#003594] font-semibold">Unit</TableHead>
+                        <TableHead className="text-[#003594] font-semibold">VAT</TableHead>
+                        <TableHead className="text-[#003594] font-semibold text-right">Total</TableHead>
+                        <TableHead className="text-[#003594] font-semibold">Actions</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
                       {cart.map((item, index) => (
-                        <TableRow key={index}>
+                        <TableRow key={index} className="hover:bg-[#003594]/5 transition-colors">
                           <TableCell>{item.request_number}</TableCell>
                           <TableCell>{item.nac_code}</TableCell>
                           <TableCell className="max-w-[200px] truncate" title={item.item_name}>{item.item_name}</TableCell>
@@ -381,22 +385,14 @@ export default function RRPItemsPage() {
                           <TableCell>{item.vat ? 'Yes' : 'No'}</TableCell>
                           <TableCell className="text-right">{item.total.toFixed(2)}</TableCell>
                           <TableCell>
-                            <div className="flex items-center gap-2">
                               <Button
                                 variant="ghost"
-                                size="icon"
-                                onClick={() => handleEditCartItem(index)}
-                              >
-                                <Edit2 className="h-4 w-4" />
-                              </Button>
-                              <Button
-                                variant="ghost"
-                                size="icon"
+                              size="sm"
                                 onClick={() => handleRemoveFromCart(index)}
+                              className="text-[#d2293b] hover:text-[#b31f2f] hover:bg-[#d2293b]/5"
                               >
                                 <Trash2 className="h-4 w-4" />
                               </Button>
-                            </div>
                           </TableCell>
                         </TableRow>
                       ))}
@@ -404,11 +400,18 @@ export default function RRPItemsPage() {
                   </Table>
                 </div>
 
-                <div className="flex justify-end space-x-4">
-                  <Button variant="outline" onClick={handleBack}>
+                <div className="flex justify-end gap-3 pt-4 border-t border-[#002a6e]/10">
+                  <Button
+                    variant="outline"
+                    onClick={handleBack}
+                    className="border-[#d2293b]/20 hover:border-[#d2293b] hover:bg-[#d2293b]/5 text-[#d2293b]"
+                  >
                     Back
                   </Button>
-                  <Button onClick={handleSubmit}>
+                  <Button
+                    onClick={handleSubmit}
+                    className="bg-[#003594] hover:bg-[#002a6e] text-white transition-colors"
+                  >
                     Next
                   </Button>
                 </div>
@@ -418,16 +421,16 @@ export default function RRPItemsPage() {
         </div>
 
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <DialogContent className="sm:max-w-[425px]">
+          <DialogContent className="sm:max-w-[425px] border-[#002a6e]/10 bg-white">
             <DialogHeader>
-              <DialogTitle>
-                {selectedItem ? 'Edit Item' : 'Add Item'} ({rrpType === 'foreign' ? 'Foreign' : 'Local'} RRP)
+              <DialogTitle className="text-lg font-semibold text-[#003594]">
+                {selectedItem ? 'Add Item' : 'Edit Item'} ({rrpType === 'foreign' ? 'Foreign' : 'Local'} RRP)
               </DialogTitle>
             </DialogHeader>
             {selectedItem && (
-              <div className="space-y-4">
+              <div className="space-y-4 py-4">
                 <div className="space-y-2">
-                  <Label>Price *</Label>
+                  <Label className="text-sm font-medium text-[#003594]">Price *</Label>
                   <Input
                     type="number"
                     defaultValue={selectedItem.price?.toString() || '0'}
@@ -436,10 +439,11 @@ export default function RRPItemsPage() {
                       price: parseFloat(e.target.value)
                     })}
                     required
+                    className="border-[#002a6e]/10 focus:ring-[#003594]"
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label>Quantity *</Label>
+                  <Label className="text-sm font-medium text-[#003594]">Quantity *</Label>
                   <Input
                     type="number"
                     defaultValue={selectedItem.quantity?.toString() || '0'}
@@ -448,6 +452,7 @@ export default function RRPItemsPage() {
                       quantity: parseInt(e.target.value)
                     })}
                     required
+                    className="border-[#002a6e]/10 focus:ring-[#003594]"
                   />
                 </div>
                 <div className="flex items-center space-x-2">
@@ -457,13 +462,14 @@ export default function RRPItemsPage() {
                       ...selectedItem,
                       vat: checked
                     })}
+                    className="data-[state=checked]:bg-[#003594] data-[state=unchecked]:bg-gray-200"
                   />
-                  <Label>Include VAT</Label>
+                  <Label className="text-sm font-medium text-[#003594]">Include VAT</Label>
                 </div>
                 {rrpType === 'foreign' && (
                   <>
                     <div className="space-y-2">
-                      <Label>Customs Charge *</Label>
+                      <Label className="text-sm font-medium text-[#003594]">Customs Charge *</Label>
                       <Input
                         type="number"
                         defaultValue={selectedItem.customsCharge?.toString() || '0'}
@@ -472,10 +478,11 @@ export default function RRPItemsPage() {
                           customsCharge: parseFloat(e.target.value)
                         })}
                         required
+                        className="border-[#002a6e]/10 focus:ring-[#003594]"
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label>Forex Rate</Label>
+                      <Label className="text-sm font-medium text-[#003594]">Forex Rate</Label>
                       <Input
                         type="number"
                         defaultValue={selectedItem.forex_rate?.toString() || '1'}
@@ -483,10 +490,11 @@ export default function RRPItemsPage() {
                           ...selectedItem,
                           forex_rate: parseFloat(e.target.value)
                         })}
+                        className="border-[#002a6e]/10 focus:ring-[#003594]"
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label>Currency</Label>
+                      <Label className="text-sm font-medium text-[#003594]">Currency</Label>
                       <Select
                         value={selectedItem.currency}
                         onValueChange={(value) => setSelectedItem({
@@ -494,7 +502,7 @@ export default function RRPItemsPage() {
                           currency: value
                         })}
                       >
-                        <SelectTrigger>
+                        <SelectTrigger className="border-[#002a6e]/10 focus:ring-[#003594]">
                           <SelectValue placeholder="Select currency" />
                         </SelectTrigger>
                         <SelectContent>
@@ -508,10 +516,11 @@ export default function RRPItemsPage() {
                     </div>
                   </>
                 )}
-                <div className="flex justify-end space-x-4">
+                <div className="flex justify-end space-x-4 pt-4 border-t border-[#002a6e]/10">
                   <Button
                     variant="outline"
                     onClick={() => setIsDialogOpen(false)}
+                    className="border-[#d2293b]/20 hover:border-[#d2293b] hover:bg-[#d2293b]/5 text-[#d2293b]"
                   >
                     Cancel
                   </Button>
@@ -535,6 +544,7 @@ export default function RRPItemsPage() {
                         );
                       }
                     }}
+                    className="bg-[#003594] hover:bg-[#002a6e] text-white transition-colors"
                   >
                     {selectedItem ? 'Update' : 'Add'}
                   </Button>

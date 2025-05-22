@@ -33,7 +33,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { format } from 'date-fns';
-import { Trash2 } from 'lucide-react';
+import { Trash2, Pencil } from 'lucide-react';
 import { useNotification } from '@/context/NotificationContext';
 
 interface RRPDetailsModalProps {
@@ -152,7 +152,9 @@ export function RRPDetailsModal({
     // Update the forex rate for all items
     const updatedItems = editData.items.map(item => ({
       ...item,
-      forex_rate: value
+      forex_rate: value,
+      item_price: item.item_price * value,
+      total_amount: (item.item_price * value) + item.freight_charge + item.customs_charge + item.customs_service_charge
     }));
 
     setEditData({
@@ -380,79 +382,76 @@ export function RRPDetailsModal({
   return (
     <>
       <Dialog open={isOpen} onOpenChange={onClose}>
-        <DialogContent className="max-w-[95vw] max-h-[95vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle className="text-2xl font-bold">
+        <DialogContent className="max-w-[95vw] max-h-[95vh] overflow-y-auto bg-white rounded-lg shadow-xl">
+          <DialogHeader className="space-y-3 pb-4 border-b border-[#002a6e]/10">
+            <DialogTitle className="text-2xl font-bold bg-gradient-to-r from-[#003594] to-[#d2293b] bg-clip-text text-transparent">
               RRP Details - {rrpData.rrpNumber}
             </DialogTitle>
+            <DialogDescription className="text-gray-600">
+              Review and manage RRP information
+            </DialogDescription>
           </DialogHeader>
 
-          <div className="space-y-6">
+          <div className="space-y-6 py-4">
             {/* RRP Information */}
-            <Card>
-              <CardHeader>
-                <CardTitle>RRP Information</CardTitle>
+            <Card className="border-[#002a6e]/10 hover:border-[#d2293b]/20 transition-all duration-300 shadow-sm">
+              <CardHeader className="bg-[#003594]/5 border-b border-[#002a6e]/10">
+                <CardTitle className="text-lg font-semibold text-[#003594]">RRP Information</CardTitle>
               </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              <CardContent className="p-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                   <div className="space-y-2">
-                    <Label>RRP Number</Label>
-                    <Input
-                      value={isEditMode ? editData?.rrpNumber : rrpData.rrpNumber}
-                      onChange={(e) => setEditData(prev => prev ? { ...prev, rrpNumber: e.target.value } : null)}
-                      disabled={!isEditMode}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>RRP Date</Label>
+                    <Label className="text-sm font-medium text-[#003594]">RRP Date</Label>
                     {isEditMode ? (
                       <Calendar
                         value={editData?.rrpDate ? new Date(editData.rrpDate) : undefined}
                         onChange={(date: Date | null) => setEditData(prev => prev ? { ...prev, rrpDate: date?.toISOString() || '' } : null)}
-                        className="rounded-md border"
+                        className="rounded-md border border-[#002a6e]/10 bg-white"
                       />
                     ) : (
                       <Input
-                        value={new Date(rrpData.rrpDate).toLocaleDateString()}
+                        value={format(new Date(rrpData.rrpDate), 'PPP')}
                         disabled
+                        className="bg-gray-50 border-[#002a6e]/10"
                       />
                     )}
                   </div>
                   <div className="space-y-2">
-                    <Label>Type</Label>
+                    <Label className="text-sm font-medium text-[#003594]">Type</Label>
                     {isEditMode ? (
                       <Select
                         value={editData?.type}
                         onValueChange={(value: 'local' | 'foreign') => setEditData(prev => prev ? { ...prev, type: value } : null)}
                       >
-                        <SelectTrigger>
+                        <SelectTrigger className="border-[#002a6e]/10 focus:ring-[#003594] bg-white">
                           <SelectValue placeholder="Select type" />
                         </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="local">Local</SelectItem>
-                          <SelectItem value="foreign">Foreign</SelectItem>
+                        <SelectContent className="bg-white border-[#002a6e]/10">
+                          <SelectItem value="local" className="hover:bg-[#003594]/5">Local</SelectItem>
+                          <SelectItem value="foreign" className="hover:bg-[#003594]/5">Foreign</SelectItem>
                         </SelectContent>
                       </Select>
                     ) : (
                       <Input
                         value={rrpData.type.charAt(0).toUpperCase() + rrpData.type.slice(1)}
                         disabled
+                        className="bg-gray-50 border-[#002a6e]/10"
                       />
                     )}
                   </div>
                   <div className="space-y-2">
-                    <Label>Supplier</Label>
+                    <Label className="text-sm font-medium text-[#003594]">Supplier</Label>
                     {isEditMode ? (
                       <Select
                         value={editData?.supplier}
                         onValueChange={(value) => setEditData(prev => prev ? { ...prev, supplier: value } : null)}
                       >
-                        <SelectTrigger>
+                        <SelectTrigger className="border-[#002a6e]/10 focus:ring-[#003594] bg-white">
                           <SelectValue placeholder="Select supplier" />
                         </SelectTrigger>
-                        <SelectContent>
+                        <SelectContent className="bg-white border-[#002a6e]/10">
                           {getSupplierList().map((supplier) => (
-                            <SelectItem key={supplier} value={supplier}>
+                            <SelectItem key={supplier} value={supplier} className="hover:bg-[#003594]/5">
                               {supplier}
                             </SelectItem>
                           ))}
@@ -462,22 +461,23 @@ export function RRPDetailsModal({
                       <Input
                         value={rrpData.supplier}
                         disabled
+                        className="bg-gray-50 border-[#002a6e]/10"
                       />
                     )}
                   </div>
                   <div className="space-y-2">
-                    <Label>Inspection User</Label>
+                    <Label className="text-sm font-medium text-[#003594]">Inspection User</Label>
                     {isEditMode ? (
                       <Select
                         value={editData?.inspectionUser}
                         onValueChange={(value) => setEditData(prev => prev ? { ...prev, inspectionUser: value } : null)}
                       >
-                        <SelectTrigger>
+                        <SelectTrigger className="border-[#002a6e]/10 focus:ring-[#003594] bg-white">
                           <SelectValue placeholder="Select inspection user" />
                         </SelectTrigger>
-                        <SelectContent>
+                        <SelectContent className="bg-white border-[#002a6e]/10">
                           {config.inspection_user_details.map((user) => (
-                            <SelectItem key={user.name} value={`${user.name},${user.designation}`}>
+                            <SelectItem key={user.name} value={`${user.name},${user.designation}`} className="hover:bg-[#003594]/5">
                               {user.name} - {user.designation}
                             </SelectItem>
                           ))}
@@ -487,86 +487,93 @@ export function RRPDetailsModal({
                       <Input
                         value={rrpData.inspectionUser}
                         disabled
+                        className="bg-gray-50 border-[#002a6e]/10"
                       />
                     )}
                   </div>
                   <div className="space-y-2">
-                    <Label>Invoice Number</Label>
+                    <Label className="text-sm font-medium text-[#003594]">Invoice Number</Label>
                     <Input
-                      value={isEditMode ? editData?.invoiceNumber : rrpData.invoiceNumber}
+                      value={isEditMode ? (editData?.invoiceNumber || '') : (rrpData.invoiceNumber || '')}
                       onChange={(e) => setEditData(prev => prev ? { ...prev, invoiceNumber: e.target.value } : null)}
                       disabled={!isEditMode}
+                      className={`${isEditMode ? 'bg-white' : 'bg-gray-50'} border-[#002a6e]/10 focus:ring-[#003594]`}
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label>Invoice Date</Label>
+                    <Label className="text-sm font-medium text-[#003594]">Invoice Date</Label>
                     {isEditMode ? (
                       <Calendar
                         value={editData?.invoiceDate ? new Date(editData.invoiceDate) : undefined}
                         onChange={(date: Date | null) => setEditData(prev => prev ? { ...prev, invoiceDate: date?.toISOString() || '' } : null)}
-                        className="rounded-md border"
+                        className="rounded-md border border-[#002a6e]/10 bg-white"
                       />
                     ) : (
                       <Input
-                        value={new Date(rrpData.invoiceDate).toLocaleDateString()}
+                        value={format(new Date(rrpData.invoiceDate), 'PPP')}
                         disabled
+                        className="bg-gray-50 border-[#002a6e]/10"
                       />
                     )}
                   </div>
                   {rrpData.type === 'foreign' && (
                     <>
                       <div className="space-y-2">
-                        <Label>Customs Date</Label>
+                        <Label className="text-sm font-medium text-[#003594]">Customs Date</Label>
                         {isEditMode ? (
                           <Calendar
                             value={editData?.customsDate ? new Date(editData.customsDate) : undefined}
                             onChange={(date: Date | null) => setEditData(prev => prev ? { ...prev, customsDate: date?.toISOString() || '' } : null)}
-                            className="rounded-md border"
+                            className="rounded-md border border-[#002a6e]/10 bg-white"
                           />
                         ) : (
                           <Input
-                            value={rrpData.customsDate ? new Date(rrpData.customsDate).toLocaleDateString() : '-'}
+                            value={rrpData.customsDate ? format(new Date(rrpData.customsDate), 'PPP') : '-'}
                             disabled
+                            className="bg-gray-50 border-[#002a6e]/10"
                           />
                         )}
                       </div>
                       <div className="space-y-2">
-                        <Label>Customs Number</Label>
+                        <Label className="text-sm font-medium text-[#003594]">Customs Number</Label>
                         <Input
                           value={isEditMode ? (editData?.customsNumber || '') : (rrpData.customsNumber || '')}
                           onChange={(e) => setEditData(prev => prev ? { ...prev, customsNumber: e.target.value } : null)}
                           disabled={!isEditMode}
+                          className={`${isEditMode ? 'bg-white' : 'bg-gray-50'} border-[#002a6e]/10 focus:ring-[#003594]`}
                         />
                       </div>
                       <div className="space-y-2">
-                        <Label>PO Number</Label>
+                        <Label className="text-sm font-medium text-[#003594]">PO Number</Label>
                         <Input
-                          value={isEditMode ? editData?.poNumber : rrpData.poNumber}
+                          value={isEditMode ? (editData?.poNumber || '') : (rrpData.poNumber || '')}
                           onChange={(e) => setEditData(prev => prev ? { ...prev, poNumber: e.target.value } : null)}
                           disabled={!isEditMode}
+                          className={`${isEditMode ? 'bg-white' : 'bg-gray-50'} border-[#002a6e]/10 focus:ring-[#003594]`}
                         />
                       </div>
                       <div className="space-y-2">
-                        <Label>Airway Bill Number</Label>
+                        <Label className="text-sm font-medium text-[#003594]">Airway Bill Number</Label>
                         <Input
-                          value={isEditMode ? editData?.airwayBillNumber : rrpData.airwayBillNumber}
+                          value={isEditMode ? (editData?.airwayBillNumber || '') : (rrpData.airwayBillNumber || '')}
                           onChange={(e) => setEditData(prev => prev ? { ...prev, airwayBillNumber: e.target.value } : null)}
                           disabled={!isEditMode}
+                          className={`${isEditMode ? 'bg-white' : 'bg-gray-50'} border-[#002a6e]/10 focus:ring-[#003594]`}
                         />
                       </div>
                       <div className="space-y-2">
-                        <Label>Currency</Label>
+                        <Label className="text-sm font-medium text-[#003594]">Currency</Label>
                         {isEditMode ? (
                           <Select
                             value={editData?.currency}
                             onValueChange={(value) => setEditData(prev => prev ? { ...prev, currency: value } : null)}
                           >
-                            <SelectTrigger>
+                            <SelectTrigger className="border-[#002a6e]/10 focus:ring-[#003594] bg-white">
                               <SelectValue placeholder="Select currency" />
                             </SelectTrigger>
-                            <SelectContent>
+                            <SelectContent className="bg-white border-[#002a6e]/10">
                               {getCurrencies().map((currency) => (
-                                <SelectItem key={currency} value={currency}>
+                                <SelectItem key={currency} value={currency} className="hover:bg-[#003594]/5">
                                   {currency}
                                 </SelectItem>
                               ))}
@@ -576,20 +583,28 @@ export function RRPDetailsModal({
                           <Input
                             value={rrpData.currency}
                             disabled
+                            className="bg-gray-50 border-[#002a6e]/10"
                           />
                         )}
                       </div>
                       <div className="space-y-2">
-                        <Label>Forex Rate</Label>
-                        <Input
-                          type="number"
-                          value={isEditMode ? editData?.forexRate?.toString() || '' : rrpData.forexRate?.toString() || ''}
-                          onChange={(e) => {
-                            const value = e.target.value === '' ? 1 : parseFloat(e.target.value);
-                            handleForexRateChange(value);
-                          }}
-                          disabled={!isEditMode}
-                        />
+                        <Label className="text-sm font-medium text-[#003594]">Forex Rate</Label>
+                        {isEditMode ? (
+                          <Input
+                            type="number"
+                            value={editData?.forexRate || ''}
+                            onChange={(e) => handleForexRateChange(parseFloat(e.target.value) || 0)}
+                            className="border-[#002a6e]/10 focus:ring-[#003594] bg-white"
+                            step="0.01"
+                            min="0"
+                          />
+                        ) : (
+                          <Input
+                            value={rrpData.forexRate}
+                            disabled
+                            className="bg-gray-50 border-[#002a6e]/10"
+                          />
+                        )}
                       </div>
                     </>
                   )}
@@ -598,257 +613,70 @@ export function RRPDetailsModal({
             </Card>
 
             {/* Items Table */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Items</CardTitle>
+            <Card className="border-[#002a6e]/10 hover:border-[#d2293b]/20 transition-all duration-300 shadow-sm">
+              <CardHeader className="bg-[#003594]/5 border-b border-[#002a6e]/10">
+                <CardTitle className="text-lg font-semibold text-[#003594]">Items</CardTitle>
               </CardHeader>
-              <CardContent>
+              <CardContent className="p-6">
                 <div className="overflow-x-auto">
                   <Table>
                     <TableHeader>
-                      <TableRow>
-                        <TableHead className="min-w-[200px]">Item Name</TableHead>
-                        <TableHead className="min-w-[150px]">Part Number</TableHead>
-                        <TableHead className="min-w-[150px]">NAC Code</TableHead>
-                        <TableHead className="min-w-[150px]">Equipment Number</TableHead>
-                        <TableHead className="min-w-[100px] text-right">Quantity</TableHead>
-                        <TableHead className="min-w-[100px]">Unit</TableHead>
-                        <TableHead className="min-w-[120px] text-right">Price</TableHead>
-                        <TableHead className="min-w-[100px] text-right">VAT %</TableHead>
-                        <TableHead className="min-w-[120px] text-right">Freight Charge</TableHead>
-                        <TableHead className="min-w-[120px] text-right">Customs Amount</TableHead>
-                        {rrpData.type === 'foreign' && (
-                          <TableHead className="min-w-[120px] text-right">Custom Service</TableHead>
-                        )}
-                        <TableHead className="min-w-[120px] text-right">Forex Rate</TableHead>
-                        <TableHead className="min-w-[120px] text-right">Total</TableHead>
-                        {isEditMode && <TableHead className="min-w-[100px] text-right">Actions</TableHead>}
+                      <TableRow className="bg-[#003594]/5 hover:bg-[#003594]/10">
+                        <TableHead className="text-[#003594] font-semibold">Item Name</TableHead>
+                        <TableHead className="text-[#003594] font-semibold">Part Number</TableHead>
+                        <TableHead className="text-[#003594] font-semibold">Equipment Number</TableHead>
+                        <TableHead className="text-[#003594] font-semibold">Quantity</TableHead>
+                        <TableHead className="text-[#003594] font-semibold">Unit</TableHead>
+                        <TableHead className="text-[#003594] font-semibold">Price</TableHead>
+                        <TableHead className="text-[#003594] font-semibold">VAT%</TableHead>
+                        <TableHead className="text-[#003594] font-semibold">Customs Charge</TableHead>
+                        <TableHead className="text-[#003594] font-semibold">Freight Charge</TableHead>
+                        <TableHead className="text-[#003594] font-semibold">Total Amount</TableHead>
+                        {isEditMode && <TableHead className="text-[#003594] font-semibold">Actions</TableHead>}
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {(editData?.items || rrpData.items).map((item, index) => {
-                        const itemTotals = calculateItemTotal(item);
-                        return (
-                          <TableRow key={index}>
-                            <TableCell className="py-4">
-                              {isEditMode ? (
-                                <Input
-                                  value={editData?.items[index].item_name}
-                                  onChange={(e) => {
-                                    const newItems = [...(editData?.items || [])];
-                                    newItems[index] = { ...newItems[index], item_name: e.target.value };
-                                    setEditData(prev => prev ? { ...prev, items: newItems } : null);
-                                  }}
-                                  className="h-10"
-                                />
-                              ) : (
-                                <div className="min-h-[40px] flex items-center">{item.item_name}</div>
-                              )}
-                            </TableCell>
-                            <TableCell className="py-4">
-                              {isEditMode ? (
-                                <Input
-                                  value={editData?.items[index].part_number}
-                                  onChange={(e) => {
-                                    const newItems = [...(editData?.items || [])];
-                                    newItems[index] = { ...newItems[index], part_number: e.target.value };
-                                    setEditData(prev => prev ? { ...prev, items: newItems } : null);
-                                  }}
-                                  className="h-10"
-                                />
-                              ) : (
-                                <div className="min-h-[40px] flex items-center">{item.part_number}</div>
-                              )}
-                            </TableCell>
-                            <TableCell className="py-4">
-                              {isEditMode ? (
-                                <Input
-                                  value={editData?.items[index].nac_code}
-                                  onChange={(e) => {
-                                    const newItems = [...(editData?.items || [])];
-                                    newItems[index] = { ...newItems[index], nac_code: e.target.value };
-                                    setEditData(prev => prev ? { ...prev, items: newItems } : null);
-                                  }}
-                                  className="h-10"
-                                />
-                              ) : (
-                                <div className="min-h-[40px] flex items-center">{item.nac_code}</div>
-                              )}
-                            </TableCell>
-                            <TableCell className="py-4">
-                              {isEditMode ? (
-                                <Input
-                                  value={editData?.items[index].equipment_number}
-                                  onChange={(e) => {
-                                    const newItems = [...(editData?.items || [])];
-                                    newItems[index] = { ...newItems[index], equipment_number: e.target.value };
-                                    setEditData(prev => prev ? { ...prev, items: newItems } : null);
-                                  }}
-                                  className="h-10"
-                                />
-                              ) : (
-                                <div className="min-h-[40px] flex items-center">{item.equipment_number}</div>
-                              )}
-                            </TableCell>
-                            <TableCell className="py-4 text-right">
-                              {isEditMode ? (
-                                <Input
-                                  type="number"
-                                  value={editData?.items[index].received_quantity}
-                                  onChange={(e) => {
-                                    const newItems = [...(editData?.items || [])];
-                                    newItems[index] = { ...newItems[index], received_quantity: parseFloat(e.target.value) };
-                                    setEditData(prev => prev ? { ...prev, items: newItems } : null);
-                                  }}
-                                  className="h-10"
-                                />
-                              ) : (
-                                <div className="min-h-[40px] flex items-center justify-end">{item.received_quantity}</div>
-                              )}
-                            </TableCell>
-                            <TableCell className="py-4">
-                              {isEditMode ? (
-                                <Input
-                                  value={editData?.items[index].unit}
-                                  onChange={(e) => {
-                                    const newItems = [...(editData?.items || [])];
-                                    newItems[index] = { ...newItems[index], unit: e.target.value };
-                                    setEditData(prev => prev ? { ...prev, items: newItems } : null);
-                                  }}
-                                  className="h-10"
-                                />
-                              ) : (
-                                <div className="min-h-[40px] flex items-center">{item.unit}</div>
-                              )}
-                            </TableCell>
-                            <TableCell className="py-4 text-right">
-                              {isEditMode ? (
-                                <Input
-                                  type="number"
-                                  value={editData?.items[index].item_price}
-                                  onChange={(e) => {
-                                    const newItems = [...(editData?.items || [])];
-                                    newItems[index] = { ...newItems[index], item_price: parseFloat(e.target.value) };
-                                    setEditData(prev => prev ? { ...prev, items: newItems } : null);
-                                  }}
-                                  className="h-10"
-                                />
-                              ) : (
-                                <div className="min-h-[40px] flex items-center justify-end">{item.item_price}</div>
-                              )}
-                            </TableCell>
-                            <TableCell className="py-4 text-right">
-                              {isEditMode ? (
-                                <Input
-                                  type="number"
-                                  value={editData?.items[index].vat_percentage}
-                                  onChange={(e) => {
-                                    const newItems = [...(editData?.items || [])];
-                                    newItems[index] = { ...newItems[index], vat_percentage: parseFloat(e.target.value) };
-                                    setEditData(prev => prev ? { ...prev, items: newItems } : null);
-                                  }}
-                                  className="h-10"
-                                />
-                              ) : (
-                                <div className="min-h-[40px] flex items-center justify-end">{item.vat_percentage}</div>
-                              )}
-                            </TableCell>
-                            <TableCell className="py-4 text-right">
-                              {isEditMode ? (
-                                <Input
-                                  type="number"
-                                  value={editData?.items[index].freight_charge?.toString() || ''}
-                                  onChange={(e) => {
-                                    const newItems = [...(editData?.items || [])];
-                                    const value = e.target.value === '' ? 0 : parseFloat(e.target.value);
-                                    newItems[index] = { ...newItems[index], freight_charge: value };
-                                    setEditData(prev => prev ? { ...prev, items: newItems } : null);
-                                  }}
-                                  className="h-10"
-                                />
-                              ) : (
-                                <div className="min-h-[40px] flex items-center justify-end">
-                                  {itemTotals.freightCharge.toFixed(2)}
-                                </div>
-                              )}
-                            </TableCell>
-                            <TableCell className="py-4 text-right">
-                              {isEditMode ? (
-                                <Input
-                                  type="number"
-                                  value={editData?.items[index].customs_charge?.toString() || ''}
-                                  onChange={(e) => {
-                                    const newItems = [...(editData?.items || [])];
-                                    const value = e.target.value === '' ? 0 : parseFloat(e.target.value);
-                                    newItems[index] = { ...newItems[index], customs_charge: value };
-                                    setEditData(prev => prev ? { ...prev, items: newItems } : null);
-                                  }}
-                                  className="h-10"
-                                />
-                              ) : (
-                                <div className="min-h-[40px] flex items-center justify-end">
-                                  {itemTotals.customsAmount.toFixed(2)}
-                                </div>
-                              )}
-                            </TableCell>
-                            {rrpData.type === 'foreign' && (
-                              <TableCell className="py-4 text-right">
-                                {isEditMode ? (
-                                  <Input
-                                    type="number"
-                                    value={editData?.items[index].customs_service_charge?.toString() || ''}
-                                    onChange={(e) => {
-                                      const newItems = [...(editData?.items || [])];
-                                      const value = e.target.value === '' ? 0 : parseFloat(e.target.value);
-                                      newItems[index] = { ...newItems[index], customs_service_charge: value };
-                                      setEditData(prev => prev ? { ...prev, items: newItems } : null);
-                                    }}
-                                    className="h-10"
-                                  />
-                                ) : (
-                                  <div className="min-h-[40px] flex items-center justify-end">
-                                    {itemTotals.customServiceCharge.toFixed(2)}
-                                  </div>
-                                )}
-                              </TableCell>
-                            )}
-                            <TableCell className="py-4 text-right">
-                              {isEditMode ? (
-                                <Input
-                                  type="number"
-                                  value={editData?.items[index].forex_rate?.toString() || ''}
-                                  onChange={(e) => {
-                                    const value = e.target.value === '' ? 1 : parseFloat(e.target.value);
-                                    handleForexRateChange(value);
-                                  }}
-                                  className="h-10"
-                                />
-                              ) : (
-                                <div className="min-h-[40px] flex items-center justify-end">
-                                  {item.forex_rate}
-                                </div>
-                              )}
-                            </TableCell>
-                            <TableCell className="py-4 text-right">
-                              <div className="min-h-[40px] flex items-center justify-end">
-                                {itemTotals.total.toFixed(2)}
-                              </div>
-                            </TableCell>
-                            {isEditMode && (
-                              <TableCell className="py-4 text-right">
+                      {((isEditMode ? editData?.items : rrpData.items) || []).map((item) => (
+                        <TableRow key={item.id} className="hover:bg-[#003594]/5">
+                          <TableCell className="font-medium">{item.item_name}</TableCell>
+                          <TableCell>{item.part_number}</TableCell>
+                          <TableCell>{item.equipment_number}</TableCell>
+                          <TableCell>{item.received_quantity}</TableCell>
+                          <TableCell>{item.unit}</TableCell>
+                          <TableCell>{item.item_price}</TableCell>
+                          <TableCell>{item.vat_percentage}%</TableCell>
+                          <TableCell>{item.customs_charge}</TableCell>
+                          <TableCell>{item.freight_charge}</TableCell>
+                          <TableCell>{item.total_amount}</TableCell>
+                          {isEditMode && (
+                            <TableCell>
+                              <div className="flex items-center gap-2">
                                 <Button
                                   variant="ghost"
-                                  size="icon"
+                                  size="sm"
+                                  onClick={() => {
+                                    const updatedItems = editData?.items.map(i => 
+                                      i.id === item.id ? { ...i, isEditing: true } : i
+                                    );
+                                    setEditData(prev => prev ? { ...prev, items: updatedItems || [] } : null);
+                                  }}
+                                  className="text-[#003594] hover:text-[#002a6e] hover:bg-[#003594]/5"
+                                >
+                                  <Pencil className="h-4 w-4" />
+                                </Button>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
                                   onClick={() => handleDeleteItem(item.id)}
-                                  className="h-8 w-8 text-destructive hover:text-destructive/90"
+                                  className="text-red-500 hover:text-red-700 hover:bg-red-50"
                                 >
                                   <Trash2 className="h-4 w-4" />
                                 </Button>
-                              </TableCell>
-                            )}
-                          </TableRow>
-                        );
-                      })}
+                              </div>
+                            </TableCell>
+                          )}
+                        </TableRow>
+                      ))}
                     </TableBody>
                   </Table>
                 </div>
@@ -856,116 +684,152 @@ export function RRPDetailsModal({
             </Card>
 
             {/* Totals */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Totals</CardTitle>
+            <Card className="border-[#002a6e]/10 hover:border-[#d2293b]/20 transition-all duration-300 shadow-sm">
+              <CardHeader className="bg-[#003594]/5 border-b border-[#002a6e]/10">
+                <CardTitle className="text-lg font-semibold text-[#003594]">Totals</CardTitle>
               </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
-                  <div>
-                    <Label>Item Price</Label>
-                    <p className="text-lg font-semibold">{totals.itemPrice.toFixed(2)}</p>
+              <CardContent className="p-6">
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-6">
+                  <div className="space-y-1">
+                    <Label className="text-sm text-gray-500">Item Price</Label>
+                    <p className="text-lg font-semibold text-[#003594]">{totals.itemPrice.toFixed(2)}</p>
                   </div>
-                  <div>
-                    <Label>Freight Charge</Label>
-                    <p className="text-lg font-semibold">{totals.freightCharge.toFixed(2)}</p>
+                  <div className="space-y-1">
+                    <Label className="text-sm text-gray-500">Freight Charge</Label>
+                    <p className="text-lg font-semibold text-[#003594]">{totals.freightCharge.toFixed(2)}</p>
                   </div>
-                  <div>
-                    <Label>Customs Amount</Label>
-                    <p className="text-lg font-semibold">{totals.customsAmount.toFixed(2)}</p>
+                  <div className="space-y-1">
+                    <Label className="text-sm text-gray-500">Customs Amount</Label>
+                    <p className="text-lg font-semibold text-[#003594]">{totals.customsAmount.toFixed(2)}</p>
                   </div>
                   {rrpData.type === 'foreign' && (
-                    <div>
-                      <Label>Custom Service</Label>
-                      <p className="text-lg font-semibold">{totals.customServiceCharge.toFixed(2)}</p>
+                    <div className="space-y-1">
+                      <Label className="text-sm text-gray-500">Custom Service</Label>
+                      <p className="text-lg font-semibold text-[#003594]">{totals.customServiceCharge.toFixed(2)}</p>
                     </div>
                   )}
-                  <div>
-                    <Label>VAT Amount</Label>
-                    <p className="text-lg font-semibold">{totals.vatAmount.toFixed(2)}</p>
+                  <div className="space-y-1">
+                    <Label className="text-sm text-gray-500">VAT Amount</Label>
+                    <p className="text-lg font-semibold text-[#003594]">{totals.vatAmount.toFixed(2)}</p>
                   </div>
-                  <div>
-                    <Label>Total</Label>
-                    <p className="text-lg font-semibold">{totals.total.toFixed(2)}</p>
+                  <div className="space-y-1">
+                    <Label className="text-sm text-gray-500">Total</Label>
+                    <p className="text-lg font-semibold text-[#003594]">{totals.total.toFixed(2)}</p>
                   </div>
                 </div>
               </CardContent>
             </Card>
 
             {/* Action Buttons */}
-            <DialogFooter className="flex justify-end space-x-4">
-              {!isEditMode ? (
+            <div className="flex justify-end gap-3 pt-4 border-t border-[#002a6e]/10">
+              {!isEditOnly && (
                 <>
-                  {!isEditOnly && (
-                    <>
-                      <Button variant="outline" onClick={() => setIsRejectDialogOpen(true)}>
-                        Reject
-                      </Button>
-                      <Button onClick={handleApprove}>
-                        Approve
-                      </Button>
-                    </>
-                  )}
-                  <Button onClick={handleEditClick}>
-                    Edit
+                  <Button
+                    variant="outline"
+                    onClick={() => setIsRejectDialogOpen(true)}
+                    className="border-[#d2293b]/20 hover:border-[#d2293b] hover:bg-[#d2293b]/5 text-[#d2293b]"
+                  >
+                    Reject
+                  </Button>
+                  <Button
+                    onClick={handleApprove}
+                    className="bg-[#003594] hover:bg-[#002a6e] text-white transition-colors"
+                  >
+                    Approve
                   </Button>
                 </>
-              ) : (
+              )}
+              {!isEditMode && !isEditOnly && (
+                <Button
+                  variant="outline"
+                  onClick={handleEditClick}
+                  className="border-[#003594]/20 hover:border-[#003594] hover:bg-[#003594]/5 text-[#003594]"
+                >
+                  Edit
+                </Button>
+              )}
+              {isEditMode && (
                 <>
-                  <Button variant="outline" onClick={handleCancelEdit}>
+                  <Button
+                    variant="outline"
+                    onClick={handleCancelEdit}
+                    className="border-[#d2293b]/20 hover:border-[#d2293b] hover:bg-[#d2293b]/5 text-[#d2293b]"
+                  >
                     Cancel
                   </Button>
-                  <Button onClick={handleSaveEdit}>
+                  <Button
+                    onClick={handleSaveEdit}
+                    className="bg-[#003594] hover:bg-[#002a6e] text-white transition-colors"
+                  >
                     Save Changes
                   </Button>
                 </>
               )}
-            </DialogFooter>
+            </div>
           </div>
         </DialogContent>
       </Dialog>
 
-      {/* Rejection Dialog */}
+      {/* Reject Dialog */}
       <Dialog open={isRejectDialogOpen} onOpenChange={setIsRejectDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Reject RRP</DialogTitle>
+        <DialogContent className="sm:max-w-[425px] bg-white rounded-lg shadow-xl">
+          <DialogHeader className="space-y-3 pb-4 border-b border-[#002a6e]/10">
+            <DialogTitle className="text-xl font-bold text-[#003594]">Reject RRP</DialogTitle>
+            <DialogDescription>
+              Please provide a reason for rejecting this RRP
+            </DialogDescription>
           </DialogHeader>
-          <div className="space-y-4">
+          <div className="space-y-4 py-4">
             <div className="space-y-2">
-              <Label>Reason for Rejection</Label>
+              <Label htmlFor="rejectReason" className="text-[#003594]">Reason</Label>
               <Input
+                id="rejectReason"
                 value={rejectionReason}
                 onChange={(e) => setRejectionReason(e.target.value)}
-                placeholder="Enter reason for rejection"
+                className="border-[#002a6e]/10 focus:ring-[#003594]"
+                placeholder="Enter rejection reason"
               />
             </div>
-            <DialogFooter>
-              <Button variant="outline" onClick={() => setIsRejectDialogOpen(false)}>
+          </div>
+          <DialogFooter className="pt-4 border-t border-[#002a6e]/10">
+            <Button
+              variant="outline"
+              onClick={() => setIsRejectDialogOpen(false)}
+              className="border-[#d2293b]/20 hover:border-[#d2293b] hover:bg-[#d2293b]/5 text-[#d2293b]"
+            >
                 Cancel
               </Button>
-              <Button onClick={handleReject}>
-                Confirm Rejection
+            <Button
+              onClick={handleReject}
+              className="bg-[#d2293b] hover:bg-[#b31f2f] text-white"
+            >
+              Confirm Reject
               </Button>
             </DialogFooter>
-          </div>
         </DialogContent>
       </Dialog>
 
-      {/* Delete Confirmation Dialog */}
-      <Dialog open={itemToDelete !== null} onOpenChange={() => setItemToDelete(null)}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Delete Item</DialogTitle>
+      {/* Delete Item Dialog */}
+      <Dialog open={!!itemToDelete} onOpenChange={() => setItemToDelete(null)}>
+        <DialogContent className="sm:max-w-[425px] bg-white rounded-lg shadow-xl">
+          <DialogHeader className="space-y-3 pb-4 border-b border-[#002a6e]/10">
+            <DialogTitle className="text-xl font-bold text-[#003594]">Delete Item</DialogTitle>
             <DialogDescription>
               Are you sure you want to delete this item? This action cannot be undone.
             </DialogDescription>
           </DialogHeader>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setItemToDelete(null)}>
+          <DialogFooter className="pt-4 border-t border-[#002a6e]/10">
+            <Button
+              variant="outline"
+              onClick={() => setItemToDelete(null)}
+              className="border-[#d2293b]/20 hover:border-[#d2293b] hover:bg-[#d2293b]/5 text-[#d2293b]"
+            >
               Cancel
             </Button>
-            <Button variant="destructive" onClick={confirmDeleteItem}>
+            <Button
+              onClick={confirmDeleteItem}
+              className="bg-[#d2293b] hover:bg-[#b31f2f] text-white"
+            >
               Delete
             </Button>
           </DialogFooter>

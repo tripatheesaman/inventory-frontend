@@ -26,7 +26,6 @@ export const useItemDetails = () => {
 
     try {
       const response = await API.get(`/api/search/items/${id}`);
-      console.log(response.data)
       setSelectedItem(response.data);
       setIsModalOpen(true);
     } catch (error) {

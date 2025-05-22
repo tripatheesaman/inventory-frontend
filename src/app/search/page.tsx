@@ -31,13 +31,13 @@ export default function SearchPage() {
 
   const handleRowDoubleClick = (item: { id: number }) => {
     if (canViewFullDetails) {
-      fetchItemDetails(item.id);
+    fetchItemDetails(item.id);
     }
   };
 
-  return (
+    return (
     <div className="min-h-screen bg-gray-50">
-      <div className="container mx-auto px-4 py-8">
+    <div className="container mx-auto px-4 py-8">
         <div className="space-y-8">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div>
@@ -51,11 +51,11 @@ export default function SearchPage() {
           </div>
 
           <div className="bg-white rounded-xl shadow-sm border border-[#002a6e]/10 p-6 hover:border-[#d2293b]/20 transition-colors">
-            <SearchControls
-              onUniversalSearch={handleSearch('universal')}
-              onEquipmentSearch={handleSearch('equipmentNumber')}
-              onPartSearch={handleSearch('partNumber')}
-            />
+        <SearchControls
+          onUniversalSearch={handleSearch('universal')}
+          onEquipmentSearch={handleSearch('equipmentNumber')}
+          onPartSearch={handleSearch('partNumber')}
+        />
           </div>
 
           <div className="bg-white rounded-xl shadow-sm border border-[#002a6e]/10 p-6 hover:border-[#d2293b]/20 transition-colors">
@@ -64,27 +64,27 @@ export default function SearchPage() {
                 <div className="animate-spin rounded-full h-6 w-6 border-2 border-[#003594] border-t-transparent"></div>
               </div>
             ) : (
-              <SearchResults
-                results={results}
-                isLoading={isLoading}
-                error={error}
-                onRowDoubleClick={handleRowDoubleClick}
-                searchParams={searchParams}
+          <SearchResults
+            results={results}
+            isLoading={isLoading}
+            error={error}
+            onRowDoubleClick={handleRowDoubleClick}
+            searchParams={searchParams}
                 canViewFullDetails={canViewFullDetails}
-              />
+          />
             )}
-          </div>
+        </div>
 
           {canViewFullDetails && (
-            <ItemDetailsModal
-              isOpen={isModalOpen}
-              onClose={closeModal}
-              item={selectedItem}
-            />
+        <ItemDetailsModal
+          isOpen={isModalOpen}
+          onClose={closeModal}
+          item={selectedItem}
+        />
           )}
         </div>
       </div>
-    </div>
-  );
-}
+      </div>
+    );
+  }
   

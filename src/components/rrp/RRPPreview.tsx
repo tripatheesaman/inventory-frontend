@@ -31,6 +31,7 @@ interface RRPPreviewProps {
   airwayBillNumber?: string;
   poNumber?: string;
   customsNumber?: string;
+  customsDate?: string;
   freightCharge: number;
   forexRate: number;
   currency: string;
@@ -39,6 +40,7 @@ interface RRPPreviewProps {
   onAirwayBillNumberChange: (value: string) => void;
   onPoNumberChange: (value: string) => void;
   onCustomsNumberChange: (value: string) => void;
+  onCustomsDateChange: (date: Date | null) => void;
 }
 
 interface CartItem {
@@ -68,6 +70,7 @@ export default function RRPPreview({
   airwayBillNumber,
   poNumber,
   customsNumber,
+  customsDate,
   freightCharge,
   forexRate,
   currency,
@@ -76,6 +79,7 @@ export default function RRPPreview({
   onAirwayBillNumberChange,
   onPoNumberChange,
   onCustomsNumberChange,
+  onCustomsDateChange,
 }: RRPPreviewProps) {
   const { config } = useRRP();
   const { showErrorToast, showSuccessToast } = useCustomToast();
@@ -204,76 +208,78 @@ export default function RRPPreview({
 
   return (
     <div className="space-y-6">
-      <Card>
-        <CardHeader>
+      <Card className="bg-white rounded-lg shadow-xl border-[#002a6e]/10">
+        <CardHeader className="pb-4 border-b border-[#002a6e]/10">
           <div className="flex justify-between items-center">
             <div>
-              <CardTitle className="text-2xl font-bold">RRP Preview</CardTitle>
+              <CardTitle className="text-2xl font-bold bg-gradient-to-r from-[#003594] to-[#d2293b] bg-clip-text text-transparent">RRP Preview</CardTitle>
               <div className="mt-2 space-y-1">
-                <p><span className="font-semibold">RRP Date:</span> {new Date(rrpDate).toLocaleDateString()}</p>
-                <p><span className="font-semibold">Supplier:</span> {supplier}</p>
-                <p><span className="font-semibold">Inspection User:</span> {inspectionUser}</p>
-                <p><span className="font-semibold">Currency:</span> {chosenCurrency}</p>
-                {displayForexRate !== 1 && <p><span className="font-semibold">Forex Rate:</span> {displayForexRate}</p>}
+                <p><span className="font-semibold text-[#003594]">RRP Date:</span> {new Date(rrpDate).toLocaleDateString()}</p>
+                <p><span className="font-semibold text-[#003594]">Supplier:</span> {supplier}</p>
+                <p><span className="font-semibold text-[#003594]">Inspection User:</span> {inspectionUser}</p>
+                <p><span className="font-semibold text-[#003594]">Currency:</span> {chosenCurrency}</p>
+                {displayForexRate !== 1 && <p><span className="font-semibold text-[#003594]">Forex Rate:</span> {displayForexRate}</p>}
               </div>
             </div>
           </div>
         </CardHeader>
         <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>NAC Code</TableHead>
-                <TableHead>Item Name</TableHead>
-                <TableHead>Part Number</TableHead>
-                <TableHead className="text-right">Quantity</TableHead>
-                <TableHead>Unit</TableHead>
-                <TableHead className="text-right">Item Price</TableHead>
-                <TableHead className="text-right">Customs Charge</TableHead>
-                {isForeign && <TableHead className="text-right">Custom Service</TableHead>}
-                <TableHead className="text-right">Freight Charge</TableHead>
-                <TableHead className="text-right">VAT</TableHead>
-                <TableHead className="text-right">Total</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {rows.map((row, index) => (
-                <TableRow key={index}>
-                  <TableCell>{row.nac_code}</TableCell>
-                  <TableCell>{row.item_name}</TableCell>
-                  <TableCell>{row.part_number}</TableCell>
-                  <TableCell className="text-right">{row.quantity}</TableCell>
-                  <TableCell>{row.unit}</TableCell>
-                  <TableCell className="text-right">{displayCurrency} {row.itemPrice.toFixed(2)}</TableCell>
-                  <TableCell className="text-right">{displayCurrency} {row.itemCustomsCharge.toFixed(2)}</TableCell>
-                  {isForeign && <TableCell className="text-right">{displayCurrency} {row.itemCustomServiceCharge.toFixed(2)}</TableCell>}
-                  <TableCell className="text-right">{displayCurrency} {row.itemFreightCharge.toFixed(2)}</TableCell>
-                  <TableCell className="text-right">{displayCurrency} {row.itemVat.toFixed(2)}</TableCell>
-                  <TableCell className="text-right">{displayCurrency} {row.total.toFixed(2)}</TableCell>
+          <div className="border border-[#002a6e]/10 rounded-lg overflow-x-auto bg-[#f8fafc] mb-6">
+            <Table className="min-w-[900px]">
+              <TableHeader>
+                <TableRow className="bg-[#003594]/5">
+                  <TableHead className="text-[#003594] font-semibold">NAC Code</TableHead>
+                  <TableHead className="text-[#003594] font-semibold">Item Name</TableHead>
+                  <TableHead className="text-[#003594] font-semibold">Part Number</TableHead>
+                  <TableHead className="text-[#003594] font-semibold text-right">Quantity</TableHead>
+                  <TableHead className="text-[#003594] font-semibold">Unit</TableHead>
+                  <TableHead className="text-[#003594] font-semibold text-right">Item Price</TableHead>
+                  <TableHead className="text-[#003594] font-semibold text-right">Customs Charge</TableHead>
+                  {isForeign && <TableHead className="text-[#003594] font-semibold text-right">Custom Service</TableHead>}
+                  <TableHead className="text-[#003594] font-semibold text-right">Freight Charge</TableHead>
+                  <TableHead className="text-[#003594] font-semibold text-right">VAT</TableHead>
+                  <TableHead className="text-[#003594] font-semibold text-right">Total</TableHead>
                 </TableRow>
-              ))}
-              <TableRow className="font-bold">
-                <TableCell colSpan={5}>Total</TableCell>
-                <TableCell className="text-right">{displayCurrency} {totals.itemPrice.toFixed(2)}</TableCell>
-                <TableCell className="text-right">{displayCurrency} {totals.customsCharge.toFixed(2)}</TableCell>
-                {isForeign && <TableCell className="text-right">{displayCurrency} {totals.customServiceCharge.toFixed(2)}</TableCell>}
-                <TableCell className="text-right">{displayCurrency} {totals.freightCharge.toFixed(2)}</TableCell>
-                <TableCell className="text-right">{displayCurrency} {totals.vat.toFixed(2)}</TableCell>
-                <TableCell className="text-right">{displayCurrency} {totals.total.toFixed(2)}</TableCell>
-              </TableRow>
-            </TableBody>
-          </Table>
+              </TableHeader>
+              <TableBody>
+                {rows.map((row, index) => (
+                  <TableRow key={index} className="border-t border-[#002a6e]/10 hover:bg-[#003594]/5 transition-colors">
+                    <TableCell className="whitespace-nowrap">{row.nac_code}</TableCell>
+                    <TableCell className="whitespace-nowrap">{row.item_name}</TableCell>
+                    <TableCell className="whitespace-nowrap">{row.part_number}</TableCell>
+                    <TableCell className="text-right whitespace-nowrap">{row.quantity}</TableCell>
+                    <TableCell className="whitespace-nowrap">{row.unit}</TableCell>
+                    <TableCell className="text-right whitespace-nowrap">{displayCurrency} {row.itemPrice.toFixed(2)}</TableCell>
+                    <TableCell className="text-right whitespace-nowrap">{displayCurrency} {row.itemCustomsCharge.toFixed(2)}</TableCell>
+                    {isForeign && <TableCell className="text-right whitespace-nowrap">{displayCurrency} {row.itemCustomServiceCharge.toFixed(2)}</TableCell>}
+                    <TableCell className="text-right whitespace-nowrap">{displayCurrency} {row.itemFreightCharge.toFixed(2)}</TableCell>
+                    <TableCell className="text-right whitespace-nowrap">{displayCurrency} {row.itemVat.toFixed(2)}</TableCell>
+                    <TableCell className="text-right whitespace-nowrap">{displayCurrency} {row.total.toFixed(2)}</TableCell>
+                  </TableRow>
+                ))}
+                <TableRow className="font-bold border-t border-[#002a6e]/10">
+                  <TableCell colSpan={5}>Total</TableCell>
+                  <TableCell className="text-right whitespace-nowrap">{displayCurrency} {totals.itemPrice.toFixed(2)}</TableCell>
+                  <TableCell className="text-right whitespace-nowrap">{displayCurrency} {totals.customsCharge.toFixed(2)}</TableCell>
+                  {isForeign && <TableCell className="text-right whitespace-nowrap">{displayCurrency} {totals.customServiceCharge.toFixed(2)}</TableCell>}
+                  <TableCell className="text-right whitespace-nowrap">{displayCurrency} {totals.freightCharge.toFixed(2)}</TableCell>
+                  <TableCell className="text-right whitespace-nowrap">{displayCurrency} {totals.vat.toFixed(2)}</TableCell>
+                  <TableCell className="text-right whitespace-nowrap">{displayCurrency} {totals.total.toFixed(2)}</TableCell>
+                </TableRow>
+              </TableBody>
+            </Table>
+          </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
             <div className="space-y-4">
               <div className="space-y-2">
-                <Label>Invoice Date</Label>
+                <Label className="text-sm font-medium text-[#003594]">Invoice Date</Label>
                 <Popover>
                   <PopoverTrigger asChild>
                     <Button
                       variant="outline"
                       className={cn(
-                        "w-full justify-start text-left font-normal",
+                        "w-full justify-start text-left font-normal border-[#002a6e]/10 focus:ring-[#003594]",
                         !invoiceDate && "text-muted-foreground"
                       )}
                     >
@@ -285,58 +291,88 @@ export default function RRPPreview({
                     <Calendar
                       value={invoiceDate ? new Date(invoiceDate) : undefined}
                       onChange={onInvoiceDateChange}
-                      className="rounded-md border"
+                      className="rounded-md border border-[#002a6e]/10"
                     />
                   </PopoverContent>
                 </Popover>
               </div>
 
               <div className="space-y-2">
-                <Label>Invoice Number</Label>
+                <Label className="text-sm font-medium text-[#003594]">Invoice Number</Label>
                 <Input
                   value={invoiceNumber}
                   onChange={(e) => onInvoiceNumberChange(e.target.value)}
+                  className="border-[#002a6e]/10 focus:ring-[#003594]"
                 />
               </div>
 
               <div className="space-y-2">
-                <Label>Request Numbers</Label>
-                <Input value={requestNumbers} disabled />
+                <Label className="text-sm font-medium text-[#003594]">Request Numbers</Label>
+                <Input value={requestNumbers} disabled className="bg-gray-50 border-[#002a6e]/10" />
               </div>
 
               <div className="space-y-2">
-                <Label>Request Dates</Label>
-                <Input value={requestDates} disabled />
+                <Label className="text-sm font-medium text-[#003594]">Request Dates</Label>
+                <Input value={requestDates} disabled className="bg-gray-50 border-[#002a6e]/10" />
               </div>
             </div>
 
             <div className="space-y-4">
               {customsNumber !== undefined && (
-                <div className="space-y-2">
-                  <Label>Customs Number</Label>
-                  <Input
-                    value={customsNumber}
-                    onChange={(e) => onCustomsNumberChange(e.target.value)}
-                  />
-                </div>
+                <>
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium text-[#003594]">Customs Date</Label>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant="outline"
+                          className={cn(
+                            "w-full justify-start text-left font-normal border-[#002a6e]/10 focus:ring-[#003594]",
+                            !customsDate && "text-muted-foreground"
+                          )}
+                        >
+                          <CalendarIcon className="mr-2 h-4 w-4" />
+                          {customsDate ? format(new Date(customsDate), "PPP") : "Select date"}
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0">
+                        <Calendar
+                          value={customsDate ? new Date(customsDate) : undefined}
+                          onChange={onCustomsDateChange}
+                          className="rounded-md border border-[#002a6e]/10"
+                        />
+                      </PopoverContent>
+                    </Popover>
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium text-[#003594]">Customs Number</Label>
+                    <Input
+                      value={customsNumber}
+                      onChange={(e) => onCustomsNumberChange(e.target.value)}
+                      className="border-[#002a6e]/10 focus:ring-[#003594]"
+                    />
+                  </div>
+                </>
               )}
 
               {airwayBillNumber !== undefined && (
                 <div className="space-y-2">
-                  <Label>Airway Bill Number</Label>
+                  <Label className="text-sm font-medium text-[#003594]">Airway Bill Number</Label>
                   <Input
                     value={airwayBillNumber}
                     onChange={(e) => onAirwayBillNumberChange(e.target.value)}
+                    className="border-[#002a6e]/10 focus:ring-[#003594]"
                   />
                 </div>
               )}
 
               {poNumber !== undefined && (
                 <div className="space-y-2">
-                  <Label>PO Number</Label>
+                  <Label className="text-sm font-medium text-[#003594]">PO Number</Label>
                   <Input
                     value={poNumber}
                     onChange={(e) => onPoNumberChange(e.target.value)}
+                    className="border-[#002a6e]/10 focus:ring-[#003594]"
                   />
                 </div>
               )}
