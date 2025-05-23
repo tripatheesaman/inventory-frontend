@@ -57,7 +57,7 @@ export default function RRPDetailsPage({ params }: { params: Promise<{ id: strin
         const data = response.data;
         // Transform the data to match our interface
         const firstItem = data.rrpDetails[0];
-        const isForeign = firstItem.currency !== 'NPR';
+        const isForeign = firstItem.rrp_number.startsWith('F') ? true:false;
 
         const transformedData: RRPDetails = {
           items: data.rrpDetails.map((item: any) => ({

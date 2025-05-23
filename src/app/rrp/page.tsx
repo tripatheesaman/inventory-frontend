@@ -34,8 +34,10 @@ export default function RRPPage() {
       
       if (response.status === 200) {
         const rrpDetails = response.data;
+        // Get only the base number (before T) when creating new RRP from menu
+        const baseNumber = rrpDetails.rrpNumber ? rrpDetails.rrpNumber.split('T')[0] : '';
         // Navigate to the new RRP page with the latest details
-        router.push(`/rrp/new?type=${type}&rrpNumber=${rrpDetails.rrpNumber || ''}`);
+        router.push(`/rrp/new?type=${type}&rrpNumber=${baseNumber}`);
       } else {
         throw new Error('Failed to fetch RRP details');
       }

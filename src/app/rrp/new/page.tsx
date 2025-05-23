@@ -45,7 +45,16 @@ export default function NewRRPPage() {
   const [freightCharge, setFreightCharge] = useState<string>(searchParams.get('freightCharge') || '0');
   const [selectedCurrency, setSelectedCurrency] = useState<string>(searchParams.get('currency') || '');
   const [forexRate, setForexRate] = useState<string>(searchParams.get('forexRate') || '');
-  const [rrpNumber, setRrpNumber] = useState<string>(searchParams.get('rrpNumber') || '');
+  // Initialize RRP number from URL parameters, only keeping T if coming from notification
+  const [rrpNumber, setRrpNumber] = useState<string>(() => {
+    const rrpNumberParam = searchParams.get('rrpNumber');
+    const notificationId = searchParams.get('notificationId');
+    if (!rrpNumberParam) return '';
+    // Only keep the full number if coming from a notification
+    if (notificationId && rrpNumberParam.includes('T')) return rrpNumberParam;
+    // Otherwise, always use just the base number
+    return rrpNumberParam.split('T')[0];
+  });
 
   const [dateError, setDateError] = useState<string | null>(null);
 
@@ -117,6 +126,16 @@ export default function NewRRPPage() {
       return;
     }
 
+    // Validate RRP number format
+    if (!rrpNumber.match(/^[LF]\d{3}(T\d+)?$/)) {
+      showErrorToast({
+        title: "Validation Error",
+        message: "Invalid RRP number format. Must be in format L001 or L001T1",
+        duration: 3000,
+      });
+      return;
+    }
+
     if (rrpType === 'foreign' && (!poNumber || !airwayBillNumber || !selectedCurrency || !forexRate || !customsNumber)) {
       showErrorToast({
         title: "Validation Error",
@@ -128,8 +147,27 @@ export default function NewRRPPage() {
 
     try {
       setIsVerifying(true);
-      const response = await API.get(`/api/rrp/verifyRRPNumber/${rrpNumber}`);
+      const response = await API.get(`/api/rrp/verifyRRPNumber/${rrpNumber}?date=${dates.rrpDate.toISOString()}`);
       
+      // Handle error responses
+      if (response.status === 400) {
+        showErrorToast({
+          title: "Validation Error",
+          message: response.data.message || "Invalid RRP number or date",
+          duration: 3000,
+        });
+        return;
+      }
+
+      if (response.status === 500) {
+        showErrorToast({
+          title: "Server Error",
+          message: response.data.message || "An error occurred while verifying RRP number",
+          duration: 3000,
+        });
+        return;
+      }
+
       if (response.status === 200) {
         const responseData = response.data;
         
@@ -143,7 +181,7 @@ export default function NewRRPPage() {
             return;
           }
         } else {
-          // It's an old RRP, update the number
+          // It's an old RRP, update the number with the returned RRP number
           setRrpNumber(responseData.rrpNumber);
         }
 
@@ -172,18 +210,12 @@ export default function NewRRPPage() {
         });
 
         router.push(`/rrp/items?${queryParams.toString()}`);
-      } else {
-        showErrorToast({
-          title: "Invalid RRP Number",
-          message: "The RRP number is not valid",
-          duration: 3000,
-        });
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error verifying RRP number:', error);
       showErrorToast({
         title: "Error",
-        message: "Failed to verify RRP number",
+        message: error.response?.data?.message || "Failed to verify RRP number",
         duration: 3000,
       });
     } finally {
@@ -232,10 +264,19 @@ export default function NewRRPPage() {
                   <Label>RRP Number *</Label>
                   <Input
                     value={rrpNumber}
-                    onChange={(e) => setRrpNumber(e.target.value)}
-                    placeholder="Enter RRP number"
+                    onChange={(e) => {
+                      const value = e.target.value.toUpperCase();
+                      // Only allow L/F followed by 3 digits
+                      if (value.match(/^[LF]?\d{0,3}$/)) {
+                        setRrpNumber(value);
+                      }
+                    }}
+                    placeholder={`Enter RRP number (e.g., ${rrpType === 'local' ? 'L001' : 'F001'})`}
                     className="w-full border-[#002a6e]/10 focus:border-[#003594] focus:ring-[#003594]/20"
                   />
+                  <p className="text-sm text-gray-500">
+                    Format: {rrpType === 'local' ? 'L' : 'F'} followed by 3 digits (e.g., {rrpType === 'local' ? 'L001' : 'F001'})
+                  </p>
                 </div>
 
                 {/* RRP Date */}
