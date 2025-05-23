@@ -28,26 +28,56 @@ export function NotificationBell() {
 
   const handleNotificationClick = async (notification: any) => {
     try {
-      markAsRead(notification.id);
+      // Mark notification as read
+      await markAsRead(notification.id);
+
+      // Handle navigation based on referenceType
+      switch (notification.referenceType) {
+        case 'request':
+          router.push(`/request/${notification.referenceNumber}?notificationId=${notification.id}`);
+          break;
+        case 'issue':
+          router.push(`/issue/${notification.referenceNumber}?notificationId=${notification.id}`);
+          break;
+        case 'receive':
+          router.push(`/receive/${notification.referenceNumber}?notificationId=${notification.id}`);
+          break;
+        case 'rrp':
+          // For RRP notifications, redirect to create RRP form with pre-filled data
+          const response = await API.get(`/api/rrp/items/${notification.referenceNumber}`);
+          if (response.status === 200) {
+            const rrpData = response.data.rrpDetails[0];
+            const type = rrpData.rrp_number.startsWith('L') ? 'local' : 'foreign';
+            
+            // Keep the full RRP number with T when coming from notification
+            const queryParams = new URLSearchParams({
+              type,
+              rrpNumber: rrpData.rrp_number, // Keep the full RRP number with T
+              rrpDate: rrpData.date,
+              invoiceDate: rrpData.invoice_date,
+              supplier: rrpData.supplier_name,
+              inspectionUser: rrpData.inspection_details.inspection_user,
+              invoiceNumber: rrpData.invoice_number,
+              freightCharge: rrpData.freight_charge?.toString() || '0',
+              notificationId: notification.id, // Add notificationId to indicate it's from notification
+              ...(type === 'foreign' && {
+                customsDate: rrpData.customs_date,
+                customsNumber: rrpData.customs_number,
+                poNumber: rrpData.po_number,
+                airwayBillNumber: rrpData.airway_bill_number,
+                currency: rrpData.currency,
+                forexRate: rrpData.forex_rate?.toString() || '1'
+              })
+            });
+
+            router.push(`/rrp/new?${queryParams.toString()}`);
+          }
+          break;
+        default:
+          break;
+      }
     } catch (error) {
-      console.error('Error marking notification as read:', error);
-    }
-    // Handle navigation based on referenceType
-    switch (notification.referenceType) {
-      case 'request':
-        router.push(`/request/${notification.referenceNumber}?notificationId=${notification.id}`);
-        break;
-      case 'issue':
-        router.push(`/issue/${notification.referenceNumber}?notificationId=${notification.id}`);
-        break;
-      case 'receive':
-        router.push(`/receive/${notification.referenceNumber}?notificationId=${notification.id}`);
-        break;
-      case 'rrp':
-        router.push(`/rrp/${notification.referenceNumber}?notificationId=${notification.id}`);
-        break;
-      default:
-        break;
+      console.error('Error handling notification:', error);
     }
     
     setIsOpen(false);

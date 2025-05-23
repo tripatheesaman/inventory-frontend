@@ -226,7 +226,7 @@ export default function RRPPreview({
         <CardContent>
           <div className="border border-[#002a6e]/10 rounded-lg overflow-x-auto bg-[#f8fafc] mb-6">
             <Table className="min-w-[900px]">
-              <TableHeader>
+            <TableHeader>
                 <TableRow className="bg-[#003594]/5">
                   <TableHead className="text-[#003594] font-semibold">NAC Code</TableHead>
                   <TableHead className="text-[#003594] font-semibold">Item Name</TableHead>
@@ -239,10 +239,10 @@ export default function RRPPreview({
                   <TableHead className="text-[#003594] font-semibold text-right">Freight Charge</TableHead>
                   <TableHead className="text-[#003594] font-semibold text-right">VAT</TableHead>
                   <TableHead className="text-[#003594] font-semibold text-right">Total</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {rows.map((row, index) => (
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {rows.map((row, index) => (
                   <TableRow key={index} className="border-t border-[#002a6e]/10 hover:bg-[#003594]/5 transition-colors">
                     <TableCell className="whitespace-nowrap">{row.nac_code}</TableCell>
                     <TableCell className="whitespace-nowrap">{row.item_name}</TableCell>
@@ -255,19 +255,19 @@ export default function RRPPreview({
                     <TableCell className="text-right whitespace-nowrap">{displayCurrency} {row.itemFreightCharge.toFixed(2)}</TableCell>
                     <TableCell className="text-right whitespace-nowrap">{displayCurrency} {row.itemVat.toFixed(2)}</TableCell>
                     <TableCell className="text-right whitespace-nowrap">{displayCurrency} {row.total.toFixed(2)}</TableCell>
-                  </TableRow>
-                ))}
+                </TableRow>
+              ))}
                 <TableRow className="font-bold border-t border-[#002a6e]/10">
-                  <TableCell colSpan={5}>Total</TableCell>
+                <TableCell colSpan={5}>Total</TableCell>
                   <TableCell className="text-right whitespace-nowrap">{displayCurrency} {totals.itemPrice.toFixed(2)}</TableCell>
                   <TableCell className="text-right whitespace-nowrap">{displayCurrency} {totals.customsCharge.toFixed(2)}</TableCell>
                   {isForeign && <TableCell className="text-right whitespace-nowrap">{displayCurrency} {totals.customServiceCharge.toFixed(2)}</TableCell>}
                   <TableCell className="text-right whitespace-nowrap">{displayCurrency} {totals.freightCharge.toFixed(2)}</TableCell>
                   <TableCell className="text-right whitespace-nowrap">{displayCurrency} {totals.vat.toFixed(2)}</TableCell>
                   <TableCell className="text-right whitespace-nowrap">{displayCurrency} {totals.total.toFixed(2)}</TableCell>
-                </TableRow>
-              </TableBody>
-            </Table>
+              </TableRow>
+            </TableBody>
+          </Table>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
@@ -344,14 +344,14 @@ export default function RRPPreview({
                       </PopoverContent>
                     </Popover>
                   </div>
-                  <div className="space-y-2">
+                <div className="space-y-2">
                     <Label className="text-sm font-medium text-[#003594]">Customs Number</Label>
-                    <Input
-                      value={customsNumber}
-                      onChange={(e) => onCustomsNumberChange(e.target.value)}
+                  <Input
+                    value={customsNumber}
+                    onChange={(e) => onCustomsNumberChange(e.target.value)}
                       className="border-[#002a6e]/10 focus:ring-[#003594]"
-                    />
-                  </div>
+                  />
+                </div>
                 </>
               )}
 
