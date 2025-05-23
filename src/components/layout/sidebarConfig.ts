@@ -1,4 +1,6 @@
-export type IconName = 'home' | 'log-in' | 'log-out' | 'file-text' | 'search' | 'request' | 'printer' | 'receipt' | 'calendar' | 'print';
+import { LucideIcon, Users } from 'lucide-react';
+
+export type IconName = 'home' | 'search' | 'request' | 'log-in' | 'log-out' | 'file-text' | 'printer' | 'receipt' | 'calendar' | 'print' | 'users';
 
 interface SubmenuItem {
   label: string;
@@ -20,31 +22,31 @@ export const sidebarLinks: SidebarLink[] = [
     label: "Dashboard", 
     href: "/dashboard", 
     icon: 'home',
-    permission: 'view_dashboard'
+    permission: 'can_view_dashboard'
   },
   { 
     label: "Search", 
     href: "/search", 
     icon: 'search',
-    permission: 'search_items'
+    permission: 'can_search_items'
   },
   { 
     label: "Request", 
     href: "/request", 
     icon: 'request',
-    permission: 'request_items'
+    permission: 'can_request_items'
   },
   { 
     label: "Receive", 
     href: "/receive", 
     icon: 'log-in',
-    permission: 'receive_items'
+    permission: 'can_receive_items'
   },
   { 
     label: "Issue", 
     href: "/issue", 
     icon: 'log-out',
-    permission: 'issue_items'
+    permission: 'can_issue_items'
   },
   {
     label: "RRP",
@@ -53,10 +55,16 @@ export const sidebarLinks: SidebarLink[] = [
     permission: 'can_create_rrp'
   },
   {
+    label: "Users",
+    href: "/users",
+    icon: 'users',
+    permission: 'can_manage_users'
+  },
+  {
     label: "Reports",
     href: "/reports",
     icon: 'file-text',
-    permission: 'view_reports',
+    permission: 'can_view_reports',
     submenu: [
       { 
         label: "Daily", 
