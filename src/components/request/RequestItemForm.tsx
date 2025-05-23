@@ -93,20 +93,20 @@ export function RequestItemForm({ isOpen, onClose, item, onSubmit, isManualEntry
         ? Array.from(expandEquipmentNumbers(equipmentNumber)).join(',')
         : equipmentNumber;
 
-      const cartItem: RequestCartItem = {
-        id: isManualEntry ? 'N/A' : (item?.id?.toString() || 'N/A'),
-        nacCode: isManualEntry ? 'N/A' : (item?.nacCode || 'N/A'),
-        itemName: itemName,
-        requestQuantity,
-        partNumber: partNumber || 'N/A',
+    const cartItem: RequestCartItem = {
+      id: isManualEntry ? 'N/A' : (item?.id?.toString() || 'N/A'),
+      nacCode: isManualEntry ? 'N/A' : (item?.nacCode || 'N/A'),
+      itemName: itemName,
+      requestQuantity,
+      partNumber: partNumber || 'N/A',
         equipmentNumber: finalEquipmentNumber,
-        specifications: specifications || '',
-        image: image || undefined,
-        unit: isManualEntry ? unit : (item?.unit || ''),
-      };
+      specifications: specifications || '',
+      image: image || undefined,
+      unit: isManualEntry ? unit : (item?.unit || ''),
+    };
 
       await onSubmit(cartItem);
-      resetForm();
+    resetForm();
     } finally {
       setIsSubmitting(false);
     }
@@ -146,50 +146,50 @@ export function RequestItemForm({ isOpen, onClose, item, onSubmit, isManualEntry
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="space-y-2">
+          <div className="space-y-2">
               <Label className="text-sm font-medium text-[#003594]">Item Name</Label>
-              <Input 
-                value={itemName} 
-                onChange={(e) => setItemName(e.target.value)}
-                placeholder="Enter item name"
+            <Input 
+              value={itemName} 
+              onChange={(e) => setItemName(e.target.value)}
+              placeholder="Enter item name"
                 className={`mt-1 ${errors.itemName ? "border-red-500" : "border-[#002a6e]/10 focus:border-[#003594]"}`}
-              />
-              {errors.itemName && <p className="text-sm text-red-500">{errors.itemName}</p>}
-            </div>
-            <div className="space-y-2">
+            />
+            {errors.itemName && <p className="text-sm text-red-500">{errors.itemName}</p>}
+          </div>
+          <div className="space-y-2">
               <Label className="text-sm font-medium text-[#003594]">NAC Code</Label>
               <Input 
                 value={isManualEntry ? 'N/A' : item?.nacCode || ''} 
                 disabled 
                 className="mt-1 bg-gray-50 border-[#002a6e]/10"
               />
-            </div>
-            <div className="space-y-2">
+          </div>
+          <div className="space-y-2">
               <Label htmlFor="requestQuantity" className="text-sm font-medium text-[#003594]">Request Quantity</Label>
-              <Input
-                id="requestQuantity"
-                type="number"
-                min="1"
-                value={requestQuantity}
-                onChange={(e) => setRequestQuantity(Number(e.target.value))}
-                required
+            <Input
+              id="requestQuantity"
+              type="number"
+              min="1"
+              value={requestQuantity}
+              onChange={(e) => setRequestQuantity(Number(e.target.value))}
+              required
                 className="mt-1 border-[#002a6e]/10 focus:border-[#003594]"
-              />
-            </div>
-            {isManualEntry && (
-              <div className="space-y-2">
-                <Label htmlFor="unit" className="text-sm font-medium text-[#003594]">Unit</Label>
-                <Input
-                  id="unit"
-                  value={unit}
-                  onChange={(e) => setUnit(e.target.value)}
-                  placeholder="Enter unit (e.g., pcs, kg, etc.)"
-                  className={`mt-1 ${errors.unit ? "border-red-500" : "border-[#002a6e]/10 focus:border-[#003594]"}`}
-                />
-                {errors.unit && <p className="text-sm text-red-500">{errors.unit}</p>}
-              </div>
-            )}
+            />
+          </div>
+          {isManualEntry && (
             <div className="space-y-2">
+                <Label htmlFor="unit" className="text-sm font-medium text-[#003594]">Unit</Label>
+              <Input
+                id="unit"
+                value={unit}
+                onChange={(e) => setUnit(e.target.value)}
+                placeholder="Enter unit (e.g., pcs, kg, etc.)"
+                  className={`mt-1 ${errors.unit ? "border-red-500" : "border-[#002a6e]/10 focus:border-[#003594]"}`}
+              />
+              {errors.unit && <p className="text-sm text-red-500">{errors.unit}</p>}
+            </div>
+          )}
+          <div className="space-y-2">
               <Label htmlFor="partNumber" className="text-sm font-medium text-[#003594]">Part Number</Label>
               {isManualEntry ? (
                 <Input
@@ -200,15 +200,15 @@ export function RequestItemForm({ isOpen, onClose, item, onSubmit, isManualEntry
                   className="mt-1 border-[#002a6e]/10 focus:border-[#003594]"
                 />
               ) : (
-                <PartNumberSelect
+            <PartNumberSelect
                   partNumberList={item?.partNumber || ""}
-                  value={partNumber}
-                  onChange={(value) => setPartNumber(value)}
-                  error={errors.partNumber}
-                />
+                value={partNumber}
+              onChange={(value) => setPartNumber(value)}
+              error={errors.partNumber}
+              />
               )}
-            </div>
-            <div className="space-y-2">
+          </div>
+          <div className="space-y-2">
               <Label htmlFor="equipmentNumber" className="text-sm font-medium text-[#003594]">Equipment Number</Label>
               {isManualEntry ? (
                 <Input
@@ -219,12 +219,12 @@ export function RequestItemForm({ isOpen, onClose, item, onSubmit, isManualEntry
                   className={`mt-1 ${errors.equipmentNumber ? "border-red-500" : "border-[#002a6e]/10 focus:border-[#003594]"}`}
                 />
               ) : (
-                <EquipmentRangeSelect
+            <EquipmentRangeSelect
                   equipmentList={item?.equipmentNumber || ""}
-                  value={equipmentNumber}
-                  onChange={(value) => setEquipmentNumber(value)}
-                  error={errors.equipmentNumber}
-                />
+                value={equipmentNumber}
+              onChange={(value) => setEquipmentNumber(value)}
+              error={errors.equipmentNumber}
+              />
               )}
               {errors.equipmentNumber && <p className="text-sm text-red-500">{errors.equipmentNumber}</p>}
             </div>
