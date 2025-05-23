@@ -93,48 +93,48 @@ export const PrintRRPResultsTable = ({
 
   return (
     <div className="space-y-4">
-      <div className={cn("relative overflow-x-auto border rounded-lg", className)}>
-        <table className="w-full text-sm text-left text-gray-900">
-          <thead className="text-xs uppercase bg-gray-50 sticky top-0 z-10">
+      <div className={cn("relative overflow-x-auto", className)}>
+        <table className="w-full text-sm text-left">
+          <thead className="text-xs uppercase bg-[#003594]/5 sticky top-0 z-10">
             <tr>
-              <th scope="col" className="px-4 py-3">RRP Number</th>
-              <th scope="col" className="px-4 py-3">Date</th>
-              <th scope="col" className="px-4 py-3">Supplier</th>
-              <th scope="col" className="px-4 py-3">Type</th>
-              <th scope="col" className="px-4 py-3">Status</th>
-              <th scope="col" className="px-4 py-3">Actions</th>
+              <th scope="col" className="px-6 py-4 font-semibold text-[#003594]">RRP Number</th>
+              <th scope="col" className="px-6 py-4 font-semibold text-[#003594]">Date</th>
+              <th scope="col" className="px-6 py-4 font-semibold text-[#003594]">Supplier</th>
+              <th scope="col" className="px-6 py-4 font-semibold text-[#003594]">Type</th>
+              <th scope="col" className="px-6 py-4 font-semibold text-[#003594]">Status</th>
+              <th scope="col" className="px-6 py-4 font-semibold text-[#003594]">Actions</th>
             </tr>
           </thead>
           <tbody>
             {currentPageResults.map((rrp) => (
               <React.Fragment key={rrp.rrpNumber}>
                 <tr
-                  className="border-b hover:bg-gray-50 cursor-pointer"
+                  className="border-b border-[#002a6e]/10 hover:bg-[#003594]/5 transition-colors cursor-pointer"
                   onClick={() => toggleRow(rrp.rrpNumber)}
                 >
-                  <td className="px-4 py-3 font-medium flex items-center">
+                  <td className="px-6 py-4 font-medium flex items-center">
                     {expandedRows.has(rrp.rrpNumber) ? (
-                      <ChevronUp className="h-4 w-4 mr-2" />
+                      <ChevronUp className="h-4 w-4 mr-2 text-[#003594]" />
                     ) : (
-                      <ChevronDown className="h-4 w-4 mr-2" />
+                      <ChevronDown className="h-4 w-4 mr-2 text-[#003594]" />
                     )}
                     {rrp.rrpNumber}
                   </td>
-                  <td className="px-4 py-3">
+                  <td className="px-6 py-4">
                     {new Date(rrp.rrpDate).toLocaleDateString()}
                   </td>
-                  <td className="px-4 py-3">{rrp.supplierName}</td>
-                  <td className="px-4 py-3">
+                  <td className="px-6 py-4">{rrp.supplierName}</td>
+                  <td className="px-6 py-4">
                     <span className={cn(
-                      "px-2 py-1 rounded-full text-xs font-medium",
+                      "px-3 py-1 rounded-full text-xs font-medium",
                       rrp.type === 'local' ? "bg-green-100 text-green-800" : "bg-blue-100 text-blue-800"
                     )}>
                       {rrp.type.toUpperCase()}
                     </span>
                   </td>
-                  <td className="px-4 py-3">
+                  <td className="px-6 py-4">
                     <span className={cn(
-                      "px-2 py-1 rounded-full text-xs font-medium",
+                      "px-3 py-1 rounded-full text-xs font-medium",
                       rrp.approvalStatus === 'APPROVED' && "bg-green-100 text-green-800",
                       rrp.approvalStatus === 'PENDING' && "bg-yellow-100 text-yellow-800",
                       rrp.approvalStatus === 'REJECTED' && "bg-red-100 text-red-800"
@@ -142,11 +142,12 @@ export const PrintRRPResultsTable = ({
                       {rrp.approvalStatus}
                     </span>
                   </td>
-                  <td className="px-4 py-3">
+                  <td className="px-6 py-4">
                     <div className="flex space-x-2">
                       <Button
                         variant="outline"
                         size="sm"
+                        className="border-[#002a6e]/10 hover:bg-[#003594]/5 hover:text-[#003594]"
                         onClick={(e) => {
                           e.stopPropagation();
                           onPreview(rrp);
@@ -159,6 +160,7 @@ export const PrintRRPResultsTable = ({
                         <Button
                           variant="outline"
                           size="sm"
+                          className="border-[#002a6e]/10 hover:bg-[#003594]/5 hover:text-[#003594]"
                           onClick={(e) => {
                             e.stopPropagation();
                             onPrint(rrp);
@@ -172,66 +174,55 @@ export const PrintRRPResultsTable = ({
                   </td>
                 </tr>
                 {expandedRows.has(rrp.rrpNumber) && (
-                  <tr className="bg-gray-50">
-                    <td colSpan={6} className="px-4 py-3">
-                      <div className="grid grid-cols-2 gap-4 mb-4">
+                  <tr className="bg-[#f8fafc]">
+                    <td colSpan={6} className="px-6 py-4">
+                      <div className="space-y-4">
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                         <div>
-                          <p className="text-sm font-medium">Invoice Number</p>
-                          <p>{rrp.invoiceNumber}</p>
+                            <p className="text-sm font-medium text-[#003594]">Invoice Number</p>
+                            <p className="text-sm">{rrp.invoiceNumber}</p>
                         </div>
                         <div>
-                          <p className="text-sm font-medium">Invoice Date</p>
-                          <p>{new Date(rrp.invoiceDate).toLocaleDateString()}</p>
-                        </div>
-                        {rrp.type === 'foreign' && (
-                          <>
-                            <div>
-                              <p className="text-sm font-medium">PO Number</p>
-                              <p>{rrp.poNumber || 'N/A'}</p>
+                            <p className="text-sm font-medium text-[#003594]">Invoice Date</p>
+                            <p className="text-sm">{new Date(rrp.invoiceDate).toLocaleDateString()}</p>
                             </div>
                             <div>
-                              <p className="text-sm font-medium">Airway Bill Number</p>
-                              <p>{rrp.airwayBillNumber || 'N/A'}</p>
+                            <p className="text-sm font-medium text-[#003594]">Currency</p>
+                            <p className="text-sm">{rrp.currency}</p>
                             </div>
                             <div>
-                              <p className="text-sm font-medium">Customs Number</p>
-                              <p>{rrp.customsNumber || 'N/A'}</p>
+                            <p className="text-sm font-medium text-[#003594]">Forex Rate</p>
+                            <p className="text-sm">{rrp.forexRate}</p>
                             </div>
-                            <div>
-                              <p className="text-sm font-medium">Customs Date</p>
-                              <p>{rrp.customsDate ? new Date(rrp.customsDate).toLocaleDateString() : 'N/A'}</p>
                             </div>
-                          </>
-                        )}
-                      </div>
-                      <table className="w-full">
-                        <thead>
-                          <tr className="text-xs uppercase text-gray-500">
-                            <th className="px-4 py-2">Part Number</th>
-                            <th className="px-4 py-2">Item Name</th>
-                            <th className="px-4 py-2">Equipment Number</th>
-                            <th className="px-4 py-2">Quantity</th>
-                            <th className="px-4 py-2">Unit Price</th>
-                            <th className="px-4 py-2">Total Amount</th>
+                        <div className="border-t border-[#002a6e]/10 pt-4">
+                          <h4 className="text-sm font-medium text-[#003594] mb-2">Items</h4>
+                          <div className="overflow-x-auto">
+                            <table className="w-full text-sm">
+                              <thead className="bg-[#003594]/5">
+                                <tr>
+                                  <th className="px-4 py-2 text-left text-xs font-medium text-[#003594]">Item Name</th>
+                                  <th className="px-4 py-2 text-left text-xs font-medium text-[#003594]">Part Number</th>
+                                  <th className="px-4 py-2 text-left text-xs font-medium text-[#003594]">Quantity</th>
+                                  <th className="px-4 py-2 text-left text-xs font-medium text-[#003594]">Unit Price</th>
+                                  <th className="px-4 py-2 text-left text-xs font-medium text-[#003594]">Total</th>
                           </tr>
                         </thead>
                         <tbody>
                           {rrp.items.map((item) => (
-                            <tr key={item.id} className="border-t">
+                                  <tr key={item.id} className="border-t border-[#002a6e]/10">
+                                    <td className="px-4 py-2">{item.itemName}</td>
                               <td className="px-4 py-2">{item.partNumber}</td>
-                              <td className="px-4 py-2">{item.itemName}</td>
-                              <td className="px-4 py-2">{item.equipmentNumber}</td>
                               <td className="px-4 py-2">{item.receivedQuantity} {item.unit}</td>
-                              <td className="px-4 py-2">
-                                {rrp.type === 'foreign' 
-                                  ? ((parseFloat(item.itemPrice) * parseFloat(rrp.forexRate)) / parseFloat(item.receivedQuantity)).toFixed(2)
-                                  : (parseFloat(item.itemPrice) / parseFloat(item.receivedQuantity)).toFixed(2)}
-                              </td>
+                                    <td className="px-4 py-2">{item.itemPrice}</td>
                               <td className="px-4 py-2">{item.totalAmount}</td>
                             </tr>
                           ))}
                         </tbody>
                       </table>
+                          </div>
+                        </div>
+                      </div>
                     </td>
                   </tr>
                 )}
@@ -242,21 +233,23 @@ export const PrintRRPResultsTable = ({
       </div>
 
       {totalPages > 1 && (
-        <div className="flex justify-center space-x-2">
+        <div className="flex justify-center space-x-2 mt-6">
           <Button
             variant="outline"
             size="sm"
+            className="border-[#002a6e]/10 hover:bg-[#003594]/5 hover:text-[#003594]"
             onClick={() => handlePageChange(currentPage - 1)}
             disabled={currentPage === 1}
           >
             <ChevronLeft className="h-4 w-4" />
           </Button>
-          <span className="py-2">
+          <span className="py-2 text-sm text-[#003594]">
             Page {currentPage} of {totalPages}
           </span>
           <Button
             variant="outline"
             size="sm"
+            className="border-[#002a6e]/10 hover:bg-[#003594]/5 hover:text-[#003594]"
             onClick={() => handlePageChange(currentPage + 1)}
             disabled={currentPage === totalPages}
           >

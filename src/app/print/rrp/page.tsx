@@ -148,9 +148,12 @@ export default function PrintRRPPage() {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <h1 className="text-2xl font-bold mb-6">Print RRP</h1>
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold bg-gradient-to-r from-[#003594] to-[#d2293b] bg-clip-text text-transparent">Print RRP</h1>
+        <p className="text-gray-600 mt-2">Search and print RRP documents</p>
+      </div>
       
-      <div className="mb-6">
+      <div className="mb-8 bg-white rounded-lg shadow-xl border-[#002a6e]/10 p-6">
         <PrintRRPSearchControls
           onUniversalSearch={handleUniversalSearch}
           onEquipmentSearch={handleEquipmentSearch}
@@ -159,21 +162,23 @@ export default function PrintRRPPage() {
       </div>
 
       {error && (
-        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-6">
+        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-6">
           {error}
         </div>
       )}
 
       {isLoading ? (
-        <div className="flex justify-center items-center py-8">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+        <div className="flex justify-center items-center py-12">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#003594]"></div>
         </div>
       ) : (
+        <div className="bg-white rounded-lg shadow-xl border-[#002a6e]/10 overflow-hidden">
         <PrintRRPResultsTable
           results={results || []}
           onPreview={handlePreview}
           onPrint={handlePrint}
         />
+        </div>
       )}
 
       <PrintRRPPreviewModal

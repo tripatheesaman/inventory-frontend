@@ -131,8 +131,6 @@ export function EquipmentRangeSelect({
       ...textItems,
       ...rangeEntries
     ];
-
-    console.log('Generated ranges:', result);
     return result;
   };
 
@@ -140,8 +138,6 @@ export function EquipmentRangeSelect({
     if (!equipmentList) return [];
     
     const rangesList = generateRanges(equipmentList);
-    console.log('Equipment list:', equipmentList);
-    console.log('Ranges list:', rangesList);
     
     return rangesList.map(range => ({
       value: range,

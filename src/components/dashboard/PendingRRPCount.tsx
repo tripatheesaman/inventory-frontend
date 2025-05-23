@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useAuthContext } from '@/context/AuthContext/AuthContext';
 import { API } from '@/lib/api';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { FileText, ClipboardList } from 'lucide-react';
+import { FileText, Eye } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Modal,
@@ -76,7 +76,6 @@ interface PendingRRPResponse {
 
 export function PendingRRPCount() {
   const { permissions, user } = useAuthContext();
-  const router = useRouter();
   const { showSuccessToast, showErrorToast } = useCustomToast();
   const { markAsRead } = useNotification();
   const [pendingCount, setPendingCount] = useState<number>(0);
@@ -347,7 +346,7 @@ export function PendingRRPCount() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-24">
-        <div className="animate-spin rounded-full h-6 w-6 border-2 border-[#003594] border-t-transparent"></div>
+        <div className="animate-spin rounded-full h-8 w-8 border-3 border-[#003594] border-t-transparent"></div>
       </div>
     );
   }
@@ -367,37 +366,40 @@ export function PendingRRPCount() {
             </CardContent>
           </Card>
         </ModalTrigger>
-        <ModalContent className="max-w-3xl">
-          <ModalHeader>
-            <ModalTitle className="text-[#003594]">Pending RRP</ModalTitle>
-            <ModalDescription>
+        <ModalContent className="max-w-3xl bg-white rounded-lg shadow-xl border-[#002a6e]/10">
+          <ModalHeader className="border-b border-[#002a6e]/10 pb-4">
+            <ModalTitle className="text-2xl font-bold bg-gradient-to-r from-[#003594] to-[#d2293b] bg-clip-text text-transparent">
+              Pending RRP
+            </ModalTitle>
+            <ModalDescription className="text-gray-600">
               Review and manage pending RRP requests
             </ModalDescription>
           </ModalHeader>
-          <div className="mt-4 space-y-4">
+          <div className="mt-6 space-y-4">
             {pendingRRPs.map((rrp) => (
               <div
                 key={rrp.id}
-                className="rounded-lg border border-[#002a6e]/10 p-4 hover:bg-[#003594]/5 transition-colors"
+                className="rounded-lg border border-[#002a6e]/10 p-6 hover:bg-[#003594]/5 transition-colors"
               >
-                <div className="grid grid-cols-4 gap-4 items-center">
-                  <div>
-                    <p className="text-sm font-medium text-gray-600">RRP #</p>
-                    <p className="text-lg font-semibold text-[#003594]">{rrp.rrp_number}</p>
+                <div className="grid grid-cols-4 gap-6 items-center">
+                  <div className="space-y-1">
+                    <p className="text-sm font-medium text-[#003594]">RRP #</p>
+                    <p className="text-lg font-semibold text-gray-900">{rrp.rrp_number}</p>
                   </div>
-                  <div>
-                    <p className="text-sm font-medium text-gray-600">Date</p>
-                    <p className="text-lg font-semibold text-[#003594]">{new Date(rrp.date).toLocaleDateString()}</p>
+                  <div className="space-y-1">
+                    <p className="text-sm font-medium text-[#003594]">Date</p>
+                    <p className="text-lg font-semibold text-gray-900">{new Date(rrp.date).toLocaleDateString()}</p>
                   </div>
-                  <div>
-                    <p className="text-sm font-medium text-gray-600">Created By</p>
-                    <p className="text-lg font-semibold text-[#003594]">{rrp.created_by}</p>
+                  <div className="space-y-1">
+                    <p className="text-sm font-medium text-[#003594]">Created By</p>
+                    <p className="text-lg font-semibold text-gray-900">{rrp.created_by}</p>
                   </div>
                   <div className="flex justify-end">
                     <Button
                       onClick={() => handleViewDetails(rrp.rrp_number, rrp.date)}
-                      className="flex items-center gap-2 bg-[#003594] hover:bg-[#002a6e] text-white"
+                      className="flex items-center gap-2 bg-[#003594] hover:bg-[#003594]/90 text-white"
                     >
+                      <Eye className="h-4 w-4" />
                       View Details
                     </Button>
                   </div>

@@ -7,7 +7,7 @@ Purpose: Receive Page
 
 import { useState, useEffect } from 'react';
 import { Calendar } from '@/components/ui/calendar';
-import { SearchControls, SearchResults } from '@/components/search';
+import { SearchControls } from '@/components/search';
 import { useReceiveSearch } from '@/hooks/useReceiveSearch';
 import { ReceiveCartItem, ReceiveData } from '@/types/receive';
 import { ReceiveCart } from '@/components/receive/ReceiveCart';
@@ -19,7 +19,6 @@ import { useAuthContext } from '@/context/AuthContext/AuthContext';
 import { useCustomToast } from "@/components/ui/custom-toast";
 import { Label } from '@/components/ui/label';
 import { SearchResult } from '@/types/search';
-import { Button } from '@/components/ui/button';
 import { ReceiveSearchResults } from '@/components/receive/ReceiveSearchResults';
 
 export default function ReceivePage() {

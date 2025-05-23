@@ -49,7 +49,6 @@ export default function RequestDetailsPage({ params }: { params: Promise<{ id: s
   const { markAsRead } = useNotification();
   const [requestDetails, setRequestDetails] = useState<RequestDetails | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [isEditOpen, setIsEditOpen] = useState(false);
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   const [cart, setCart] = useState<RequestCartItem[]>([]);
   const [remarks, setRemarks] = useState('');
@@ -190,34 +189,69 @@ export default function RequestDetailsPage({ params }: { params: Promise<{ id: s
   };
 
   if (isLoading) {
-    return <div>Loading...</div>;
+    return (
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <div className="flex flex-col items-center gap-4">
+          <div className="animate-spin rounded-full h-10 w-10 border-3 border-[#003594] border-t-transparent"></div>
+          <p className="text-[#003594] font-medium">Loading request details...</p>
+        </div>
+      </div>
+    );
   }
 
   if (!requestDetails) {
-    return <div>Request not found</div>;
+    return (
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <div className="text-center space-y-4">
+          <div className="text-2xl font-bold text-[#003594]">Request Not Found</div>
+          <p className="text-gray-600">The request you're looking for doesn't exist or has been removed.</p>
+          <Button 
+            onClick={() => router.push('/dashboard')}
+            className="bg-[#003594] hover:bg-[#003594]/90 text-white"
+          >
+            Return to Dashboard
+          </Button>
+        </div>
+      </div>
+    );
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-bold text-gray-900">Edit Request #{requestDetails.requestNumber}</h1>
-          <div className="flex items-center gap-4">
-            <div className="w-[240px]">
-              <Label>Request Date</Label>
+    <div className="container mx-auto px-4 py-8 max-w-7xl">
+      <div className="space-y-8">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 bg-white rounded-xl shadow-sm border border-[#002a6e]/10 p-6 transition-all duration-200 hover:shadow-md">
+          <div className="space-y-2">
+            <h1 className="text-2xl font-bold bg-gradient-to-r from-[#003594] to-[#d2293b] bg-clip-text text-transparent">
+              Edit Request #{requestDetails.requestNumber}
+            </h1>
+            <div className="flex items-center gap-4 text-sm text-gray-600">
+              <p>Requested by {requestDetails.requestedBy}</p>
+              <span className="h-1 w-1 rounded-full bg-gray-400"></span>
+              <p>Status: <span className="font-medium text-[#003594]">{requestDetails.approvalStatus}</span></p>
+            </div>
+          </div>
+          <div className="flex flex-col md:flex-row items-start md:items-center gap-4">
+            <div className="w-full md:w-[240px]">
+              <Label className="text-[#003594] font-medium mb-2 block">Request Date</Label>
+              <div className="relative">
               <Calendar
                 value={date}
                 onChange={(newDate: Date | null) => setDate(newDate ?? undefined)}
                 className={cn(
-                  "w-full rounded-md border shadow mt-2",
+                    "w-full rounded-lg border border-[#002a6e]/10 shadow-sm transition-all duration-200 hover:border-[#003594]/30",
                   !date && "text-muted-foreground"
                 )}
               />
+                {!date && (
+                  <p className="text-sm text-gray-500 mt-2">Please select a date</p>
+                )}
+              </div>
             </div>
           </div>
         </div>
 
         <div className="space-y-6">
+          <div className="bg-white rounded-xl shadow-sm border border-[#002a6e]/10 p-6 transition-all duration-200 hover:shadow-md">
           <RequestCart
             items={cart}
             onUpdateItem={handleUpdateCartItem}
@@ -229,6 +263,7 @@ export default function RequestDetailsPage({ params }: { params: Promise<{ id: s
             remarks={remarks}
             onRemarksChange={setRemarks}
           />
+          </div>
         </div>
 
         {date && (

@@ -15,7 +15,7 @@ import { IssueCart } from '@/components/issue/IssueCart';
 import { IssueItemForm } from '@/components/issue/IssueItemForm';
 import { IssuePreviewModal } from '@/components/issue/IssuePreviewModal';
 import { API } from '@/lib/api';
-import { SearchResult } from '@/components/search/SearchResults';
+import { SearchResult } from '@/types/search';
 import { useAuthContext } from '@/context/AuthContext/AuthContext';
 import { useCustomToast } from "@/components/ui/custom-toast";
 
@@ -51,7 +51,7 @@ export default function IssuePage() {
     setResults((prevResults: SearchResult[] | null) => 
       prevResults?.map(result => 
         result.id === Number(item.id)
-          ? { ...result, currentBalance: result.currentBalance - item.issueQuantity }
+          ? { ...result, currentBalance: (parseFloat(result.currentBalance) - item.issueQuantity).toString() }
           : result
       ) ?? null
     );
@@ -66,7 +66,7 @@ export default function IssuePage() {
       setResults((prevResults: SearchResult[] | null) => 
         prevResults?.map(result => 
           result.id === Number(removedItem.id)
-            ? { ...result, currentBalance: result.currentBalance + removedItem.issueQuantity }
+            ? { ...result, currentBalance: (parseFloat(result.currentBalance) + removedItem.issueQuantity).toString() }
             : result
         ) ?? null
       );
@@ -90,7 +90,7 @@ export default function IssuePage() {
       setResults((prevResults: SearchResult[] | null) => 
         prevResults?.map(result => 
           result.id === Number(deletedItem.id)
-            ? { ...result, currentBalance: result.currentBalance + deletedItem.issueQuantity }
+            ? { ...result, currentBalance: (parseFloat(result.currentBalance) + deletedItem.issueQuantity).toString() }
             : result
         ) ?? null
       );
@@ -169,72 +169,99 @@ export default function IssuePage() {
   };
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-bold text-gray-900">Issue Items</h1>
-          <div className="w-[240px]">
-            <Calendar
-              value={date}
-              onChange={(newDate: Date | null) => setDate(newDate ?? undefined)}
-              className={cn(
-                "w-full rounded-md border shadow",
-                !date && "text-muted-foreground"
-              )}
-            />
+    <div className="min-h-screen bg-gray-50">
+      <div className="container mx-auto px-4 py-8">
+        <div className="space-y-8">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <div>
+              <h1 className="text-3xl font-bold bg-gradient-to-r from-[#003594] to-[#d2293b] bg-clip-text text-transparent">Issue Items</h1>
+              <p className="text-gray-600 mt-1">Issue items from inventory</p>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="h-2 w-2 rounded-full bg-[#d2293b] animate-pulse"></div>
+              <span className="text-sm text-gray-600">Live Issue</span>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            {/* Left Column - Search and Results */}
+            <div className="lg:col-span-2 space-y-8">
+              <div className="bg-white rounded-xl shadow-sm border border-[#002a6e]/10 p-6 hover:border-[#d2293b]/20 transition-colors">
+                <SearchControls
+                  onUniversalSearch={handleSearch('universal')}
+                  onEquipmentSearch={handleSearch('equipmentNumber')}
+                  onPartSearch={handleSearch('partNumber')}
+                />
+              </div>
+
+              <div className="bg-white rounded-xl shadow-sm border border-[#002a6e]/10 p-6 hover:border-[#d2293b]/20 transition-colors">
+                {isLoading ? (
+                  <div className="flex items-center justify-center h-24">
+                    <div className="animate-spin rounded-full h-6 w-6 border-2 border-[#003594] border-t-transparent"></div>
+                  </div>
+                ) : (
+                  <SearchResults
+                    results={results}
+                    isLoading={isLoading}
+                    error={error}
+                    onRowDoubleClick={handleRowDoubleClick}
+                    searchParams={searchParams}
+                    canViewFullDetails={true}
+                  />
+                )}
+              </div>
+            </div>
+
+            {/* Right Column - Issue Form and Cart */}
+            <div className="space-y-8">
+              <div className="bg-white rounded-xl shadow-sm border border-[#002a6e]/10 p-6 hover:border-[#d2293b]/20 transition-colors">
+                <div className="space-y-4">
+                  <div>
+                    <h2 className="text-lg font-semibold text-[#003594]">Issue Date</h2>
+                    <div className="mt-2">
+                      <Calendar
+                        value={date}
+                        onChange={(newDate) => setDate(newDate ?? undefined)}
+                        className="rounded-md border"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-white rounded-xl shadow-sm border border-[#002a6e]/10 p-6 hover:border-[#d2293b]/20 transition-colors">
+                <IssueCart
+                  items={cart}
+                  onRemoveItem={handleRemoveFromCart}
+                  onUpdateItem={handleUpdateCartItem}
+                  onDeleteItem={handleDeleteCartItem}
+                  onSubmit={handlePreviewSubmit}
+                  isSubmitDisabled={!date || cart.length === 0}
+                  isSubmitting={isSubmitting}
+                />
+              </div>
+            </div>
           </div>
         </div>
-
-        <div className="space-y-6">
-          <SearchControls
-            onUniversalSearch={handleSearch('universal')}
-            onEquipmentSearch={handleSearch('equipmentNumber')}
-            onPartSearch={handleSearch('partNumber')}
-          />
-
-          <div className="border rounded-lg">
-            <SearchResults
-              results={results}
-              isLoading={isLoading}
-              error={error}
-              onRowDoubleClick={handleRowDoubleClick}
-              searchParams={searchParams}
-            />
-          </div>
-        </div>
-
-        <div className="space-y-6">
-          <IssueCart
-            items={cart}
-            onRemoveItem={handleRemoveFromCart}
-            onUpdateItem={handleUpdateCartItem}
-            onDeleteItem={handleDeleteCartItem}
-            onSubmit={handlePreviewSubmit}
-            isSubmitDisabled={!date || cart.length === 0}
-            isSubmitting={isSubmitting}
-          />
-        </div>
-
-        <IssueItemForm
-          isOpen={isItemFormOpen}
-          onClose={() => setIsItemFormOpen(false)}
-          item={selectedItem}
-          onSubmit={handleAddToCart}
-        />
-
-        {date && (
-          <IssuePreviewModal
-            isOpen={isPreviewOpen}
-            onClose={() => setIsPreviewOpen(false)}
-            onConfirm={handleConfirmSubmit}
-            onUpdateItem={handleUpdateCartItem}
-            onDeleteItem={handleDeleteCartItem}
-            items={cart}
-            date={date}
-            isSubmitting={isSubmitting}
-          />
-        )}
       </div>
+
+      <IssueItemForm
+        isOpen={isItemFormOpen}
+        onClose={() => setIsItemFormOpen(false)}
+        item={selectedItem}
+        onSubmit={handleAddToCart}
+      />
+
+      <IssuePreviewModal
+        isOpen={isPreviewOpen}
+        onClose={() => setIsPreviewOpen(false)}
+        onConfirm={handleConfirmSubmit}
+        onUpdateItem={handleUpdateCartItem}
+        onDeleteItem={handleDeleteCartItem}
+        items={cart}
+        date={date || new Date()}
+        isSubmitting={isSubmitting}
+      />
     </div>
   );
 }

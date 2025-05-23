@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { IssueCartItem } from '@/types/issue';
 import { format } from 'date-fns';
 import { EquipmentSelect } from './EquipmentSelect';
-import { Pencil, Check, X, Trash2, Loader2 } from 'lucide-react';
+import { Pencil, Check, X, Trash2, Loader2, Package, Calendar, Hash, Scale } from 'lucide-react';
 import { Spinner } from '@/components/ui/spinner';
 
 interface IssuePreviewModalProps {
@@ -46,14 +46,21 @@ function EditableRow({ item, onUpdate, onDelete }: EditableRowProps) {
   if (isEditing) {
     return (
       <tr className="hover:bg-gray-50">
-        <td className="px-4 py-2">{item.nacCode}</td>
-        <td className="px-4 py-2">{item.itemName}</td>
-        <td className="px-4 py-2">
+        <td className="px-6 py-4">
+          <div className="flex items-center gap-2">
+            <Package className="h-4 w-4 text-[#003594]" />
+            <span className="font-medium text-[#003594]">{item.nacCode}</span>
+          </div>
+        </td>
+        <td className="px-6 py-4">
+          <span className="text-gray-900">{item.itemName}</span>
+        </td>
+        <td className="px-6 py-4">
           {isConsumable ? (
             <Input
               value={editedItem.selectedEquipment}
               onChange={(e) => setEditedItem({ ...editedItem, selectedEquipment: e.target.value })}
-              className="w-32"
+              className="w-32 border-[#002a6e]/10 focus-visible:ring-[#003594]"
             />
           ) : (
             <EquipmentSelect
@@ -63,36 +70,30 @@ function EditableRow({ item, onUpdate, onDelete }: EditableRowProps) {
             />
           )}
         </td>
-        <td className="px-4 py-2">
+        <td className="px-6 py-4">
+          <div className="flex items-center gap-2">
+            <Scale className="h-4 w-4 text-[#003594]" />
           <Input
             type="number"
             value={editedItem.issueQuantity.toString()}
             onChange={(e) => setEditedItem({ ...editedItem, issueQuantity: parseFloat(e.target.value) })}
-            className="w-24"
+              className="w-24 border-[#002a6e]/10 focus-visible:ring-[#003594]"
             min={1}
             max={item.currentBalance}
             step="0.01"
           />
+          </div>
           <div className="text-xs text-gray-500 mt-1">
             Max: {item.currentBalance}
           </div>
         </td>
-        <td className="px-4 py-2">
-          {hasPartNumber ? (
-            <EquipmentSelect
-              equipmentList={item.partNumber}
-              value={editedItem.partNumber}
-              onChange={(value) => setEditedItem({ ...editedItem, partNumber: value })}
-            />
-          ) : (
-            <Input
-              value="NA"
-              disabled
-              className="w-32 bg-gray-100"
-            />
-          )}
+        <td className="px-6 py-4">
+          <div className="flex items-center gap-2">
+            <Hash className="h-4 w-4 text-[#003594]" />
+            <span className="text-gray-900">{item.partNumber || 'NA'}</span>
+          </div>
         </td>
-        <td className="px-4 py-2">
+        <td className="px-6 py-4">
           <div className="flex items-center gap-2">
             <Button
               variant="ghost"
@@ -106,7 +107,7 @@ function EditableRow({ item, onUpdate, onDelete }: EditableRowProps) {
               variant="ghost"
               size="icon"
               onClick={handleCancel}
-              className="h-8 w-8 text-red-600 hover:text-red-700 hover:bg-red-50"
+              className="h-8 w-8 text-gray-600 hover:text-gray-700 hover:bg-gray-50"
             >
               <X className="h-4 w-4" />
             </Button>
@@ -118,12 +119,34 @@ function EditableRow({ item, onUpdate, onDelete }: EditableRowProps) {
 
   return (
     <tr className="hover:bg-gray-50">
-      <td className="px-4 py-2">{item.nacCode}</td>
-      <td className="px-4 py-2">{item.itemName}</td>
-      <td className="px-4 py-2">{item.selectedEquipment}</td>
-      <td className="px-4 py-2">{item.issueQuantity}</td>
-      <td className="px-4 py-2">{item.partNumber || 'NA'}</td>
-      <td className="px-4 py-2">
+      <td className="px-6 py-4">
+        <div className="flex items-center gap-2">
+          <Package className="h-4 w-4 text-[#003594]" />
+          <span className="font-medium text-[#003594]">{item.nacCode}</span>
+        </div>
+      </td>
+      <td className="px-6 py-4">
+        <span className="text-gray-900">{item.itemName}</span>
+      </td>
+      <td className="px-6 py-4">
+        <div className="flex items-center gap-2">
+          <Hash className="h-4 w-4 text-[#003594]" />
+          <span className="text-gray-900">{item.selectedEquipment}</span>
+        </div>
+      </td>
+      <td className="px-6 py-4">
+        <div className="flex items-center gap-2">
+          <Scale className="h-4 w-4 text-[#003594]" />
+          <span className="text-gray-900">{item.issueQuantity}</span>
+        </div>
+      </td>
+      <td className="px-6 py-4">
+        <div className="flex items-center gap-2">
+          <Hash className="h-4 w-4 text-[#003594]" />
+          <span className="text-gray-900">{item.partNumber || 'NA'}</span>
+        </div>
+      </td>
+      <td className="px-6 py-4">
         <div className="flex items-center gap-2">
           <Button
             variant="ghost"
@@ -159,37 +182,48 @@ export function IssuePreviewModal({
 }: IssuePreviewModalProps) {
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-3xl">
+      <DialogContent className="max-w-4xl">
         <DialogHeader>
-          <DialogTitle>Preview Issue Request</DialogTitle>
-          <DialogDescription>
+          <DialogTitle className="text-2xl font-bold bg-gradient-to-r from-[#003594] to-[#d2293b] bg-clip-text text-transparent">
+            Preview Issue Request
+          </DialogTitle>
+          <DialogDescription className="text-gray-600">
             Review your issue request before submitting
           </DialogDescription>
         </DialogHeader>
-        <div className="space-y-4">
-          <div className="flex justify-between items-center">
-            <p className="text-sm text-gray-500">
-              Issue Date: {format(date, 'PPP')}
-            </p>
-            <p className="text-sm text-gray-500">
-              Total Items: {items.length}
-            </p>
+
+        <div className="space-y-6">
+          <div className="grid grid-cols-2 gap-4 p-4 bg-gray-50 rounded-lg border border-[#002a6e]/10">
+            <div className="flex items-center gap-2">
+              <Calendar className="h-5 w-5 text-[#003594]" />
+              <div>
+                <p className="text-sm text-gray-500">Issue Date</p>
+                <p className="font-medium text-[#003594]">{format(date, 'PPP')}</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <Package className="h-5 w-5 text-[#003594]" />
+              <div>
+                <p className="text-sm text-gray-500">Total Items</p>
+                <p className="font-medium text-[#003594]">{items.length}</p>
+              </div>
+            </div>
           </div>
           
-          <div className="border rounded-lg">
+          <div className="border border-[#002a6e]/10 rounded-lg overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="bg-gray-50 border-b">
-                    <th className="px-4 py-2 text-left font-medium">NAC Code</th>
-                    <th className="px-4 py-2 text-left font-medium">Item Name</th>
-                    <th className="px-4 py-2 text-left font-medium">Equipment</th>
-                    <th className="px-4 py-2 text-left font-medium">Quantity</th>
-                    <th className="px-4 py-2 text-left font-medium">Part Number</th>
-                    <th className="px-4 py-2 text-left font-medium">Actions</th>
+                  <tr className="bg-gray-50 border-b border-[#002a6e]/10">
+                    <th className="px-6 py-3 text-left font-medium text-[#003594]">NAC Code</th>
+                    <th className="px-6 py-3 text-left font-medium text-[#003594]">Item Name</th>
+                    <th className="px-6 py-3 text-left font-medium text-[#003594]">Equipment</th>
+                    <th className="px-6 py-3 text-left font-medium text-[#003594]">Quantity</th>
+                    <th className="px-6 py-3 text-left font-medium text-[#003594]">Part Number</th>
+                    <th className="px-6 py-3 text-left font-medium text-[#003594]">Actions</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y">
+                <tbody className="divide-y divide-[#002a6e]/10">
                   {items.map((item) => (
                     <EditableRow
                       key={item.id}
@@ -203,11 +237,20 @@ export function IssuePreviewModal({
             </div>
           </div>
 
-          <DialogFooter>
-            <Button variant="outline" onClick={onClose} disabled={isSubmitting}>
+          <DialogFooter className="gap-3 pt-4 border-t border-[#002a6e]/10">
+            <Button 
+              variant="outline" 
+              onClick={onClose} 
+              disabled={isSubmitting}
+              className="border-[#002a6e]/10 hover:bg-gray-50"
+            >
               Cancel
             </Button>
-            <Button onClick={onConfirm} disabled={isSubmitting}>
+            <Button 
+              onClick={onConfirm} 
+              disabled={isSubmitting}
+              className="bg-[#003594] hover:bg-[#d2293b] text-white transition-colors"
+            >
               {isSubmitting ? (
                 <>
                   <Spinner size="sm" variant="white" className="mr-2" />

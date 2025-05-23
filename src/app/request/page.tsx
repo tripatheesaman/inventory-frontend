@@ -45,7 +45,6 @@ export default function RequestPage() {
     const fetchLastRequestInfo = async () => {
       try {
         const response = await API.get('/api/request/getlastrequestinfo');
-        console.log(response.data)
         if (response.status === 200 && response.data) {
           const { requestNumber: lastRequestNumber, requestDate } = response.data;
           setRequestNumber(lastRequestNumber || '');

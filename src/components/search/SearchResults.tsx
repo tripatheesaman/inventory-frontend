@@ -18,10 +18,10 @@ interface SearchResultsProps {
 }
 
 export const SearchResults = ({ 
-  results, 
-  isLoading, 
-  error, 
-  onRowDoubleClick, 
+  results,
+  isLoading,
+  error,
+  onRowDoubleClick,
   searchParams,
   canViewFullDetails 
 }: SearchResultsProps) => {
@@ -55,60 +55,70 @@ export const SearchResults = ({
       <table className="min-w-full divide-y divide-[#002a6e]/10">
         <thead>
           <tr className="bg-[#003594]/5">
-            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-[#003594] uppercase tracking-wider">
+            <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-[#003594] uppercase tracking-wider w-[100px]">
               NAC Code
             </th>
-            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-[#003594] uppercase tracking-wider">
+            <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-[#003594] uppercase tracking-wider w-[120px]">
               Part Number
             </th>
-            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-[#003594] uppercase tracking-wider">
+            <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-[#003594] uppercase tracking-wider min-w-[200px]">
               Item Name
             </th>
-            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-[#003594] uppercase tracking-wider">
+            <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-[#003594] uppercase tracking-wider w-[100px]">
               Current Balance
             </th>
-            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-[#003594] uppercase tracking-wider">
+            <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-[#003594] uppercase tracking-wider min-w-[150px]">
               Equipment Number
             </th>
-            <th scope="col" className="px-6 py-3 text-center text-xs font-medium text-[#003594] uppercase tracking-wider">
+            <th scope="col" className="px-4 py-3 text-center text-xs font-medium text-[#003594] uppercase tracking-wider w-[100px]">
               Location
             </th>
-            <th scope="col" className="px-6 py-3 text-center text-xs font-medium text-[#003594] uppercase tracking-wider">
+            <th scope="col" className="px-4 py-3 text-center text-xs font-medium text-[#003594] uppercase tracking-wider w-[100px]">
               Card Number
             </th>
           </tr>
         </thead>
         <tbody className="bg-white divide-y divide-[#002a6e]/10">
           {results.map((item) => (
-            <tr 
-              key={item.id} 
+            <tr
+              key={item.id}
               onDoubleClick={() => canViewFullDetails && onRowDoubleClick(item)}
               className={`hover:bg-[#003594]/5 transition-colors group ${canViewFullDetails ? 'cursor-pointer' : ''}`}
             >
-              <td className="px-6 py-4 whitespace-nowrap">
+              <td className="px-4 py-4">
                 <div className="text-sm font-medium text-[#003594] group-hover:text-[#d2293b] transition-colors">
                   {item.nacCode}
                 </div>
               </td>
-              <td className="px-6 py-4 whitespace-nowrap">
-                <div className="text-sm text-gray-900">{item.partNumber}</div>
+              <td className="px-4 py-4">
+                <div className="text-sm text-gray-900 break-words">
+                  {item.partNumber}
+                </div>
               </td>
-              <td className="px-6 py-4">
-                <div className="text-sm text-gray-900">{item.itemName}</div>
+              <td className="px-4 py-4">
+                <div className="text-sm text-gray-900 break-words">
+                  {item.itemName}
+                </div>
               </td>
-              <td className="px-6 py-4 whitespace-nowrap">
+              <td className="px-4 py-4">
                 <div className="text-sm text-center font-medium text-[#003594] group-hover:text-[#d2293b] transition-colors">
                   {item.currentBalance}
                 </div>
               </td>
-              <td className="px-6 py-4 whitespace-nowrap">
-                <div className="text-sm text-gray-900">{item.equipmentNumber}</div>
+              <td className="px-4 py-4">
+                <div className="text-sm text-gray-900 break-words">
+                  {item.equipmentNumber}
+                </div>
               </td>
-              <td className="px-6 py-4 whitespace-nowrap">
-                <div className="text-sm text-gray-900 text-center">{item.location}</div>
+              <td className="px-4 py-4">
+                <div className="text-sm text-gray-900 text-center break-words">
+                  {item.location}
+                </div>
               </td>
-              <td className="px-6 py-4 whitespace-nowrap">
-                <div className="text-sm text-gray-900 text-center">{item.cardNumber}</div>
+              <td className="px-4 py-4">
+                <div className="text-sm text-gray-900 text-center break-words">
+                  {item.cardNumber}
+                </div>
               </td>
             </tr>
           ))}

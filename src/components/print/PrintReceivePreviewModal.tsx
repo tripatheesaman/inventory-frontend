@@ -3,6 +3,7 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { format } from 'date-fns';
 import { IMAGE_BASE_URL } from '@/constants/api';
+import { cn } from '@/lib/utils';
 
 interface PrintReceivePreviewModalProps {
   receive: {
@@ -33,63 +34,66 @@ export function PrintReceivePreviewModal({ receive, isOpen, onClose }: PrintRece
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl">
-        <DialogHeader>
-          <DialogTitle>Receive Preview - {receive.receiveNumber}</DialogTitle>
+      <DialogContent className="max-w-4xl bg-white rounded-lg shadow-xl border-[#002a6e]/10">
+        <DialogHeader className="pb-4 border-b border-[#002a6e]/10">
+          <DialogTitle className="text-2xl font-bold bg-gradient-to-r from-[#003594] to-[#d2293b] bg-clip-text text-transparent">
+            Receive Preview - {receive.receiveNumber}
+          </DialogTitle>
         </DialogHeader>
         
-        <div className="space-y-6">
+        <div className="space-y-8 py-4">
           {/* Receive Details */}
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div>
-              <p className="text-sm font-medium text-gray-500">Receive Date</p>
-              <p>{format(new Date(receive.receiveDate), 'PPP')}</p>
+              <p className="text-sm font-medium text-[#003594]">Receive Date</p>
+              <p className="text-lg font-semibold">{format(new Date(receive.receiveDate), 'PPP')}</p>
             </div>
             <div>
-              <p className="text-sm font-medium text-gray-500">Received By</p>
-              <p>{receive.receivedBy}</p>
+              <p className="text-sm font-medium text-[#003594]">Received By</p>
+              <p className="text-lg font-semibold">{receive.receivedBy}</p>
             </div>
             <div>
-              <p className="text-sm font-medium text-gray-500">Status</p>
-              <p className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                receive.approvalStatus === 'APPROVED' ? 'bg-green-100 text-green-800' :
-                receive.approvalStatus === 'PENDING' ? 'bg-yellow-100 text-yellow-800' :
-                'bg-red-100 text-red-800'
-              }`}>
+              <p className="text-sm font-medium text-[#003594]">Status</p>
+              <span className={cn(
+                "inline-flex items-center px-3 py-1 rounded-full text-xs font-medium",
+                receive.approvalStatus === 'APPROVED' && "bg-green-100 text-green-800",
+                receive.approvalStatus === 'PENDING' && "bg-yellow-100 text-yellow-800",
+                receive.approvalStatus === 'REJECTED' && "bg-red-100 text-red-800"
+              )}>
                 {receive.approvalStatus}
-              </p>
+              </span>
             </div>
           </div>
 
           {/* Items Table */}
-          <div className="border rounded-lg">
+          <div className="border border-[#002a6e]/10 rounded-lg overflow-hidden">
             <div className="overflow-x-auto">
-              <table className="w-full">
+              <table className="w-full min-w-[900px]">
                 <thead>
-                  <tr className="border-b bg-gray-50">
-                    <th className="text-left p-2 font-medium">Item Name</th>
-                    <th className="text-left p-2 font-medium">Part Number</th>
-                    <th className="text-left p-2 font-medium">Equipment Number</th>
-                    <th className="text-left p-2 font-medium">Quantity</th>
-                    <th className="text-left p-2 font-medium">Location</th>
-                    <th className="text-left p-2 font-medium">Card Number</th>
-                    <th className="text-left p-2 font-medium">Image</th>
+                  <tr className="bg-[#003594]/5">
+                    <th className="px-6 py-3 text-left text-xs font-semibold text-[#003594] uppercase tracking-wider">Item Name</th>
+                    <th className="px-6 py-3 text-left text-xs font-semibold text-[#003594] uppercase tracking-wider">Part Number</th>
+                    <th className="px-6 py-3 text-left text-xs font-semibold text-[#003594] uppercase tracking-wider">Equipment Number</th>
+                    <th className="px-6 py-3 text-left text-xs font-semibold text-[#003594] uppercase tracking-wider">Quantity</th>
+                    <th className="px-6 py-3 text-left text-xs font-semibold text-[#003594] uppercase tracking-wider">Location</th>
+                    <th className="px-6 py-3 text-left text-xs font-semibold text-[#003594] uppercase tracking-wider">Card Number</th>
+                    <th className="px-6 py-3 text-left text-xs font-semibold text-[#003594] uppercase tracking-wider">Image</th>
                   </tr>
                 </thead>
                 <tbody>
                   {receive.items.map((item) => (
-                    <tr key={item.id} className="border-b">
-                      <td className="p-2">{item.itemName}</td>
-                      <td className="p-2">{item.partNumber}</td>
-                      <td className="p-2">{item.equipmentNumber}</td>
-                      <td className="p-2">{item.receiveQuantity}</td>
-                      <td className="p-2">{item.location}</td>
-                      <td className="p-2">{item.cardNumber}</td>
-                      <td className="p-2">
+                    <tr key={item.id} className="border-t border-[#002a6e]/10 hover:bg-[#003594]/5 transition-colors">
+                      <td className="px-6 py-4 whitespace-nowrap">{item.itemName}</td>
+                      <td className="px-6 py-4 whitespace-nowrap">{item.partNumber}</td>
+                      <td className="px-6 py-4 whitespace-nowrap">{item.equipmentNumber}</td>
+                      <td className="px-6 py-4 whitespace-nowrap">{item.receiveQuantity} {item.unit}</td>
+                      <td className="px-6 py-4 whitespace-nowrap">{item.location}</td>
+                      <td className="px-6 py-4 whitespace-nowrap">{item.cardNumber}</td>
+                      <td className="px-6 py-4 whitespace-nowrap">
                         <img 
                           src={item.imageUrl ? (item.imageUrl.startsWith('http') ? item.imageUrl : `${IMAGE_BASE_URL}${item.imageUrl.replace(/^\//, '')}`) : '/images/nepal_airlines_logo.png'}
                           alt={item.itemName}
-                          className="w-16 h-16 object-cover rounded"
+                          className="w-16 h-16 object-cover rounded-lg border border-[#002a6e]/10"
                           onError={(e) => {
                             const target = e.target as HTMLImageElement;
                             target.src = '/nepal_airlines_logo.png';

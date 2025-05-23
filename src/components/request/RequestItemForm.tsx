@@ -11,6 +11,7 @@ import { SearchResult } from '@/types/search';
 import { PartNumberSelect } from './PartNumberSelect';
 import { EquipmentRangeSelect } from './EquipmentRangeSelect';
 import { Loader2 } from 'lucide-react';
+import { expandEquipmentNumbers } from '@/lib/utils/equipmentNumbers';
 
 interface RequestItemFormProps {
   isOpen: boolean;
@@ -87,13 +88,18 @@ export function RequestItemForm({ isOpen, onClose, item, onSubmit, isManualEntry
 
     setIsSubmitting(true);
     try {
+      // Expand equipment numbers only for manual entry
+      const finalEquipmentNumber = isManualEntry 
+        ? Array.from(expandEquipmentNumbers(equipmentNumber)).join(',')
+        : equipmentNumber;
+
       const cartItem: RequestCartItem = {
         id: isManualEntry ? 'N/A' : (item?.id?.toString() || 'N/A'),
         nacCode: isManualEntry ? 'N/A' : (item?.nacCode || 'N/A'),
         itemName: itemName,
         requestQuantity,
         partNumber: partNumber || 'N/A',
-        equipmentNumber,
+        equipmentNumber: finalEquipmentNumber,
         specifications: specifications || '',
         image: image || undefined,
         unit: isManualEntry ? unit : (item?.unit || ''),
@@ -126,10 +132,6 @@ export function RequestItemForm({ isOpen, onClose, item, onSubmit, isManualEntry
     resetForm();
     onClose();
   };
-
-  // Check if item has part numbers or equipment numbers with commas
-  const hasPartNumbers = item?.partNumber && item.partNumber.includes(',');
-  const hasEquipmentNumbers = item?.equipmentNumber && item.equipmentNumber.includes(',');
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
@@ -189,21 +191,42 @@ export function RequestItemForm({ isOpen, onClose, item, onSubmit, isManualEntry
             )}
             <div className="space-y-2">
               <Label htmlFor="partNumber" className="text-sm font-medium text-[#003594]">Part Number</Label>
-              <PartNumberSelect
-                partNumberList={item?.partNumber || ""}
-                value={partNumber}
-                onChange={(value) => setPartNumber(value)}
-                error={errors.partNumber}
-              />
+              {isManualEntry ? (
+                <Input
+                  id="partNumber"
+                  value={partNumber}
+                  onChange={(e) => setPartNumber(e.target.value)}
+                  placeholder="Enter part number"
+                  className="mt-1 border-[#002a6e]/10 focus:border-[#003594]"
+                />
+              ) : (
+                <PartNumberSelect
+                  partNumberList={item?.partNumber || ""}
+                  value={partNumber}
+                  onChange={(value) => setPartNumber(value)}
+                  error={errors.partNumber}
+                />
+              )}
             </div>
             <div className="space-y-2">
               <Label htmlFor="equipmentNumber" className="text-sm font-medium text-[#003594]">Equipment Number</Label>
-              <EquipmentRangeSelect
-                equipmentList={item?.equipmentNumber || ""}
-                value={equipmentNumber}
-                onChange={(value) => setEquipmentNumber(value)}
-                error={errors.equipmentNumber}
-              />
+              {isManualEntry ? (
+                <Input
+                  id="equipmentNumber"
+                  value={equipmentNumber}
+                  onChange={(e) => setEquipmentNumber(e.target.value)}
+                  placeholder="Enter equipment number (e.g., 1000-1024 or 1000,1001,1002)"
+                  className={`mt-1 ${errors.equipmentNumber ? "border-red-500" : "border-[#002a6e]/10 focus:border-[#003594]"}`}
+                />
+              ) : (
+                <EquipmentRangeSelect
+                  equipmentList={item?.equipmentNumber || ""}
+                  value={equipmentNumber}
+                  onChange={(value) => setEquipmentNumber(value)}
+                  error={errors.equipmentNumber}
+                />
+              )}
+              {errors.equipmentNumber && <p className="text-sm text-red-500">{errors.equipmentNumber}</p>}
             </div>
           </div>
 
@@ -249,7 +272,7 @@ export function RequestItemForm({ isOpen, onClose, item, onSubmit, isManualEntry
                   Adding...
                 </>
               ) : (
-                'Add Item'
+                'Add to Request'
               )}
             </Button>
           </DialogFooter>

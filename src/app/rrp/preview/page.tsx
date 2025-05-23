@@ -77,6 +77,7 @@ export default function RRPPreviewPage() {
         custom_service_charge: searchParams.get('type') === 'foreign' ? (config?.customServiceCharge || 565) : 0,
         vat_rate: config?.vat_rate || 0,
         created_by: user?.UserInfo?.username || 'Unknown User',
+        rrp_number: searchParams.get('rrpNumber'),
 
         // Foreign RRP specific details
         ...(searchParams.get('type') === 'foreign' && {
@@ -146,6 +147,7 @@ export default function RRPPreviewPage() {
           airwayBillNumber={searchParams.get('airwayBillNumber') || undefined}
           poNumber={searchParams.get('poNumber') || undefined}
           customsNumber={searchParams.get('customsNumber') || undefined}
+          customsDate={searchParams.get('customsDate') || undefined}
           freightCharge={parseFloat(searchParams.get('freightCharge') || '0')}
           forexRate={parseFloat(searchParams.get('forexRate') || '1')}
           currency={searchParams.get('currency') || (searchParams.get('type') === 'foreign' ? 'USD' : 'NPR')}
@@ -175,6 +177,13 @@ export default function RRPPreviewPage() {
             const params = new URLSearchParams(searchParams);
             params.set('customsNumber', value);
             router.push(`/rrp/preview?${params.toString()}`);
+          }}
+          onCustomsDateChange={(date) => {
+            if (date) {
+              const params = new URLSearchParams(searchParams);
+              params.set('customsDate', date.toISOString());
+              router.push(`/rrp/preview?${params.toString()}`);
+            }
           }}
         />
 
