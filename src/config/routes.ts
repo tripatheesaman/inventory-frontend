@@ -112,7 +112,13 @@ export const routes: RouteConfig[] = [
     path: '/users/edit',
     requiresAuth: true,
     title: 'Edit User',
-    permissions: ['can_edit_user'],
+    permissions: ['can_edit_users'],
+  },
+  {
+    path: '/users/permissions',
+    requiresAuth: true,
+    title: 'Manage User Permissions',
+    permissions: ['can_manage_user_permissions'],
   },
 ];
 
