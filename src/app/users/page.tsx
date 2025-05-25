@@ -51,7 +51,7 @@ interface User {
 export default function UsersPage() {
   const router = useRouter();
   const { permissions, user } = useAuthContext();
-  const { showErrorToast } = useCustomToast();
+  const { showErrorToast, showSuccessToast } = useCustomToast();
   const [users, setUsers] = useState<User[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
@@ -59,6 +59,7 @@ export default function UsersPage() {
   const canCreateUser = permissions?.includes('can_create_users');
   const canEditUser = permissions?.includes('can_edit_users');
   const canDeleteUser = permissions?.includes('can_delete_users');
+  const canManagePermissions = permissions?.includes('can_manage_user_permissions');
 
   useEffect(() => {
     fetchUsers();
@@ -100,7 +101,7 @@ export default function UsersPage() {
       const response = await API.delete(`/api/users/${userId}`);
       if (response.status === 200) {
         setUsers(users.filter(user => user.id !== userId));
-        showErrorToast({
+        showSuccessToast({
           title: "Success",
           message: "User deleted successfully",
           duration: 3000,
@@ -200,13 +201,21 @@ export default function UsersPage() {
                             <MoreVertical className="h-4 w-4 text-[#003594]" />
                           </Button>
                         </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
+                        <DropdownMenuContent align="end" className="bg-white">
                           {canEditUser && (
                             <DropdownMenuItem
                               onClick={() => router.push(`/users/edit/${user.id}`)}
                               className="text-[#003594] hover:bg-[#003594]/10 cursor-pointer"
                             >
                               Edit
+                            </DropdownMenuItem>
+                          )}
+                          {canManagePermissions && (
+                            <DropdownMenuItem
+                              onClick={() => router.push(`/users/permissions/${user.id}`)}
+                              className="text-[#003594] hover:bg-[#003594]/10 cursor-pointer"
+                            >
+                              Manage Permissions
                             </DropdownMenuItem>
                           )}
                           {canDeleteUser && (
