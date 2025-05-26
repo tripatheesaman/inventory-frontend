@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { formatDistanceToNow } from 'date-fns';
 import { useRouter } from 'next/navigation';
 import { API } from '@/lib/api';
-import { cn } from '@/lib/utils';
+import { cn } from '@/utils/utils';
 
 export function NotificationBell() {
   const [isOpen, setIsOpen] = useState(false);

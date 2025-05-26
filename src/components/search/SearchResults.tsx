@@ -2,7 +2,7 @@
 
 import { SearchResult, ReceiveSearchResult } from '@/types/search';
 import { Spinner } from '@/components/ui/spinner';
-import { normalizeEquipmentNumbers } from '@/lib/utils/equipmentNumbers';
+import { normalizeEquipmentNumbers } from '@/utils/equipmentNumbers';
 
 interface SearchResultsProps {
   results: (SearchResult | ReceiveSearchResult)[] | null;

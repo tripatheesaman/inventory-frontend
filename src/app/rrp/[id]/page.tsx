@@ -6,7 +6,7 @@ import { API } from '@/lib/api';
 import { useCustomToast } from '@/components/ui/custom-toast';
 import { RRPDetailsModal } from '@/components/rrp/RRPDetailsModal';
 import { useNotification } from '@/context/NotificationContext';
-import { useAuthContext } from '@/context/AuthContext/AuthContext';
+import { useAuthContext } from '@/context/AuthContext';
 import { use } from 'react';
 
 interface RRPDetails {

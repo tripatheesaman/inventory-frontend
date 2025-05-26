@@ -8,7 +8,7 @@ Purpose: Search Page
 import { SearchControls, SearchResults, ItemDetailsModal } from '@/components/search';
 import { useSearch } from '@/hooks/useSearch';
 import { useItemDetails } from '@/hooks/useItemDetails';
-import { useAuthContext } from '@/context/AuthContext/AuthContext';
+import { useAuthContext } from '@/context/AuthContext';
 
 export default function SearchPage() {
   const { permissions } = useAuthContext();

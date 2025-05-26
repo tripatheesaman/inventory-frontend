@@ -10,7 +10,7 @@ import { Trash2, Pencil } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { format } from 'date-fns';
 import { Calendar } from '@/components/ui/calendar';
-import { cn } from '@/lib/utils';
+import { cn } from '@/utils/utils';
 
 interface ReceiveCartProps {
   items: ReceiveCartItem[];

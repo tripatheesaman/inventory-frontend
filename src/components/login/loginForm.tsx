@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { useAuthContext } from "@/context/AuthContext/AuthContext";
+import { useAuthContext } from "@/context/AuthContext";
 import Image from "next/image";
 import { Eye, EyeOff } from "lucide-react";
 

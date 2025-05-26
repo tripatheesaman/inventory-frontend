@@ -2,9 +2,9 @@
 
 import { useState, useMemo } from 'react';
 import { Check, ChevronsUpDown } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { cn } from '@/utils/utils';
 import { Button } from '@/components/ui/button';
-import { normalizeEquipmentNumbers } from '@/lib/utils/equipmentNumbers';
+import { normalizeEquipmentNumbers } from '@/utils/equipmentNumbers';
 
 interface EquipmentSelectProps {
   equipmentList: string;

@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { Search } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { cn } from '@/utils/utils';
 
 interface SearchBarProps {
   placeholder: string;

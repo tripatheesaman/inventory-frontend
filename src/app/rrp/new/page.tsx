@@ -11,7 +11,7 @@ import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { format } from 'date-fns';
 import { CalendarIcon, Loader2, ArrowLeft } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { cn } from '@/utils/utils';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useRRP } from '@/hooks/useRRP';
 import { API } from '@/lib/api';
@@ -19,6 +19,7 @@ import { API } from '@/lib/api';
 interface RRPDates {
   rrpDate: Date | null;
   invoiceDate: Date | null;
+  customsDate: Date | null;
 }
 
 export default function NewRRPPage() {
@@ -35,6 +36,7 @@ export default function NewRRPPage() {
   const [dates, setDates] = useState<RRPDates>({
     rrpDate: searchParams.get('rrpDate') ? new Date(searchParams.get('rrpDate')!) : null,
     invoiceDate: searchParams.get('invoiceDate') ? new Date(searchParams.get('invoiceDate')!) : null,
+    customsDate: searchParams.get('customsDate') ? new Date(searchParams.get('customsDate')!) : null,
   });
   const [selectedSupplier, setSelectedSupplier] = useState<string>(searchParams.get('supplier') || '');
   const [selectedInspectionUser, setSelectedInspectionUser] = useState<string>(searchParams.get('inspectionUser') || '');
@@ -102,6 +104,7 @@ export default function NewRRPPage() {
 
         // Reset invoice and customs dates when RRP date changes
         newDates.invoiceDate = null;
+        newDates.customsDate = null;
       }
       
       // Handle invoice date changes
@@ -111,13 +114,21 @@ export default function NewRRPPage() {
           return prev;
         }
       }
+
+      // Handle customs date changes
+      if (field === 'customsDate' && date) {
+        if (newDates.rrpDate && date > newDates.rrpDate) {
+          setDateError("Customs date cannot be greater than RRP date");
+          return prev;
+        }
+      }
       
       return newDates;
     });
   };
 
   const handleNext = async () => {
-    if (!dates.rrpDate || !dates.invoiceDate || !selectedSupplier || !invoiceNumber || !selectedInspectionUser || !rrpNumber) {
+    if (!dates.rrpDate || !dates.invoiceDate || !selectedSupplier || !invoiceNumber || !selectedInspectionUser || !rrpNumber || !freightCharge) {
       showErrorToast({
         title: "Validation Error",
         message: "Please fill in all required fields",
@@ -136,7 +147,7 @@ export default function NewRRPPage() {
       return;
     }
 
-    if (rrpType === 'foreign' && (!poNumber || !airwayBillNumber || !selectedCurrency || !forexRate || !customsNumber)) {
+    if (rrpType === 'foreign' && (!poNumber || !airwayBillNumber || !selectedCurrency || !forexRate || !customsNumber || !dates.customsDate || !freightCharge)) {
       showErrorToast({
         title: "Validation Error",
         message: "Please fill in all required fields for foreign RRP",
@@ -199,11 +210,12 @@ export default function NewRRPPage() {
           inspectionUser: selectedInspectionUser,
           invoiceNumber,
           rrpNumber: responseData.rrpNumber || rrpNumber,
+          freightCharge,
           ...(rrpType === 'foreign' && {
             poNumber,
             airwayBillNumber,
             customsNumber,
-            freightCharge,
+            customsDate: dates.customsDate?.toISOString(),
             currency: selectedCurrency,
             forexRate,
           }),
@@ -305,6 +317,17 @@ export default function NewRRPPage() {
                   </Popover>
                 </div>
 
+                {/* Invoice Number */}
+                <div className="space-y-2">
+                  <Label>Invoice Number *</Label>
+                  <Input
+                    value={invoiceNumber}
+                    onChange={(e) => setInvoiceNumber(e.target.value)}
+                    placeholder="Enter invoice number"
+                    className="border-[#002a6e]/10 focus:border-[#003594] focus:ring-[#003594]/20"
+                  />
+                </div>
+
                 {/* Invoice Date */}
                 <div className="space-y-2">
                   <Label>Invoice Date *</Label>
@@ -366,30 +389,23 @@ export default function NewRRPPage() {
                   </Select>
                 </div>
 
-                {/* Invoice Number */}
+                {/* Freight Charge - Common for both local and foreign */}
                 <div className="space-y-2">
-                  <Label>Invoice Number *</Label>
+                  <Label>Freight Charge *</Label>
                   <Input
-                    value={invoiceNumber}
-                    onChange={(e) => setInvoiceNumber(e.target.value)}
-                    placeholder="Enter invoice number"
+                    type="number"
+                    value={freightCharge}
+                    onChange={(e) => setFreightCharge(e.target.value)}
+                    placeholder="Enter freight charge"
                     className="border-[#002a6e]/10 focus:border-[#003594] focus:ring-[#003594]/20"
+                    min="0"
+                    step="0.01"
                   />
                 </div>
 
                 {/* Foreign RRP specific fields */}
                 {rrpType === 'foreign' && (
                   <>
-                    <div className="space-y-2">
-                      <Label>Customs Number *</Label>
-                      <Input
-                        value={customsNumber}
-                        onChange={(e) => setCustomsNumber(e.target.value)}
-                        placeholder="Enter customs number"
-                        className="border-[#002a6e]/10 focus:border-[#003594] focus:ring-[#003594]/20"
-                      />
-                    </div>
-
                     <div className="space-y-2">
                       <Label>PO Number *</Label>
                       <Input
@@ -407,6 +423,71 @@ export default function NewRRPPage() {
                         onChange={(e) => setAirwayBillNumber(e.target.value)}
                         placeholder="Enter airway bill number"
                         className="border-[#002a6e]/10 focus:border-[#003594] focus:ring-[#003594]/20"
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label>Customs Number *</Label>
+                      <Input
+                        value={customsNumber}
+                        onChange={(e) => setCustomsNumber(e.target.value)}
+                        placeholder="Enter customs number"
+                        className="border-[#002a6e]/10 focus:border-[#003594] focus:ring-[#003594]/20"
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label>Customs Date *</Label>
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <Button
+                            variant="outline"
+                            className={cn(
+                              "w-full justify-start text-left font-normal border-[#002a6e]/10 hover:border-[#003594] hover:bg-[#003594]/5",
+                              !dates.customsDate && "text-muted-foreground"
+                            )}
+                            disabled={!dates.rrpDate}
+                          >
+                            <CalendarIcon className="mr-2 h-4 w-4" />
+                            {dates.customsDate ? format(dates.customsDate, "PPP") : "Select date"}
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0 bg-white">
+                          <Calendar
+                            value={dates.customsDate || undefined}
+                            onChange={(date: Date | null) => handleDateChange('customsDate', date)}
+                            className="rounded-md border border-[#002a6e]/10"
+                          />
+                        </PopoverContent>
+                      </Popover>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label>Currency *</Label>
+                      <Select value={selectedCurrency} onValueChange={setSelectedCurrency}>
+                        <SelectTrigger className="bg-white border-[#002a6e]/10 focus:border-[#003594] focus:ring-[#003594]/20">
+                          <SelectValue placeholder="Select currency" />
+                        </SelectTrigger>
+                        <SelectContent className="bg-white border-[#002a6e]/10">
+                          {getCurrencies().map((currency) => (
+                            <SelectItem key={currency} value={currency} className="focus:bg-[#003594]/5">
+                              {currency}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label>Forex Rate *</Label>
+                      <Input
+                        type="number"
+                        value={forexRate}
+                        onChange={(e) => setForexRate(e.target.value)}
+                        placeholder="Enter forex rate"
+                        className="border-[#002a6e]/10 focus:border-[#003594] focus:ring-[#003594]/20"
+                        min="0"
+                        step="0.0001"
                       />
                     </div>
                   </>

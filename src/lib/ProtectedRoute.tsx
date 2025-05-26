@@ -3,7 +3,7 @@
 
 import { useRouter, usePathname } from "next/navigation";
 import { useEffect } from "react";
-import { useAuthContext } from "@/context/AuthContext/AuthContext";
+import { useAuthContext } from "@/context/AuthContext";
 import { getRouteConfig, hasRequiredPermissions } from "@/config/routes";
 import Unauthorized from "@/app/(fallback)/unauthorized/page";
 

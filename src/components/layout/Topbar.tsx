@@ -5,7 +5,7 @@ Purpose: Top navigation bar with user profile, logout, and fallback avatar
 
 'use client';
 
-import { useAuthContext } from '@/context/AuthContext/AuthContext';
+import { useAuthContext } from '@/context/AuthContext';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
   DropdownMenu,

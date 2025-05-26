@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { useAuthContext } from '@/context/AuthContext/AuthContext';
+import { useAuthContext } from '@/context/AuthContext';
 import { useCustomToast } from '@/components/ui/custom-toast';
 import { API } from '@/lib/api';
 import { Button } from '@/components/ui/button';
@@ -76,7 +76,7 @@ export default function EditUserForm({ userId }: EditUserFormProps) {
 
   const fetchUserData = async () => {
     try {
-      const response = await API.get(`/api/users/${userId}`, {
+      const response = await API.get(`/api/user/${userId}`, {
         params: {
           currentUser: user?.UserInfo.username
         }
@@ -108,7 +108,7 @@ export default function EditUserForm({ userId }: EditUserFormProps) {
 
   const fetchRoles = async () => {
     try {
-      const response = await API.get('/api/roles', {
+      const response = await API.get('/api/role', {
         params: {
           currentUser: user?.UserInfo.username
         }
@@ -143,7 +143,7 @@ export default function EditUserForm({ userId }: EditUserFormProps) {
         id: parseInt(userId),
         updated_by: user?.UserInfo.username
       });
-      const response = await API.put(`/api/users/${userId}`, {
+      const response = await API.put(`/api/user/${userId}`, {
         ...formData,
         id: parseInt(userId),
         updated_by: user?.UserInfo.username

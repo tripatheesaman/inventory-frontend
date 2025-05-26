@@ -49,8 +49,10 @@ export function useReceiveSearch() {
     // Update the last search parameters
     lastSearchParams.current = currentParams;
 
+    // Only call API if at least one search param is non-empty
     if (!currentParams.universal && !currentParams.equipmentNumber && !currentParams.partNumber) {
       setResults(null);
+      setIsLoading(false);
       return;
     }
 
@@ -84,8 +86,14 @@ export function useReceiveSearch() {
   }, [debouncedUniversal, debouncedEquipmentNumber, debouncedPartNumber]);
 
   useEffect(() => {
-    fetchSearchResults();
-  }, [fetchSearchResults]);
+    // Only fetch if at least one search param is non-empty
+    if (debouncedUniversal || debouncedEquipmentNumber || debouncedPartNumber) {
+      fetchSearchResults();
+    } else {
+      setResults(null);
+      setIsLoading(false);
+    }
+  }, [fetchSearchResults, debouncedUniversal, debouncedEquipmentNumber, debouncedPartNumber]);
 
   const handleSearch = (type: keyof SearchParams) => (value: string) => {
     setSearchParams(prev => ({ ...prev, [type]: value }));

@@ -34,6 +34,8 @@ export function IssueItemForm({
 
   if (!item) return null;
 
+  const isConsumable = item.equipmentNumber.toLowerCase().includes('consumable');
+
   const validateForm = (): boolean => {
     const newErrors: { quantity?: string; equipment?: string; partNumber?: string } = {};
 
@@ -193,12 +195,21 @@ export function IssueItemForm({
                 </div>
               </Label>
               <div className="relative">
-                <EquipmentRangeSelect
-                  equipmentList={item.equipmentNumber}
-                  value={selectedEquipment}
-                  onChange={setSelectedEquipment}
-                  error={errors.equipment}
-                />
+                {isConsumable ? (
+                  <Input
+                    value={selectedEquipment}
+                    onChange={(e) => setSelectedEquipment(e.target.value)}
+                    placeholder="Enter equipment number"
+                    className={`w-full ${errors.equipment ? "border-red-500" : "border-[#002a6e]/10 focus:border-[#003594]"}`}
+                  />
+                ) : (
+                  <EquipmentRangeSelect
+                    equipmentList={item.equipmentNumber}
+                    value={selectedEquipment}
+                    onChange={setSelectedEquipment}
+                    error={errors.equipment}
+                  />
+                )}
               </div>
               {errors.equipment && (
                 <p className="text-sm text-red-500 mt-1 flex items-center gap-1">

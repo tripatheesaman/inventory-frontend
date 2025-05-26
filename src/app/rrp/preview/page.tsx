@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Loader2, ArrowLeft } from 'lucide-react';
 import RRPPreview from '@/components/rrp/RRPPreview';
 import { useRRP } from '@/hooks/useRRP';
-import { useAuthContext } from '@/context/AuthContext/AuthContext';
+import { useAuthContext } from '@/context/AuthContext';
 
 interface CartItem {
   id: number;

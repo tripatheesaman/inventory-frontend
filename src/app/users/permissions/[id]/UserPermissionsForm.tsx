@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { useAuthContext } from '@/context/AuthContext/AuthContext';
+import { useAuthContext } from '@/context/AuthContext';
 import { useCustomToast } from '@/components/ui/custom-toast';
 import { API } from '@/lib/api';
 import { Button } from '@/components/ui/button';
@@ -53,7 +53,7 @@ export default function UserPermissionsForm({ userId }: UserPermissionsFormProps
 
   const fetchPermissions = async () => {
     try {
-      const response = await API.get('/api/permissions', {
+      const response = await API.get('/api/permission', {
         params: {
           currentUser: user?.UserInfo.username,
           userId: userId
@@ -117,7 +117,7 @@ export default function UserPermissionsForm({ userId }: UserPermissionsFormProps
         updated_by: user?.UserInfo.username,
         user_id: parseInt(userId)
       })
-      const response = await API.put(`/api/users/${userId}/permissions`, {
+      const response = await API.put(`/api/user/${userId}/permissions`, {
         permissions: permissionsToUpdate,
         updated_by: user?.UserInfo.username,
         user_id: parseInt(userId)

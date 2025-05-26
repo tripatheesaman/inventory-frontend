@@ -1,6 +1,6 @@
 'use client'
 
-import { cn } from "@/lib/utils"
+import { cn } from "@/utils/utils"
 
 interface SpinnerProps {
   size?: 'sm' | 'md' | 'lg';

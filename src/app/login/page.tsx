@@ -1,5 +1,5 @@
 'use client'
-import LoginPage from "./components/loginForm"
+import LoginPage from "../../components/login/loginForm"
 const Home = () => {
   return (
     <>

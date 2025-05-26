@@ -2,7 +2,7 @@ import { useState, useCallback, useEffect, useRef } from 'react';
 import { useDebounce } from '@/hooks/useDebounce';
 import { API } from '@/lib/api';
 import { SearchResult } from '@/types/search';
-import { expandEquipmentNumbers } from '@/lib/utils/equipmentNumbers';
+import { expandEquipmentNumbers } from '@/utils/equipmentNumbers';
 
 interface SearchParams {
   universal: string;

@@ -1,10 +1,10 @@
 'use client'
 
-import { Trash2, Package, Hash, Scale } from 'lucide-react';
+import { Trash2, Package, Hash, Scale, Pencil, Check, X, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { IssueCartItem } from '@/types/issue';
-import { Spinner } from '@/components/ui/spinner';
 import { Input } from '@/components/ui/input';
+import { useState } from 'react';
 
 interface IssueCartProps {
   items: IssueCartItem[];
@@ -14,6 +14,141 @@ interface IssueCartProps {
   onSubmit: () => void;
   isSubmitDisabled?: boolean;
   isSubmitting?: boolean;
+}
+
+interface EditableItemProps {
+  item: IssueCartItem;
+  onUpdate: (updates: Partial<IssueCartItem>) => void;
+  onDelete: (itemId: string) => void;
+}
+
+function EditableItem({ item, onUpdate, onDelete }: EditableItemProps) {
+  const [isEditing, setIsEditing] = useState(false);
+  const [editedItem, setEditedItem] = useState(item);
+
+  const handleSave = () => {
+    onUpdate(editedItem);
+    setIsEditing(false);
+  };
+
+  const handleCancel = () => {
+    setEditedItem(item);
+    setIsEditing(false);
+  };
+
+  if (isEditing) {
+    return (
+      <div className="p-6">
+        <div className="flex justify-between items-start gap-4">
+          <div className="space-y-3 flex-1">
+            <div>
+              <h3 className="font-medium text-gray-900">{item.itemName}</h3>
+              <div className="grid grid-cols-2 gap-4 mt-2 text-sm">
+                <div className="flex items-center gap-2">
+                  <Hash className="h-4 w-4 text-[#003594]" />
+                  <span className="text-gray-500">NAC Code:</span>
+                  <span className="font-medium text-[#003594]">{item.nacCode}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Hash className="h-4 w-4 text-[#003594]" />
+                  <span className="text-gray-500">Part Number:</span>
+                  <span className="font-medium text-[#003594]">{item.partNumber || 'NA'}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Hash className="h-4 w-4 text-[#003594]" />
+                  <span className="text-gray-500">Equipment:</span>
+                  <span className="font-medium text-[#003594]">{item.selectedEquipment}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2">
+              <Scale className="h-4 w-4 text-[#003594]" />
+              <Input
+                type="number"
+                min="1"
+                value={editedItem.issueQuantity}
+                onChange={(e) => setEditedItem({ ...editedItem, issueQuantity: parseFloat(e.target.value) || 1 })}
+                className="w-24 border-[#002a6e]/10 focus-visible:ring-[#003594]"
+              />
+            </div>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={handleSave}
+                className="h-8 w-8 text-[#003594] hover:text-[#002a6e] hover:bg-[#003594]/5"
+              >
+                <Check className="h-4 w-4" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={handleCancel}
+                className="h-8 w-8 text-[#d2293b] hover:text-[#d2293b] hover:bg-[#d2293b]/5"
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="p-6">
+      <div className="flex justify-between items-start gap-4">
+        <div className="space-y-3 flex-1">
+          <div>
+            <h3 className="font-medium text-gray-900">{item.itemName}</h3>
+            <div className="grid grid-cols-2 gap-4 mt-2 text-sm">
+              <div className="flex items-center gap-2">
+                <Hash className="h-4 w-4 text-[#003594]" />
+                <span className="text-gray-500">NAC Code:</span>
+                <span className="font-medium text-[#003594]">{item.nacCode}</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Hash className="h-4 w-4 text-[#003594]" />
+                <span className="text-gray-500">Part Number:</span>
+                <span className="font-medium text-[#003594]">{item.partNumber || 'NA'}</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Hash className="h-4 w-4 text-[#003594]" />
+                <span className="text-gray-500">Equipment:</span>
+                <span className="font-medium text-[#003594]">{item.selectedEquipment}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
+            <Scale className="h-4 w-4 text-[#003594]" />
+            <span className="font-medium text-[#003594]">{item.issueQuantity}</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setIsEditing(true)}
+              className="h-8 w-8 text-[#003594] hover:text-[#002a6e] hover:bg-[#003594]/5"
+            >
+              <Pencil className="h-4 w-4" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => onDelete(item.id)}
+              className="h-8 w-8 text-[#d2293b] hover:text-[#d2293b] hover:bg-[#d2293b]/5"
+            >
+              <Trash2 className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
 }
 
 export function IssueCart({ 
@@ -30,7 +165,7 @@ export function IssueCart({
   if (totalItems === 0) {
     return (
       <div className="bg-white rounded-xl shadow-sm border border-[#002a6e]/10 p-8 text-center hover:border-[#d2293b]/20 transition-colors">
-        <Package className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+        <Package className="h-12 w-12 text-[#003594]/40 mx-auto mb-4" />
         <p className="text-gray-500 font-medium">Your cart is empty</p>
         <p className="text-sm text-gray-400 mt-1">Add items to your cart to proceed</p>
       </div>
@@ -53,52 +188,12 @@ export function IssueCart({
 
       <div className="divide-y divide-[#002a6e]/10">
         {items.map((item) => (
-          <div key={item.id} className="p-6">
-            <div className="flex justify-between items-start gap-4">
-              <div className="space-y-3 flex-1">
-                <div>
-                  <h3 className="font-medium text-gray-900">{item.itemName}</h3>
-                  <div className="grid grid-cols-2 gap-4 mt-2 text-sm">
-                    <div className="flex items-center gap-2">
-                      <Hash className="h-4 w-4 text-[#003594]" />
-                      <span className="text-gray-500">NAC Code:</span>
-                      <span className="font-medium text-[#003594]">{item.nacCode}</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Hash className="h-4 w-4 text-[#003594]" />
-                      <span className="text-gray-500">Part Number:</span>
-                      <span className="font-medium text-[#003594]">{item.partNumber || 'NA'}</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Hash className="h-4 w-4 text-[#003594]" />
-                      <span className="text-gray-500">Equipment:</span>
-                      <span className="font-medium text-[#003594]">{item.selectedEquipment}</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div className="flex items-center gap-3">
-                <div className="flex items-center gap-2">
-                  <Scale className="h-4 w-4 text-[#003594]" />
-                  <Input
-                    type="number"
-                    min="1"
-                    value={item.issueQuantity}
-                    onChange={(e) => onUpdateItem(item.id, { issueQuantity: parseFloat(e.target.value) || 1 })}
-                    className="w-24 border-[#002a6e]/10 focus-visible:ring-[#003594]"
-                  />
-                </div>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => onDeleteItem(item.id)}
-                  className="h-8 w-8 text-red-600 hover:text-red-700 hover:bg-red-50"
-                >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
-              </div>
-            </div>
-          </div>
+          <EditableItem
+            key={item.id}
+            item={item}
+            onUpdate={(updates) => onUpdateItem(item.id, updates)}
+            onDelete={onDeleteItem}
+          />
         ))}
       </div>
 
@@ -106,11 +201,11 @@ export function IssueCart({
         <Button
           onClick={onSubmit}
           disabled={isSubmitDisabled || isSubmitting}
-          className="w-full bg-[#003594] hover:bg-[#d2293b] text-white transition-colors"
+          className="w-full bg-[#003594] hover:bg-[#002a6e] text-white transition-colors"
         >
           {isSubmitting ? (
             <>
-              <Spinner size="sm" variant="white" className="mr-2" />
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
               Submitting...
             </>
           ) : (

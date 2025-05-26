@@ -6,7 +6,7 @@ Purpose: Layout wrapper including Sidebar, TopBar and permission filtering
 'use client';
 
 import { usePathname } from 'next/navigation';
-import { useAuthContext } from '@/context/AuthContext/AuthContext';
+import { useAuthContext } from '@/context/AuthContext';
 import Sidebar from './Sidebar';
 import TopBar from './Topbar';
 import Unauthorized from '@/app/(fallback)/unauthorized/page';

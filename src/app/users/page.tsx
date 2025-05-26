@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { useAuthContext } from '@/context/AuthContext/AuthContext';
+import { useAuthContext } from '@/context/AuthContext';
 import { useCustomToast } from '@/components/ui/custom-toast';
 import { API } from '@/lib/api';
 import { Button } from '@/components/ui/button';
@@ -67,7 +67,7 @@ export default function UsersPage() {
 
   const fetchUsers = async () => {
     try {
-      const response = await API.get('/api/users', {
+      const response = await API.get('/api/user', {
         params: {
           currentUser: user?.UserInfo.username
         }
@@ -98,7 +98,7 @@ export default function UsersPage() {
     }
 
     try {
-      const response = await API.delete(`/api/users/${userId}`);
+      const response = await API.delete(`/api/user/${userId}`);
       if (response.status === 200) {
         setUsers(users.filter(user => user.id !== userId));
         showSuccessToast({

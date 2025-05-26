@@ -1,8 +1,8 @@
 'use client'
 import { createContext, useContext, useEffect, useState } from "react";
 import { jwtDecode } from "jwt-decode";
-import { AuthContextProviderProps, AuthContextType, User } from "./AuthContextTypes";
-import { loginRequest } from "@/app/login/loginApiRequests/loginrequest";
+import { AuthContextProviderProps, AuthContextType, User } from "../types/AuthContextTypes";
+import { loginRequest } from "@/lib/loginrequest";
 import { useRouter } from "next/navigation";
 import { API } from "@/lib/api";
 import { FullPageSpinner } from "@/components/ui/spinner";

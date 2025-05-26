@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useAuthContext } from '@/context/AuthContext/AuthContext';
+import { useAuthContext } from '@/context/AuthContext';
 import { API } from '@/lib/api';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { FileText, Eye } from 'lucide-react';
@@ -165,7 +165,7 @@ export function PendingRRPCount() {
         vat_percentage: item.vat_percentage,
         customs_charge: item.customs_charge,
         currency: item.currency,
-        forex_rate: item.forex_rate,
+        forex_rate: item.forex_rate || 1,
         freight_charge: parseFloat(item.freight_charge) || 0,
         customs_service_charge: parseFloat(item.customs_service_charge) || 0,
         total_amount: parseFloat(item.total_amount) || 0
@@ -196,7 +196,6 @@ export function PendingRRPCount() {
         approved_by: user.UserInfo.username
       });
 
-      // Mark notification as read if it exists
       const searchParams = new URLSearchParams(window.location.search);
       const notificationId = searchParams.get('notificationId');
       if (notificationId) {

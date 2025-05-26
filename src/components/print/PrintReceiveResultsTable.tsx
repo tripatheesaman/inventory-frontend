@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Eye, Printer, ChevronDown, ChevronUp } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { cn } from '@/utils/utils';
 import { API } from '@/lib/api';
 import { useToast } from '@/components/ui/use-toast';
 

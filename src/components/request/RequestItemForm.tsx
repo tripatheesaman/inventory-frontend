@@ -11,7 +11,7 @@ import { SearchResult } from '@/types/search';
 import { PartNumberSelect } from './PartNumberSelect';
 import { EquipmentRangeSelect } from './EquipmentRangeSelect';
 import { Loader2 } from 'lucide-react';
-import { expandEquipmentNumbers } from '@/lib/utils/equipmentNumbers';
+import { expandEquipmentNumbers } from '@/utils/equipmentNumbers';
 
 interface RequestItemFormProps {
   isOpen: boolean;

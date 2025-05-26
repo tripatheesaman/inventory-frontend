@@ -7,7 +7,7 @@ import { PrintRRPPreviewModal } from '@/components/print/PrintRRPPreviewModal';
 import { API } from '@/lib/api';
 import { useToast } from '@/components/ui/use-toast';
 import { useDebounce } from '@/hooks/useDebounce';
-import { expandEquipmentNumbers } from '@/lib/utils/equipmentNumbers';
+import { expandEquipmentNumbers } from '@/utils/equipmentNumbers';
 
 interface RRPSearchParams {
   universal: string;

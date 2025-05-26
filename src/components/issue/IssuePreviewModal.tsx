@@ -73,15 +73,15 @@ function EditableRow({ item, onUpdate, onDelete }: EditableRowProps) {
         <td className="px-6 py-4">
           <div className="flex items-center gap-2">
             <Scale className="h-4 w-4 text-[#003594]" />
-          <Input
-            type="number"
-            value={editedItem.issueQuantity.toString()}
-            onChange={(e) => setEditedItem({ ...editedItem, issueQuantity: parseFloat(e.target.value) })}
+            <Input
+              type="number"
+              value={editedItem.issueQuantity.toString()}
+              onChange={(e) => setEditedItem({ ...editedItem, issueQuantity: parseFloat(e.target.value) })}
               className="w-24 border-[#002a6e]/10 focus-visible:ring-[#003594]"
-            min={1}
-            max={item.currentBalance}
-            step="0.01"
-          />
+              min={1}
+              max={item.currentBalance}
+              step="0.01"
+            />
           </div>
           <div className="text-xs text-gray-500 mt-1">
             Max: {item.currentBalance}
@@ -99,7 +99,7 @@ function EditableRow({ item, onUpdate, onDelete }: EditableRowProps) {
               variant="ghost"
               size="icon"
               onClick={handleSave}
-              className="h-8 w-8 text-green-600 hover:text-green-700 hover:bg-green-50"
+              className="h-8 w-8 text-[#003594] hover:text-[#002a6e] hover:bg-[#003594]/5"
             >
               <Check className="h-4 w-4" />
             </Button>
@@ -107,7 +107,7 @@ function EditableRow({ item, onUpdate, onDelete }: EditableRowProps) {
               variant="ghost"
               size="icon"
               onClick={handleCancel}
-              className="h-8 w-8 text-gray-600 hover:text-gray-700 hover:bg-gray-50"
+              className="h-8 w-8 text-[#d2293b] hover:text-[#d2293b] hover:bg-[#d2293b]/5"
             >
               <X className="h-4 w-4" />
             </Button>
@@ -152,7 +152,7 @@ function EditableRow({ item, onUpdate, onDelete }: EditableRowProps) {
             variant="ghost"
             size="icon"
             onClick={() => setIsEditing(true)}
-            className="h-8 w-8 text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+            className="h-8 w-8 text-[#003594] hover:text-[#002a6e] hover:bg-[#003594]/5"
           >
             <Pencil className="h-4 w-4" />
           </Button>
@@ -160,7 +160,7 @@ function EditableRow({ item, onUpdate, onDelete }: EditableRowProps) {
             variant="ghost"
             size="icon"
             onClick={() => onDelete(item.id)}
-            className="h-8 w-8 text-red-600 hover:text-red-700 hover:bg-red-50"
+            className="h-8 w-8 text-[#d2293b] hover:text-[#d2293b] hover:bg-[#d2293b]/5"
           >
             <Trash2 className="h-4 w-4" />
           </Button>
@@ -182,7 +182,7 @@ export function IssuePreviewModal({
 }: IssuePreviewModalProps) {
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl">
+      <DialogContent className="max-w-4xl border-[#002a6e]/10 bg-white">
         <DialogHeader>
           <DialogTitle className="text-2xl font-bold bg-gradient-to-r from-[#003594] to-[#d2293b] bg-clip-text text-transparent">
             Preview Issue Request
@@ -242,18 +242,18 @@ export function IssuePreviewModal({
               variant="outline" 
               onClick={onClose} 
               disabled={isSubmitting}
-              className="border-[#002a6e]/10 hover:bg-gray-50"
+              className="border-[#002a6e]/10 hover:border-[#d2293b] hover:bg-[#d2293b]/5 text-[#d2293b]"
             >
               Cancel
             </Button>
             <Button 
               onClick={onConfirm} 
               disabled={isSubmitting}
-              className="bg-[#003594] hover:bg-[#d2293b] text-white transition-colors"
+              className="bg-[#003594] hover:bg-[#002a6e] text-white transition-colors"
             >
               {isSubmitting ? (
                 <>
-                  <Spinner size="sm" variant="white" className="mr-2" />
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                   Submitting...
                 </>
               ) : (
