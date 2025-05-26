@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { useAuthContext } from '@/context/AuthContext/AuthContext';
+import { useAuthContext } from '@/context/AuthContext';
 import { useCustomToast } from '@/components/ui/custom-toast';
 import { API } from '@/lib/api';
 import { Button } from '@/components/ui/button';
@@ -55,7 +55,7 @@ export default function CreateUserPage() {
 
   const fetchRoles = async () => {
     try {
-      const response = await API.get('/api/roles', {
+      const response = await API.get('/api/role', {
         params: {
           currentUser: user?.UserInfo.username
         }
@@ -98,7 +98,7 @@ export default function CreateUserPage() {
       };
 
       console.log(userData);
-      const response = await API.post('/api/users/create', userData);
+      const response = await API.post('/api/user/create', userData);
 
       if (response.status === 201) {
         showSuccessToast({

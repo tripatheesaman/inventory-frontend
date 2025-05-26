@@ -7,7 +7,7 @@ Purpose: Issue Page
 
 import { useState } from 'react';
 import { Calendar } from '@/components/ui/calendar';
-import { cn } from '@/lib/utils';
+import { cn } from '@/utils/utils';
 import { SearchControls, SearchResults } from '@/components/search';
 import { useSearch } from '@/hooks/useSearch';
 import { IssueCartItem, IssueRequest } from '@/types/issue';
@@ -16,7 +16,7 @@ import { IssueItemForm } from '@/components/issue/IssueItemForm';
 import { IssuePreviewModal } from '@/components/issue/IssuePreviewModal';
 import { API } from '@/lib/api';
 import { SearchResult } from '@/types/search';
-import { useAuthContext } from '@/context/AuthContext/AuthContext';
+import { useAuthContext } from '@/context/AuthContext';
 import { useCustomToast } from "@/components/ui/custom-toast";
 
 export default function IssuePage() {

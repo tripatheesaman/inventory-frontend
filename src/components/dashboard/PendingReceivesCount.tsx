@@ -1,10 +1,10 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useAuthContext } from '@/context/AuthContext/AuthContext';
+import { useAuthContext } from '@/context/AuthContext';
 import { API } from '@/lib/api';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { FileText, Eye, X, Pencil, Check, Package } from 'lucide-react';
+import { Eye, X, Pencil, Check, Package } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Modal,
@@ -19,9 +19,7 @@ import { IMAGE_BASE_URL } from '@/constants/api';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Calendar } from '@/components/ui/calendar';
-import { format } from 'date-fns';
-import { cn } from '@/lib/utils';
+import { cn } from '@/utils/utils';
 import { useCustomToast } from '@/components/ui/custom-toast';
 
 interface PendingReceive {
@@ -58,9 +56,10 @@ interface EditData {
   nacCode?: string;
 }
 
+const FALLBACK_IMAGE = '/images/nepal_airlines_logo.jpeg';
+
 export function PendingReceivesCount() {
   const { permissions, user } = useAuthContext();
-  const router = useRouter();
   const { showSuccessToast, showErrorToast } = useCustomToast();
   const [pendingCount, setPendingCount] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -439,13 +438,19 @@ export function PendingReceivesCount() {
                     <p className="text-sm font-medium text-[#003594]">Image</p>
                     <div className="mt-2">
                       <img 
-                        src={selectedReceive?.requestedImage ? (selectedReceive.requestedImage.startsWith('http') ? selectedReceive.requestedImage : `${IMAGE_BASE_URL}${selectedReceive.requestedImage.replace(/^\//, '')}`) : '/images/nepal_airlines_logo.png'}
+                        src={selectedReceive?.requestedImage ? 
+                          (selectedReceive.requestedImage.startsWith('http') ? 
+                            selectedReceive.requestedImage : 
+                            `${IMAGE_BASE_URL}${selectedReceive.requestedImage.replace(/^\//, '')}`) 
+                          : FALLBACK_IMAGE}
                         alt="Requested Item"
                         className="w-40 h-40 object-cover rounded-lg border border-[#002a6e]/10 cursor-pointer hover:opacity-80 transition-opacity"
                         onClick={() => selectedReceive?.requestedImage && handleImageClick(selectedReceive.requestedImage)}
                         onError={(e) => {
                           const target = e.target as HTMLImageElement;
-                          target.src = '/nepal_airlines_logo.png';
+                          if (target.src !== FALLBACK_IMAGE) {
+                            target.src = FALLBACK_IMAGE;
+                          }
                         }}
                       />
                     </div>
@@ -485,13 +490,19 @@ export function PendingReceivesCount() {
                     <p className="text-sm font-medium text-[#003594]">Image</p>
                     <div className="mt-2">
                       <img 
-                        src={selectedReceive?.receivedImage ? (selectedReceive.receivedImage.startsWith('http') ? selectedReceive.receivedImage : `${IMAGE_BASE_URL}${selectedReceive.receivedImage.replace(/^\//, '')}`) : '/images/nepal_airlines_logo.png'}
+                        src={selectedReceive?.receivedImage ? 
+                          (selectedReceive.receivedImage.startsWith('http') ? 
+                            selectedReceive.receivedImage : 
+                            `${IMAGE_BASE_URL}${selectedReceive.receivedImage.replace(/^\//, '')}`) 
+                          : FALLBACK_IMAGE}
                         alt="Received Item"
                         className="w-40 h-40 object-cover rounded-lg border border-[#002a6e]/10 cursor-pointer hover:opacity-80 transition-opacity"
                         onClick={() => selectedReceive?.receivedImage && handleImageClick(selectedReceive.receivedImage)}
                         onError={(e) => {
                           const target = e.target as HTMLImageElement;
-                          target.src = '/nepal_airlines_logo.png';
+                          if (target.src !== FALLBACK_IMAGE) {
+                            target.src = FALLBACK_IMAGE;
+                          }
                         }}
                       />
                     </div>

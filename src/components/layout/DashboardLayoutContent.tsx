@@ -1,6 +1,6 @@
 'use client';
 
-import Sidebar from '@/components/layout/Sidebar';
+import { lazy, Suspense } from 'react';
 import TopBar from '@/components/layout/Topbar';
 import ProtectedRoute from '@/lib/ProtectedRoute';
 import { usePathname } from 'next/navigation';
@@ -11,6 +11,8 @@ import { ContentSpinner } from '@/components/ui/spinner';
 interface DashboardLayoutContentProps {
   children: ReactNode;
 }
+
+const Sidebar = lazy(() => import('@/components/layout/Sidebar'));
 
 export default function DashboardLayoutContent({ children }: DashboardLayoutContentProps) {
   const [collapsed, setCollapsed] = useState(false);
@@ -34,7 +36,9 @@ export default function DashboardLayoutContent({ children }: DashboardLayoutCont
   return (
     <ProtectedRoute>
       <div className="flex h-screen bg-gray-100">
-        <Sidebar collapsed={collapsed} onCollapse={setCollapsed} />
+        <Suspense fallback={<ContentSpinner />}>
+          <Sidebar collapsed={collapsed} onCollapse={setCollapsed} />
+        </Suspense>
         <div className="flex-1 flex flex-col">
           <TopBar onToggleSidebar={() => setCollapsed(prev => !prev)} />
           <main className="p-6 overflow-y-auto">

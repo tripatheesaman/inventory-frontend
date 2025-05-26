@@ -1,20 +1,46 @@
 'use client'
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense, lazy } from 'react';
 import { Calendar } from '@/components/ui/calendar';
-import { SearchControls, SearchResults } from '@/components/search';
+import { SearchControls } from '@/components/search';
 import { useSearch } from '@/hooks/useSearch';
 import { RequestCartItem, RequestData } from '@/types/request';
-import { RequestCart } from '@/components/request/RequestCart';
-import { RequestItemForm } from '@/components/request/RequestItemForm';
-import { RequestPreviewModal } from '@/components/request/RequestPreviewModal';
-import { API } from '@/lib/api';
-import { SearchResult } from '@/types/search';
-import { useAuthContext } from '@/context/AuthContext/AuthContext';
+import { useAuthContext } from '@/context/AuthContext';
 import { useCustomToast } from "@/components/ui/custom-toast";
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
+import { API } from '@/lib/api';
+import { SearchResult } from '@/types/search';
+
+// Lazy load heavy components
+const SearchResults = lazy(() => import('@/components/search/SearchResults').then(module => ({ default: module.SearchResults })));
+const RequestCart = lazy(() => import('@/components/request/RequestCart').then(module => ({ default: module.RequestCart })));
+const RequestItemForm = lazy(() => import('@/components/request/RequestItemForm').then(module => ({ default: module.RequestItemForm })));
+const RequestPreviewModal = lazy(() => import('@/components/request/RequestPreviewModal').then(module => ({ default: module.RequestPreviewModal })));
+
+// Loading skeletons
+const SearchResultsSkeleton = () => (
+  <div className="animate-pulse space-y-4">
+    <div className="h-8 bg-gray-200 rounded w-1/4"></div>
+    <div className="space-y-3">
+      {[1, 2, 3].map((i) => (
+        <div key={i} className="h-16 bg-gray-200 rounded"></div>
+      ))}
+    </div>
+  </div>
+);
+
+const RequestCartSkeleton = () => (
+  <div className="animate-pulse space-y-4">
+    <div className="h-8 bg-gray-200 rounded w-1/2"></div>
+    <div className="space-y-3">
+      {[1, 2].map((i) => (
+        <div key={i} className="h-24 bg-gray-200 rounded"></div>
+      ))}
+    </div>
+  </div>
+);
 
 export default function RequestPage() {
   const { user, permissions } = useAuthContext();
@@ -41,8 +67,25 @@ export default function RequestPage() {
     setSearchParams,
   } = useSearch();
 
+  // Cache for last request info
+  const [lastRequestCache, setLastRequestCache] = useState<{
+    requestNumber: string;
+    requestDate: string;
+    timestamp: number;
+  } | null>(null);
+
   useEffect(() => {
     const fetchLastRequestInfo = async () => {
+      // Check cache first
+      if (lastRequestCache && Date.now() - lastRequestCache.timestamp < 5 * 60 * 1000) { // 5 minutes cache
+        setRequestNumber(lastRequestCache.requestNumber);
+        if (lastRequestCache.requestDate) {
+          setDate(new Date(lastRequestCache.requestDate));
+        }
+        setIsLoadingLastRequest(false);
+        return;
+      }
+
       try {
         const response = await API.get('/api/request/getlastrequestinfo');
         if (response.status === 200 && response.data) {
@@ -51,6 +94,12 @@ export default function RequestPage() {
           if (requestDate) {
             setDate(new Date(requestDate));
           }
+          // Update cache
+          setLastRequestCache({
+            requestNumber: lastRequestNumber || '',
+            requestDate: requestDate || '',
+            timestamp: Date.now()
+          });
         }
       } catch (error) {
         console.error('Error fetching last request info:', error);
@@ -325,20 +374,20 @@ export default function RequestPage() {
               </div>
 
               <div className="bg-white rounded-xl shadow-sm border border-[#002a6e]/10 p-6 hover:border-[#d2293b]/20 transition-colors">
-                {isLoading ? (
-                  <div className="flex items-center justify-center h-24">
-                    <div className="animate-spin rounded-full h-6 w-6 border-2 border-[#003594] border-t-transparent"></div>
-                  </div>
-                ) : (
-                  <SearchResults
-                    results={results}
-                    isLoading={isLoading}
-                    error={error}
-                    onRowDoubleClick={handleRowDoubleClick}
-                    searchParams={searchParams}
-                    canViewFullDetails={canViewFullDetails}
-                  />
-                )}
+                <Suspense fallback={<SearchResultsSkeleton />}>
+                  {isLoading ? (
+                    <SearchResultsSkeleton />
+                  ) : (
+                    <SearchResults
+                      results={results}
+                      isLoading={isLoading}
+                      error={error}
+                      onRowDoubleClick={handleRowDoubleClick}
+                      searchParams={searchParams}
+                      canViewFullDetails={canViewFullDetails}
+                    />
+                  )}
+                </Suspense>
               </div>
             </div>
 
@@ -388,47 +437,53 @@ export default function RequestPage() {
               </div>
 
               <div className="bg-white rounded-xl shadow-sm border border-[#002a6e]/10 p-6 hover:border-[#d2293b]/20 transition-colors">
-                <RequestCart
-                  items={cart}
-                  onRemoveItem={handleRemoveFromCart}
-                  onUpdateItem={handleUpdateCartItem}
-                  onDeleteItem={handleDeleteCartItem}
-                  onSubmit={handlePreviewSubmit}
-                  isSubmitDisabled={!date || !requestNumber.trim() || cart.length === 0}
-                  isSubmitting={isSubmitting}
-                  remarks={remarks}
-                  onRemarksChange={setRemarks}
-                />
+                <Suspense fallback={<RequestCartSkeleton />}>
+                  <RequestCart
+                    items={cart}
+                    onRemoveItem={handleRemoveFromCart}
+                    onUpdateItem={handleUpdateCartItem}
+                    onDeleteItem={handleDeleteCartItem}
+                    onSubmit={handlePreviewSubmit}
+                    isSubmitDisabled={!date || !requestNumber.trim() || cart.length === 0}
+                    isSubmitting={isSubmitting}
+                    remarks={remarks}
+                    onRemarksChange={setRemarks}
+                  />
+                </Suspense>
               </div>
             </div>
           </div>
         </div>
       </div>
 
-      <RequestItemForm
-        isOpen={isItemFormOpen}
-        onClose={() => {
-          setIsItemFormOpen(false);
-          setSelectedItem(null);
-          setIsManualEntry(false);
-        }}
-        item={selectedItem}
-        onSubmit={handleAddToCart}
-        isManualEntry={isManualEntry}
-      />
+      <Suspense fallback={null}>
+        <RequestItemForm
+          isOpen={isItemFormOpen}
+          onClose={() => {
+            setIsItemFormOpen(false);
+            setSelectedItem(null);
+            setIsManualEntry(false);
+          }}
+          item={selectedItem}
+          onSubmit={handleAddToCart}
+          isManualEntry={isManualEntry}
+        />
+      </Suspense>
 
-      <RequestPreviewModal
-        isOpen={isPreviewOpen}
-        onClose={() => setIsPreviewOpen(false)}
-        onConfirm={handleConfirmSubmit}
-        onUpdateItem={handleUpdateCartItem}
-        onDeleteItem={handleDeleteCartItem}
-        items={cart}
-        date={date || new Date()}
-        requestNumber={requestNumber}
-        remarks={remarks}
-        isSubmitting={isSubmitting}
-      />
+      <Suspense fallback={null}>
+        <RequestPreviewModal
+          isOpen={isPreviewOpen}
+          onClose={() => setIsPreviewOpen(false)}
+          onConfirm={handleConfirmSubmit}
+          onUpdateItem={handleUpdateCartItem}
+          onDeleteItem={handleDeleteCartItem}
+          items={cart}
+          date={date || new Date()}
+          requestNumber={requestNumber}
+          remarks={remarks}
+          isSubmitting={isSubmitting}
+        />
+      </Suspense>
     </div>
   );
 }

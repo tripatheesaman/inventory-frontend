@@ -15,7 +15,7 @@ import { ReceiveItemForm } from '@/components/receive/ReceiveItemForm';
 import { ReceivePreviewModal } from '@/components/receive/ReceivePreviewModal';
 import { API } from '@/lib/api';
 import { ReceiveSearchResult } from '@/types/search';
-import { useAuthContext } from '@/context/AuthContext/AuthContext';
+import { useAuthContext } from '@/context/AuthContext';
 import { useCustomToast } from "@/components/ui/custom-toast";
 import { Label } from '@/components/ui/label';
 import { SearchResult } from '@/types/search';
@@ -235,31 +235,6 @@ export default function ReceivePage() {
       setIsPreviewOpen(false);
     }
   };
-
-  useEffect(() => {
-    const fetchLastReceiveInfo = async () => {
-      try {
-        const response = await API.get('/api/receive/getlastreceiveinfo');
-        if (response.status === 200 && response.data) {
-          const { receiveDate } = response.data;
-          if (receiveDate) {
-            setDate(new Date(receiveDate));
-          }
-        }
-      } catch (error) {
-        console.error('Error fetching last receive info:', error);
-        showErrorToast({
-          title: "Error",
-          message: "Failed to fetch last receive information",
-          duration: 3000,
-        });
-      } finally {
-        setIsLoadingLastReceive(false);
-      }
-    };
-
-    fetchLastReceiveInfo();
-  }, []);
 
   return (
     <div className="min-h-screen bg-gray-50">

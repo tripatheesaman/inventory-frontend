@@ -1,6 +1,6 @@
 import { Home, LogIn, LogOut, FileText, Search, ClipboardList, Printer, Receipt, Calendar, Printer as PrintIcon, Users } from "lucide-react";
 import { IconName } from "./sidebarConfig";
-import { cn } from "@/lib/utils";
+import { cn } from "@/utils/utils";
 
 interface SidebarIconProps {
   name: IconName;

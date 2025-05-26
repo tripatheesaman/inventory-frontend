@@ -7,7 +7,7 @@ import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import '@/styles/globals.css';
 import DashboardLayoutContent from '@/components/layout/DashboardLayoutContent';
-import { AuthContextProvider } from '@/context/AuthContext/AuthContext';
+import { AuthContextProvider } from '@/context/AuthContext';
 import { Toaster } from "@/components/ui/toaster"
 import { NotificationProvider } from '@/context/NotificationContext';
 

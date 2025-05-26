@@ -8,7 +8,7 @@ import { Label } from '@/components/ui/label';
 import { PrintReceiveResultsTable } from '@/components/print/PrintReceiveResultsTable';
 import { PrintReceivePreviewModal } from '@/components/print/PrintReceivePreviewModal';
 import { useToast } from '@/components/ui/use-toast';
-import { expandEquipmentNumbers } from '@/lib/utils/equipmentNumbers';
+import { expandEquipmentNumbers } from '@/utils/equipmentNumbers';
 
 interface ReceiveSearchParams {
   universal?: string;

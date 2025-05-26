@@ -3,7 +3,7 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { format } from 'date-fns';
 import { IMAGE_BASE_URL } from '@/constants/api';
-import { cn } from '@/lib/utils';
+import { cn } from '@/utils/utils';
 
 interface PrintReceivePreviewModalProps {
   receive: {

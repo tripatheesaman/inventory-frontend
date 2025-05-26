@@ -2,7 +2,7 @@
 
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { API } from '@/lib/api';
-import { useAuthContext } from './AuthContext/AuthContext';
+import { useAuthContext } from './AuthContext';
 
 interface Notification {
   id: number;
