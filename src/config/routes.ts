@@ -37,10 +37,10 @@ export const routes: RouteConfig[] = [
     permissions: ['can_issue_items'],
   },
   {
-    path: '/reports',
+    path: '/reports/daily-issue',
     requiresAuth: true,
-    title: 'Reports',
-    permissions: ['can_view_reports'],
+    title: 'Daily Issue Report',
+    permissions: ['can_generate_daily_issue_reports'],
   },
   {
     path: '/settings',

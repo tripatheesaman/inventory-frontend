@@ -62,10 +62,16 @@ export const sidebarLinks: SidebarLink[] = [
   },
   {
     label: "Reports",
-    href: "/reports",
+    href: "#",
     icon: 'file-text',
-    permission: 'can_view_reports',
+    permission: 'can_access_report',
     submenu: [
+      { 
+        label: "Daily Issue Report", 
+        href: "/reports/daily-issue",
+        permission: 'can_generate_daily_issue_reports',
+        icon: 'calendar'
+      },
       { 
         label: "Daily", 
         href: "/reports/daily",

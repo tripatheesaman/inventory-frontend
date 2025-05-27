@@ -18,6 +18,7 @@ import { API } from '@/lib/api';
 import { SearchResult } from '@/types/search';
 import { useAuthContext } from '@/context/AuthContext';
 import { useCustomToast } from "@/components/ui/custom-toast";
+import { startOfDay, format } from 'date-fns';
 
 export default function IssuePage() {
   const { user } = useAuthContext();
@@ -119,8 +120,11 @@ export default function IssuePage() {
 
     setIsSubmitting(true);
     try {
+      const selectedDate = date || new Date();
+      const formattedDate = format(startOfDay(selectedDate), 'yyyy-MM-dd');
+      
       const request: IssueRequest = {
-        issueDate: date?.toISOString() || new Date().toISOString(),
+        issueDate: formattedDate,
         items: cart.map(item => ({
           nacCode: item.nacCode,
           quantity: item.issueQuantity,
@@ -133,7 +137,7 @@ export default function IssuePage() {
         }
       };
 
-      const response = await API.post('/api/issues/create', request);
+      const response = await API.post('/api/issue/create', request);
 
       if (response.status === 201) {
         showSuccessToast({
@@ -221,7 +225,7 @@ export default function IssuePage() {
                     <div className="mt-2">
                       <Calendar
                         value={date}
-                        onChange={(newDate) => setDate(newDate ?? undefined)}
+                        onChange={(newDate) => newDate && setDate(startOfDay(newDate))}
                         className="rounded-md border"
                       />
                     </div>

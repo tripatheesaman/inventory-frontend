@@ -8,12 +8,16 @@ import { formatDistanceToNow } from 'date-fns';
 import { useRouter } from 'next/navigation';
 import { API } from '@/lib/api';
 import { cn } from '@/utils/utils';
+import { useToast } from '@/components/ui/use-toast';
+import { useAuthContext } from '@/context/AuthContext';
 
 export function NotificationBell() {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
-  const { notifications, unreadCount, markAsRead, markAllAsRead } = useNotification();
+  const { notifications, unreadCount, markAsRead, markAllAsRead, fetchNotifications } = useNotification();
   const router = useRouter();
+  const { toast } = useToast();
+  const { user } = useAuthContext();
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -31,16 +35,28 @@ export function NotificationBell() {
       // Mark notification as read
       await markAsRead(notification.id);
 
-      // Handle navigation based on referenceType
+      // Handle different notification types
       switch (notification.referenceType) {
         case 'request':
           router.push(`/request/${notification.referenceNumber}?notificationId=${notification.id}`);
           break;
         case 'issue':
-          router.push(`/issue/${notification.referenceNumber}?notificationId=${notification.id}`);
+          // Delete the notification
+          await API.delete(`/api/notification/delete/${notification.id}`);
+          toast({
+            title: "Success",
+            description: "Notification deleted successfully",
+            duration: 3000,
+          });
           break;
         case 'receive':
-          router.push(`/receive/${notification.referenceNumber}?notificationId=${notification.id}`);
+          // Delete the notification
+          await API.delete(`/api/notification/delete/${notification.id}`);
+          toast({
+            title: "Success",
+            description: "Notification deleted successfully",
+            duration: 3000,
+          });
           break;
         case 'rrp':
           // For RRP notifications, redirect to create RRP form with pre-filled data
@@ -52,14 +68,14 @@ export function NotificationBell() {
             // Keep the full RRP number with T when coming from notification
             const queryParams = new URLSearchParams({
               type,
-              rrpNumber: rrpData.rrp_number, // Keep the full RRP number with T
+              rrpNumber: rrpData.rrp_number,
               rrpDate: rrpData.date,
               invoiceDate: rrpData.invoice_date,
               supplier: rrpData.supplier_name,
               inspectionUser: rrpData.inspection_details.inspection_user,
               invoiceNumber: rrpData.invoice_number,
               freightCharge: rrpData.freight_charge?.toString() || '0',
-              notificationId: notification.id, // Add notificationId to indicate it's from notification
+              notificationId: notification.id,
               ...(type === 'foreign' && {
                 customsDate: rrpData.customs_date,
                 customsNumber: rrpData.customs_number,
@@ -76,8 +92,17 @@ export function NotificationBell() {
         default:
           break;
       }
+
+      // Refresh notifications after handling
+      fetchNotifications();
     } catch (error) {
       console.error('Error handling notification:', error);
+      toast({
+        title: "Error",
+        description: "Failed to process notification",
+        duration: 3000,
+        variant: "destructive"
+      });
     }
     
     setIsOpen(false);
