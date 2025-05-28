@@ -15,6 +15,7 @@ import {
 import { format, startOfDay } from 'date-fns';
 import { CalendarIcon } from 'lucide-react';
 import { cn } from '@/utils/utils';
+import { DailyIssueReport } from '@/components/reports/DailyIssueReport';
 
 export default function DailyIssueReportPage() {
   const { toast } = useToast();
@@ -22,17 +23,13 @@ export default function DailyIssueReportPage() {
   const [toDate, setToDate] = useState<Date>();
   const [equipmentNumber, setEquipmentNumber] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [issues, setIssues] = useState<any[]>([]);
+  const [totalItems, setTotalItems] = useState(0);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
 
-  const handleGenerateReport = async () => {
-    if (!fromDate || !toDate) {
-      toast({
-        title: "Error",
-        description: "Please select both from and to dates",
-        variant: "destructive",
-        duration: 3000,
-      });
-      return;
-    }
+  const fetchIssues = async (page: number) => {
+    if (!fromDate || !toDate) return;
 
     try {
       setIsLoading(true);
@@ -43,17 +40,16 @@ export default function DailyIssueReportPage() {
         params: {
           fromDate: formattedFromDate,
           toDate: formattedToDate,
-          equipmentNumber: equipmentNumber || undefined
+          equipmentNumber: equipmentNumber || undefined,
+          page,
+          limit: itemsPerPage
         }
       });
 
       if (response.status === 200) {
-        console.log(response.data);
-        toast({
-          title: "Success",
-          description: "Report generated successfully",
-          duration: 3000,
-        });
+        setIssues(response.data.issues);
+        setTotalItems(response.data.total);
+        setCurrentPage(page);
       }
     } catch (error) {
       console.error('Error generating report:', error);
@@ -68,10 +64,30 @@ export default function DailyIssueReportPage() {
     }
   };
 
+  const handleGenerateReport = async () => {
+    if (!fromDate || !toDate) {
+      toast({
+        title: "Error",
+        description: "Please select both from and to dates",
+        variant: "destructive",
+        duration: 3000,
+      });
+      return;
+    }
+
+    await fetchIssues(1);
+  };
+
+  const handlePageChange = async (page: number) => {
+    await fetchIssues(page);
+  };
+
   return (
     <div className="container mx-auto p-6">
-      <div className="max-w-2xl mx-auto">
-        <h1 className="text-2xl font-bold text-[#003594] mb-6">Daily Issue Report</h1>
+      <div className="max-w-7xl mx-auto space-y-8">
+        <h1 className="text-3xl font-bold bg-gradient-to-r from-[#003594] to-[#d2293b] bg-clip-text text-transparent">
+          Daily Issue Report
+        </h1>
         
         <div className="space-y-6 bg-white p-6 rounded-lg shadow-sm border border-[#002a6e]/10">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -145,6 +161,20 @@ export default function DailyIssueReportPage() {
             {isLoading ? "Generating..." : "Generate Report"}
           </Button>
         </div>
+
+        {issues.length > 0 && (
+          <DailyIssueReport 
+            issues={issues}
+            currentPage={currentPage}
+            totalItems={totalItems}
+            itemsPerPage={itemsPerPage}
+            onPageChange={handlePageChange}
+            isLoading={isLoading}
+            fromDate={fromDate || new Date()}
+            toDate={toDate || new Date()}
+            equipmentNumber={equipmentNumber}
+          />
+        )}
       </div>
     </div>
   );
