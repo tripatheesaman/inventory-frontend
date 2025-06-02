@@ -42,6 +42,13 @@ export const routes: RouteConfig[] = [
     title: 'Daily Issue Report',
     permissions: ['can_generate_daily_issue_reports'],
   },
+
+  {
+    path: '/reports/stock-card',
+    requiresAuth: true,
+    title: 'Stock Card Generation',
+    permissions: ['can_generate_stock_card'],
+  },
   {
     path: '/settings',
     requiresAuth: true,
