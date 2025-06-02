@@ -73,6 +73,12 @@ export const sidebarLinks: SidebarLink[] = [
         icon: 'calendar'
       },
       { 
+        label: "Stock Card", 
+        href: "/reports/stock-card",
+        permission: 'can_generate_stock_card',
+        icon: 'file-text'
+      },
+      { 
         label: "Daily", 
         href: "/reports/daily",
         permission: 'view_daily_reports',
