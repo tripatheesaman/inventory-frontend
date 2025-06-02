@@ -88,7 +88,7 @@ export function useReceiveSearch() {
   useEffect(() => {
     // Only fetch if at least one search param is non-empty
     if (debouncedUniversal || debouncedEquipmentNumber || debouncedPartNumber) {
-      fetchSearchResults();
+    fetchSearchResults();
     } else {
       setResults(null);
       setIsLoading(false);

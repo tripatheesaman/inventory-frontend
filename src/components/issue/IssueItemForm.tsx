@@ -203,12 +203,12 @@ export function IssueItemForm({
                     className={`w-full ${errors.equipment ? "border-red-500" : "border-[#002a6e]/10 focus:border-[#003594]"}`}
                   />
                 ) : (
-                  <EquipmentRangeSelect
-                    equipmentList={item.equipmentNumber}
-                    value={selectedEquipment}
-                    onChange={setSelectedEquipment}
-                    error={errors.equipment}
-                  />
+                <EquipmentRangeSelect
+                  equipmentList={item.equipmentNumber}
+                  value={selectedEquipment}
+                  onChange={setSelectedEquipment}
+                  error={errors.equipment}
+                />
                 )}
               </div>
               {errors.equipment && (

@@ -8,7 +8,6 @@ import { IssueCartItem } from '@/types/issue';
 import { format } from 'date-fns';
 import { EquipmentSelect } from './EquipmentSelect';
 import { Pencil, Check, X, Trash2, Loader2, Package, Calendar, Hash, Scale } from 'lucide-react';
-import { Spinner } from '@/components/ui/spinner';
 
 interface IssuePreviewModalProps {
   isOpen: boolean;
