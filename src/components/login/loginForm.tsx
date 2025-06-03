@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useAuthContext } from "@/context/AuthContext";
 import Image from "next/image";
 import { Eye, EyeOff } from "lucide-react";
+import { API } from "@/lib/api";
 
 const LoginPage = () => {
   const { login } = useAuthContext();
@@ -13,11 +14,34 @@ const LoginPage = () => {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<Error | null>(null);
+  const [isCheckingReset, setIsCheckingReset] = useState(false);
+
+  const checkPasswordResetEligibility = async (email: string) => {
+    try {
+      const response = await API.post('/api/auth/check-reset-eligibility', { email });
+      return response.data.canReset;
+    } catch (error) {
+      console.error('Error checking reset eligibility:', error);
+      return false;
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+    setIsCheckingReset(true);
+
     try {
+      // First check if user can reset password
+      const canReset = await checkPasswordResetEligibility(username);
+      
+      if (canReset) {
+        // Redirect to password reset page with email
+        router.push(`/reset-password?email=${encodeURIComponent(username)}`);
+        return;
+      }
+
+      // If not eligible for reset, proceed with normal login
       await login(username, password);
       router.push("/dashboard");
     } catch (err) {
@@ -26,6 +50,8 @@ const LoginPage = () => {
       } else {
         setError(new Error("Login failed"));
       }
+    } finally {
+      setIsCheckingReset(false);
     }
   };
 
@@ -39,6 +65,7 @@ const LoginPage = () => {
             width={150}
             height={150}
             className="h-auto w-auto"
+            priority
           />
         </div>
 
@@ -88,9 +115,10 @@ const LoginPage = () => {
 
           <button
             type="submit"
-            className="w-full rounded-lg bg-red-500 px-4 py-2 text-white font-semibold hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-400"
+            disabled={isCheckingReset}
+            className="w-full rounded-lg bg-red-500 px-4 py-2 text-white font-semibold hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-400 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            Login
+            {isCheckingReset ? "Checking..." : "Login"}
           </button>
         </form>
       </div>
