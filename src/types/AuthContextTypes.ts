@@ -4,6 +4,7 @@ export type UserInfo = {
     username: string
     name: string
     permissions: string[]
+    role_name: string
 }
 
 export type User = {

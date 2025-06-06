@@ -89,6 +89,8 @@ export const ReceiveItemForm = ({
     }
     if (!formData.receiveQuantity || formData.receiveQuantity <= 0) {
       newErrors.receiveQuantity = 'Valid receive quantity is required';
+    } else if (formData.receiveQuantity > formData.requestedQuantity) {
+      newErrors.receiveQuantity = `Receive quantity cannot be greater than requested quantity (${formData.requestedQuantity})`;
     }
     if (!formData.nacCode || !/^(GT|TW|GS) \d{5}$/.test(formData.nacCode)) {
       newErrors.nacCode = 'NAC code must be in format: GT/TW/GS followed by 5 digits (e.g., GT 12345)';
@@ -152,6 +154,7 @@ export const ReceiveItemForm = ({
                   className={`mt-1 border-[#002a6e]/10 focus:border-[#003594] focus:ring-[#003594]/20 ${errors.nacCode ? 'border-red-500' : ''}`}
                   placeholder="e.g., GT 12345"
                   required
+                  disabled={item?.nacCode !== 'N/A'}
                 />
                 {errors.nacCode && (
                   <p className="text-sm text-red-500 mt-1">{errors.nacCode}</p>
@@ -167,6 +170,7 @@ export const ReceiveItemForm = ({
                       value={formData.partNumber}
                       onChange={(value) => setFormData(prev => ({ ...prev, partNumber: value }))}
                       error={errors.partNumber}
+                      disabled={item?.partNumber !== 'N/A'}
                     />
                   ) : (
                     <Input
@@ -176,6 +180,7 @@ export const ReceiveItemForm = ({
                       className={`mt-1 border-[#002a6e]/10 focus:border-[#003594] focus:ring-[#003594]/20 ${errors.partNumber ? 'border-red-500' : ''}`}
                       placeholder="Enter part number"
                       required
+                      disabled={item?.partNumber !== 'N/A'}
                     />
                   )}
                   <Button
@@ -183,6 +188,7 @@ export const ReceiveItemForm = ({
                     variant="outline"
                     onClick={() => setIsCustomPartNumber(!isCustomPartNumber)}
                     className="whitespace-nowrap"
+                    disabled={item?.partNumber !== 'N/A'}
                   >
                     {isCustomPartNumber ? "Select Existing" : "Enter New"}
                   </Button>
@@ -227,8 +233,12 @@ export const ReceiveItemForm = ({
                   onChange={(e) => setFormData(prev => ({ ...prev, receiveQuantity: Number(e.target.value) }))}
                   className={`mt-1 border-[#002a6e]/10 focus:border-[#003594] focus:ring-[#003594]/20 ${errors.receiveQuantity ? 'border-red-500' : ''}`}
               min="1"
+                  max={formData.requestedQuantity}
               required
             />
+                <div className="text-xs text-gray-500 mt-1">
+                  Max: {formData.requestedQuantity}
+                </div>
                 {errors.receiveQuantity && (
                   <p className="text-sm text-red-500 mt-1">{errors.receiveQuantity}</p>
             )}
@@ -260,6 +270,7 @@ export const ReceiveItemForm = ({
                   className={`mt-1 border-[#002a6e]/10 focus:border-[#003594] focus:ring-[#003594]/20 ${errors.location ? 'border-red-500' : ''}`}
               placeholder="Enter location"
               required
+                  disabled={formData.location !== '0' && formData.location !== ''}
             />
                 {errors.location && (
                   <p className="text-sm text-red-500 mt-1">{errors.location}</p>
@@ -281,6 +292,7 @@ export const ReceiveItemForm = ({
                   className={`mt-1 border-[#002a6e]/10 focus:border-[#003594] focus:ring-[#003594]/20 ${errors.cardNumber ? 'border-red-500' : ''}`}
               placeholder="Enter card number"
               required
+                  disabled={formData.cardNumber !== '0' && formData.cardNumber !== ''}
             />
                 {errors.cardNumber && (
                   <p className="text-sm text-red-500 mt-1">{errors.cardNumber}</p>

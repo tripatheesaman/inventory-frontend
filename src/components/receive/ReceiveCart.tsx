@@ -4,13 +4,10 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import { ReceiveCartItem } from '@/types/receive';
 import { Trash2, Pencil } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { format } from 'date-fns';
-import { Calendar } from '@/components/ui/calendar';
-import { cn } from '@/utils/utils';
+import { useCustomToast } from '@/components/ui/custom-toast';
 
 interface ReceiveCartProps {
   items: ReceiveCartItem[];
@@ -31,6 +28,7 @@ export function ReceiveCart({
   isSubmitDisabled,
   isSubmitting,
 }: ReceiveCartProps) {
+  const { showErrorToast } = useCustomToast();
   const [editingItem, setEditingItem] = useState<ReceiveCartItem | null>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [editFormData, setEditFormData] = useState<Partial<ReceiveCartItem>>({});
@@ -70,6 +68,16 @@ export function ReceiveCart({
   const handleEditSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!editingItem) return;
+
+    // Validate receive quantity
+    if (editFormData.receiveQuantity && editFormData.receiveQuantity > editingItem.requestedQuantity) {
+      showErrorToast({
+        title: "Validation Error",
+        message: `Receive quantity cannot be greater than requested quantity (${editingItem.requestedQuantity})`,
+        duration: 3000,
+      });
+      return;
+    }
 
     onUpdateItem(editingItem.id, {
       receiveQuantity: editFormData.receiveQuantity,
@@ -195,7 +203,7 @@ export function ReceiveCart({
                     value={editFormData.nacCode}
                     onChange={(e) => setEditFormData(prev => ({ ...prev, nacCode: e.target.value }))}
                     className="mt-1 border-[#002a6e]/10 focus:border-[#003594] focus:ring-[#003594]/20"
-                    readOnly
+                    disabled={editingItem?.nacCode !== 'N/A'}
                   />
                 </div>
 
@@ -206,7 +214,7 @@ export function ReceiveCart({
                     value={editFormData.partNumber}
                     onChange={(e) => setEditFormData(prev => ({ ...prev, partNumber: e.target.value }))}
                     className="mt-1 border-[#002a6e]/10 focus:border-[#003594] focus:ring-[#003594]/20"
-                    readOnly
+                    disabled={editingItem?.partNumber !== 'N/A'}
                   />
                 </div>
 
@@ -232,8 +240,12 @@ export function ReceiveCart({
                     onChange={(e) => setEditFormData(prev => ({ ...prev, receiveQuantity: Number(e.target.value) }))}
                     className="mt-1 border-[#002a6e]/10 focus:border-[#003594] focus:ring-[#003594]/20"
                     min="1"
+                    max={editingItem?.requestedQuantity}
                     required
                   />
+                  <div className="text-xs text-gray-500 mt-1">
+                    Max: {editingItem?.requestedQuantity}
+                  </div>
                 </div>
 
                 <div>
@@ -261,6 +273,7 @@ export function ReceiveCart({
                     }}
                     className="mt-1 border-[#002a6e]/10 focus:border-[#003594] focus:ring-[#003594]/20"
                     placeholder="Enter location"
+                    disabled={editingItem?.location !== '0' && editingItem?.location !== ''}
                   />
                 </div>
 
@@ -278,6 +291,7 @@ export function ReceiveCart({
                     }}
                     className="mt-1 border-[#002a6e]/10 focus:border-[#003594] focus:ring-[#003594]/20"
                     placeholder="Enter card number"
+                    disabled={editingItem?.cardNumber !== '0' && editingItem?.cardNumber !== ''}
                   />
                 </div>
 
