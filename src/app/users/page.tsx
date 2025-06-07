@@ -29,6 +29,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Loader2, Plus, MoreVertical, Search } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
+import { useSearch } from '@/hooks/useSearch';
 
 interface User {
   id: number;
@@ -60,6 +61,15 @@ export default function UsersPage() {
   const canEditUser = permissions?.includes('can_edit_users');
   const canDeleteUser = permissions?.includes('can_delete_users');
   const canManagePermissions = permissions?.includes('can_manage_user_permissions');
+
+  const {
+    searchParams,
+    results,
+    isLoading: searchLoading,
+    error,
+    handleSearch,
+    setResults,
+  } = useSearch();
 
   useEffect(() => {
     fetchUsers();
@@ -124,6 +134,21 @@ export default function UsersPage() {
     user.staffid.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
+  // Function to check if user can perform actions on another user
+  const canPerformAction = (targetUser: User) => {
+    // Don't show actions for current user
+    if (targetUser.username === user?.UserInfo.username) {
+      return false;
+    }
+
+    // Don't show actions for users with same role
+    if (targetUser.role_name === user?.UserInfo.role_name) {
+      return false;
+    }
+
+    return true;
+  };
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -166,13 +191,13 @@ export default function UsersPage() {
             <Table>
               <TableHeader className="bg-gray-50">
                 <TableRow>
-                  <TableHead className="font-semibold text-[#002a6e]">Username</TableHead>
-                  <TableHead className="font-semibold text-[#002a6e]">Name</TableHead>
-                  <TableHead className="font-semibold text-[#002a6e]">Staff ID</TableHead>
-                  <TableHead className="font-semibold text-[#002a6e]">Role</TableHead>
-                  <TableHead className="font-semibold text-[#002a6e]">Designation</TableHead>
-                  <TableHead className="font-semibold text-[#002a6e]">Status</TableHead>
-                  <TableHead className="font-semibold text-[#002a6e] text-right">Actions</TableHead>
+                  <TableHead className="font-semibold text-[#003594]">Username</TableHead>
+                  <TableHead className="font-semibold text-[#003594]">Name</TableHead>
+                  <TableHead className="font-semibold text-[#003594]">Staff ID</TableHead>
+                  <TableHead className="font-semibold text-[#003594]">Role</TableHead>
+                  <TableHead className="font-semibold text-[#003594]">Designation</TableHead>
+                  <TableHead className="font-semibold text-[#003594]">Status</TableHead>
+                  <TableHead className="font-semibold text-[#003594] text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -192,6 +217,7 @@ export default function UsersPage() {
                       </Badge>
                     </TableCell>
                     <TableCell className="text-right">
+                      {canPerformAction(user) && (
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                           <Button
@@ -228,6 +254,7 @@ export default function UsersPage() {
                           )}
                         </DropdownMenuContent>
                       </DropdownMenu>
+                      )}
                     </TableCell>
                   </TableRow>
                 ))}

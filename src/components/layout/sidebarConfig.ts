@@ -1,6 +1,6 @@
-import { LucideIcon, Users } from 'lucide-react';
+import { LucideIcon, Users, Settings } from 'lucide-react';
 
-export type IconName = 'home' | 'search' | 'request' | 'log-in' | 'log-out' | 'file-text' | 'printer' | 'receipt' | 'calendar' | 'print' | 'users';
+export type IconName = 'home' | 'search' | 'request' | 'log-in' | 'log-out' | 'file-text' | 'printer' | 'receipt' | 'calendar' | 'print' | 'users' | 'settings';
 
 interface SubmenuItem {
   label: string;
@@ -121,6 +121,50 @@ export const sidebarLinks: SidebarLink[] = [
         href: "/print/rrp",
         permission: 'can_print_rrp',
         icon: 'print'
+      }
+    ]
+  },
+  {
+    label: "Settings",
+    href: "#",
+    icon: 'settings',
+    permission: 'can_access_settings',
+    submenu: [
+      {
+        label: "App Settings",
+        href: "/settings/app",
+        permission: 'can_access_settings',
+        icon: 'settings'
+      },
+      {
+        label: "Request Settings",
+        href: "/settings/request",
+        permission: 'can_access_request_settings',
+        icon: 'settings'
+      },
+      {
+        label: "Receive Settings",
+        href: "/settings/receive",
+        permission: 'can_access_receive_settings',
+        icon: 'settings'
+      },
+      {
+        label: "Issue Settings",
+        href: "/settings/issue",
+        permission: 'can_access_issue_settings',
+        icon: 'settings'
+      },
+      {
+        label: "RRP Settings",
+        href: "/settings/rrp",
+        permission: 'can_access_rrp_settings',
+        icon: 'settings'
+      },
+      {
+        label: "Fuel Settings",
+        href: "/settings/fuel",
+        permission: 'can_access_settings',
+        icon: 'settings'
       }
     ]
   }

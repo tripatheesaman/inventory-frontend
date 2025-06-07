@@ -5,7 +5,7 @@ Purpose: Issue Page
 
 'use client'
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Calendar } from '@/components/ui/calendar';
 import { cn } from '@/utils/utils';
 import { SearchControls, SearchResults } from '@/components/search';
@@ -39,6 +39,25 @@ export default function IssuePage() {
     setResults,
   } = useSearch();
 
+  // Function to adjust current balance based on cart items
+  const adjustCurrentBalance = (searchResults: SearchResult[] | null) => {
+    if (!searchResults) return null;
+
+    return searchResults.map(result => {
+      const cartItem = cart.find(item => Number(item.id.split('-')[0]) === result.id);
+      if (cartItem) {
+        return {
+          ...result,
+          currentBalance: (parseFloat(result.currentBalance) - cartItem.issueQuantity).toString()
+        };
+      }
+      return result;
+    });
+  };
+
+  // Memoize the adjusted results
+  const adjustedResults = results ? adjustCurrentBalance(results) : null;
+
   const handleRowDoubleClick = (item: SearchResult) => {
     setSelectedItem(item);
     setIsItemFormOpen(true);
@@ -49,13 +68,7 @@ export default function IssuePage() {
       ...item,
       id: `${item.id}-${Date.now()}` // Generate unique ID by combining item ID and timestamp
     };
-    setResults((prevResults: SearchResult[] | null) => 
-      prevResults?.map(result => 
-        result.id === Number(item.id)
-          ? { ...result, currentBalance: (parseFloat(result.currentBalance) - item.issueQuantity).toString() }
-          : result
-      ) ?? null
-    );
+    
     setCart(prev => [...prev, cartItem]);
     setIsItemFormOpen(false);
     setSelectedItem(null);
@@ -64,15 +77,8 @@ export default function IssuePage() {
   const handleRemoveFromCart = (itemId: string) => {
     const removedItem = cart.find(item => item.id === itemId);
     if (removedItem) {
-      setResults((prevResults: SearchResult[] | null) => 
-        prevResults?.map(result => 
-          result.id === Number(removedItem.id)
-            ? { ...result, currentBalance: (parseFloat(result.currentBalance) + removedItem.issueQuantity).toString() }
-            : result
-        ) ?? null
-      );
-    }
     setCart(prev => prev.filter(item => item.id !== itemId));
+    }
   };
 
   const handlePreviewSubmit = () => {
@@ -86,16 +92,6 @@ export default function IssuePage() {
   };
 
   const handleDeleteCartItem = (itemId: string) => {
-    const deletedItem = cart.find(item => item.id === itemId);
-    if (deletedItem) {
-      setResults((prevResults: SearchResult[] | null) => 
-        prevResults?.map(result => 
-          result.id === Number(deletedItem.id)
-            ? { ...result, currentBalance: (parseFloat(result.currentBalance) + deletedItem.issueQuantity).toString() }
-            : result
-        ) ?? null
-      );
-    }
     setCart(prev => prev.filter(item => item.id !== itemId));
   };
 
@@ -205,7 +201,7 @@ export default function IssuePage() {
                   </div>
                 ) : (
                   <SearchResults
-                    results={results}
+                    results={adjustedResults}
                     isLoading={isLoading}
                     error={error}
                     onRowDoubleClick={handleRowDoubleClick}

@@ -4,19 +4,22 @@ import { useState, useMemo } from 'react';
 import { Check, ChevronsUpDown } from 'lucide-react';
 import { cn } from '@/utils/utils';
 import { Button } from '@/components/ui/button';
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
 
 interface PartNumberSelectProps {
   partNumberList: string;
   value: string;
   onChange: (value: string) => void;
   error?: string;
+  disabled?: boolean;
 }
 
 export function PartNumberSelect({ 
   partNumberList, 
   value, 
   onChange,
-  error 
+  error,
+  disabled = false
 }: PartNumberSelectProps) {
   const [open, setOpen] = useState(false);
   const [inputValue, setInputValue] = useState("");
@@ -46,6 +49,8 @@ export function PartNumberSelect({
     setOpen(false);
     setInputValue("");
   };
+
+  const partNumbers = partNumberList.split(',').map(pn => pn.trim()).filter(Boolean);
 
   return (
     <div className="flex flex-col gap-1.5">
@@ -109,6 +114,22 @@ export function PartNumberSelect({
       {error && (
         <p className="text-sm text-red-500">{error}</p>
       )}
+      <Select
+        value={value}
+        onValueChange={onChange}
+        disabled={disabled}
+      >
+        <SelectTrigger className={`w-full border-[#002a6e]/10 focus:border-[#003594] focus:ring-[#003594]/20 ${error ? 'border-red-500' : ''}`}>
+          <SelectValue placeholder="Select part number" />
+        </SelectTrigger>
+        <SelectContent>
+          {partNumbers.map((partNumber) => (
+            <SelectItem key={partNumber} value={partNumber}>
+              {partNumber}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
     </div>
   );
 } 
