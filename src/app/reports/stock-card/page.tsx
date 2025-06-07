@@ -151,12 +151,15 @@ export default function StockCardPage() {
 
           <div className="bg-white rounded-xl shadow-sm border border-[#002a6e]/10 p-6 hover:border-[#d2293b]/20 transition-colors">
             <div className="flex items-center space-x-2 mb-4">
-              <Switch
-                id="generate-by-issue-date"
-                checked={generateByIssueDate}
-                onCheckedChange={setGenerateByIssueDate}
-              />
-              <Label htmlFor="generate-by-issue-date">Generate by Issue Date</Label>
+              <div className="flex items-center space-x-2">
+                <Switch
+                  id="generate-by-issue-date"
+                  checked={generateByIssueDate}
+                  onCheckedChange={setGenerateByIssueDate}
+                  className="data-[state=checked]:bg-[#002a6e] data-[state=unchecked]:bg-[#002a6e]/20"
+                />
+                <Label htmlFor="generate-by-issue-date" className="text-[#002a6e]">Generate by Issue Date</Label>
+              </div>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
