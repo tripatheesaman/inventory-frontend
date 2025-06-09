@@ -26,30 +26,48 @@ interface AuthorityDetails {
   quality_check_authority_designation: string;
 }
 
+interface Supplier {
+  id: number;
+  name: string;
+  type: 'foreign' | 'local';
+}
+
 export default function RRPSettingsPage() {
   const { showSuccessToast, showErrorToast } = useCustomToast();
   const { permissions } = useAuthContext();
   const [isLoading, setIsLoading] = useState(false);
   const [authorityDetails, setAuthorityDetails] = useState<AuthorityDetails[]>([]);
+  const [suppliers, setSuppliers] = useState<Supplier[]>([]);
+  const [newSupplierName, setNewSupplierName] = useState('');
+  const [newSupplierType, setNewSupplierType] = useState<'foreign' | 'local'>('foreign');
+  const [editingSupplier, setEditingSupplier] = useState<Supplier | null>(null);
 
   useEffect(() => {
-    const fetchAuthorityDetails = async () => {
+    const fetchData = async () => {
       try {
-        const response = await API.get('/api/settings/rrp/authority-details');
-        if (response.status === 200) {
-          setAuthorityDetails(response.data);
+        const [authorityResponse, suppliersResponse] = await Promise.all([
+          API.get('/api/settings/rrp/authority-details'),
+          API.get('/api/settings/rrp/suppliers')
+        ]);
+
+        if (authorityResponse.status === 200) {
+          setAuthorityDetails(authorityResponse.data);
+        }
+
+        if (suppliersResponse.status === 200) {
+          setSuppliers(suppliersResponse.data);
         }
       } catch (error) {
-        console.error('Error fetching authority details:', error);
+        console.error('Error fetching data:', error);
         showErrorToast({
           title: "Error",
-          message: "Failed to fetch authority details",
+          message: "Failed to fetch data",
           duration: 3000,
         });
       }
     };
 
-    fetchAuthorityDetails();
+    fetchData();
   }, []);
 
   const handleSave = async () => {
@@ -117,6 +135,120 @@ export default function RRPSettingsPage() {
 
   const removeAuthority = (id: number) => {
     setAuthorityDetails(prev => prev.filter(auth => auth.id !== id));
+  };
+
+  const handleAddSupplier = async () => {
+    if (!newSupplierName.trim()) {
+      showErrorToast({
+        title: "Error",
+        message: "Supplier name cannot be empty",
+        duration: 3000,
+      });
+      return;
+    }
+
+    try {
+      setIsLoading(true);
+      const response = await API.post('/api/settings/rrp/suppliers', {
+        name: newSupplierName,
+        type: newSupplierType
+      });
+
+      if (response.status === 201) {
+        setSuppliers(prev => [...prev, response.data]);
+        setNewSupplierName('');
+        showSuccessToast({
+          title: "Success",
+          message: "Supplier added successfully",
+          duration: 3000,
+        });
+      }
+    } catch (error) {
+      console.error('Error adding supplier:', error);
+      showErrorToast({
+        title: "Error",
+        message: "Failed to add supplier",
+        duration: 3000,
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleUpdateSupplier = async (supplier: Supplier) => {
+    try {
+      setIsLoading(true);
+      const response = await API.put(`/api/settings/rrp/suppliers/${supplier.id}`, {
+        name: supplier.name,
+        type: supplier.type
+      });
+
+      if (response.status === 200) {
+        setSuppliers(prev => prev.map(s => s.id === supplier.id ? response.data : s));
+        setEditingSupplier(null);
+        showSuccessToast({
+          title: "Success",
+          message: "Supplier updated successfully",
+          duration: 3000,
+        });
+      }
+    } catch (error) {
+      console.error('Error updating supplier:', error);
+      showErrorToast({
+        title: "Error",
+        message: "Failed to update supplier",
+        duration: 3000,
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleDeleteSupplier = async (id: number) => {
+    try {
+      setIsLoading(true);
+      const supplierToDelete = suppliers.find(s => s.id === id);
+      if (!supplierToDelete) {
+        throw new Error('Supplier not found');
+      }
+
+      const response = await API.delete(`/api/settings/rrp/suppliers/${id}`, {
+        data: {
+          name: supplierToDelete.name,
+          type: supplierToDelete.type
+        }
+      });
+
+      if (response.status === 200) {
+        setSuppliers(prev => prev.filter(s => s.id !== id));
+        showSuccessToast({
+          title: "Success",
+          message: "Supplier deleted successfully",
+          duration: 3000,
+        });
+      }
+    } catch (error) {
+      console.error('Error deleting supplier:', error);
+      showErrorToast({
+        title: "Error",
+        message: "Failed to delete supplier",
+        duration: 3000,
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Helper function to get unique suppliers by type
+  const getUniqueSuppliersByType = (type: 'foreign' | 'local') => {
+    const typeSuppliers = suppliers.filter(s => s.type === type);
+    return typeSuppliers.reduce((acc: Supplier[], current) => {
+      const existingSupplier = acc.find(s => s.name === current.name);
+      if (!existingSupplier) {
+        acc.push(current);
+      }
+      return acc;
+    }, []);
   };
 
   return (
@@ -279,6 +411,141 @@ export default function RRPSettingsPage() {
               >
                 {isLoading ? "Saving..." : "Save Changes"}
               </Button>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Supplier Management Card */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Supplier Management</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-6">
+            {/* Add New Supplier Form */}
+            <div className="flex gap-4 items-end">
+              <div className="flex-1">
+                <Label>New Supplier Name</Label>
+                <Input
+                  value={newSupplierName}
+                  onChange={(e) => setNewSupplierName(e.target.value)}
+                  placeholder="Enter supplier name"
+                />
+              </div>
+              <div className="w-40">
+                <Label>Type</Label>
+                <select
+                  className="w-full p-2 border rounded-md"
+                  value={newSupplierType}
+                  onChange={(e) => setNewSupplierType(e.target.value as 'foreign' | 'local')}
+                >
+                  <option value="foreign">Foreign</option>
+                  <option value="local">Local</option>
+                </select>
+              </div>
+              <Button onClick={handleAddSupplier} disabled={isLoading}>
+                Add Supplier
+              </Button>
+            </div>
+
+            {/* Suppliers List */}
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold">Foreign Suppliers</h3>
+              <div className="space-y-2">
+                {getUniqueSuppliersByType('foreign').map((supplier, index) => (
+                  <div key={`foreign-${supplier.id}-${index}`} className="flex items-center gap-4 p-2 border rounded-md">
+                    {editingSupplier?.id === supplier.id ? (
+                      <>
+                        <Input
+                          value={editingSupplier.name}
+                          onChange={(e) => setEditingSupplier({ ...editingSupplier, name: e.target.value })}
+                          className="flex-1"
+                        />
+                        <Button
+                          onClick={() => handleUpdateSupplier(editingSupplier)}
+                          disabled={isLoading}
+                        >
+                          Save
+                        </Button>
+                        <Button
+                          variant="outline"
+                          onClick={() => setEditingSupplier(null)}
+                          disabled={isLoading}
+                        >
+                          Cancel
+                        </Button>
+                      </>
+                    ) : (
+                      <>
+                        <span className="flex-1">{supplier.name}</span>
+                        <Button
+                          variant="outline"
+                          onClick={() => setEditingSupplier(supplier)}
+                          disabled={isLoading}
+                        >
+                          Edit
+                        </Button>
+                        <Button
+                          variant="destructive"
+                          onClick={() => handleDeleteSupplier(supplier.id)}
+                          disabled={isLoading}
+                        >
+                          Delete
+                        </Button>
+                      </>
+                    )}
+                  </div>
+                ))}
+              </div>
+
+              <h3 className="text-lg font-semibold">Local Suppliers</h3>
+              <div className="space-y-2">
+                {getUniqueSuppliersByType('local').map((supplier, index) => (
+                  <div key={`local-${supplier.id}-${index}`} className="flex items-center gap-4 p-2 border rounded-md">
+                    {editingSupplier?.id === supplier.id ? (
+                      <>
+                        <Input
+                          value={editingSupplier.name}
+                          onChange={(e) => setEditingSupplier({ ...editingSupplier, name: e.target.value })}
+                          className="flex-1"
+                        />
+                        <Button
+                          onClick={() => handleUpdateSupplier(editingSupplier)}
+                          disabled={isLoading}
+                        >
+                          Save
+                        </Button>
+                        <Button
+                          variant="outline"
+                          onClick={() => setEditingSupplier(null)}
+                          disabled={isLoading}
+                        >
+                          Cancel
+                        </Button>
+                      </>
+                    ) : (
+                      <>
+                        <span className="flex-1">{supplier.name}</span>
+                        <Button
+                          variant="outline"
+                          onClick={() => setEditingSupplier(supplier)}
+                          disabled={isLoading}
+                        >
+                          Edit
+                        </Button>
+                        <Button
+                          variant="destructive"
+                          onClick={() => handleDeleteSupplier(supplier.id)}
+                          disabled={isLoading}
+                        >
+                          Delete
+                        </Button>
+                      </>
+                    )}
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         </CardContent>
