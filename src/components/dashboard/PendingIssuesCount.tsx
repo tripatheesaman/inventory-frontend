@@ -454,7 +454,7 @@ export function PendingIssuesCount() {
                       <td className="p-4 text-gray-900">{item.part_number}</td>
                       <td className="p-4 text-gray-900">{item.nac_code}</td>
                       <td className="p-4 text-gray-900">{item.issue_quantity}</td>
-                      <td className="p-4 text-gray-900">${item.issue_cost.toFixed(2)}</td>
+                      <td className="p-4 text-gray-900">NPR {item.issue_cost.toFixed(2)}</td>
                       <td className="p-4 text-gray-900">{item.remaining_balance}</td>
                       <td className="p-4 text-gray-900">{item.issued_for}</td>
                       <td className="p-4 text-gray-900">
