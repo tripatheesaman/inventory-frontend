@@ -1,6 +1,6 @@
-import { LucideIcon, Users, Settings } from 'lucide-react';
+import { LucideIcon, Users, Settings, Fuel, Droplet, Package } from 'lucide-react';
 
-export type IconName = 'home' | 'search' | 'request' | 'log-in' | 'log-out' | 'file-text' | 'printer' | 'receipt' | 'calendar' | 'print' | 'users' | 'settings';
+export type IconName = 'home' | 'search' | 'request' | 'log-in' | 'log-out' | 'file-text' | 'printer' | 'receipt' | 'calendar' | 'print' | 'users' | 'settings' | 'fuel' | 'droplet' | 'package';
 
 interface SubmenuItem {
   label: string;
@@ -121,6 +121,26 @@ export const sidebarLinks: SidebarLink[] = [
         href: "/print/rrp",
         permission: 'can_print_rrp',
         icon: 'print'
+      }
+    ]
+  },
+  {
+    label: "Fuels & Lubes", 
+    href: "#", 
+    icon: 'fuel',
+    permission: 'can_access_fuel_menu',
+    submenu: [
+      {
+        label: "Fuel Issue",
+        href: "/fuels/issue",
+        permission: 'can_issue_fuel',
+        icon: 'droplet'
+      },
+      {
+        label: "Receive Petrol",
+        href: "/fuels/receive",
+        permission: 'can_receive_petrol',
+        icon: 'package'
       }
     ]
   },
