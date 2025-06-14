@@ -1,6 +1,5 @@
-import { Home, LogIn, LogOut, FileText, Search, ClipboardList, Printer, Receipt, Calendar, Printer as PrintIcon, Users, Settings } from "lucide-react";
+import { Home, LogIn, LogOut, FileText, Search, ClipboardList, Printer, Receipt, Calendar, Printer as PrintIcon, Users, Settings, Fuel, Droplet, Package } from "lucide-react";
 import { IconName } from "./sidebarConfig";
-import { cn } from "@/utils/utils";
 
 interface SidebarIconProps {
   name: IconName;
@@ -22,6 +21,9 @@ export const SidebarIcon = ({ name, size = 20, className }: SidebarIconProps) =>
     'print': <PrintIcon size={size} className={className} />,
     'users': <Users size={size} className={className} />,
     'settings': <Settings size={size} className={className} />,
+    'fuel': <Fuel size={size} className={className} />,
+    'droplet': <Droplet size={size} className={className} />,
+    'package': <Package size={size} className={className} />,
   };
 
   return icons[name];

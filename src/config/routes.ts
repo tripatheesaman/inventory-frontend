@@ -127,6 +127,24 @@ export const routes: RouteConfig[] = [
     title: 'Manage User Permissions',
     permissions: ['can_manage_user_permissions'],
   },
+  {
+    path: '/fuels/issue',
+    requiresAuth: true,
+    title: 'Fuel Issue',
+    permissions: ['can_issue_fuel'],
+  },
+  {
+    path: '/fuels/issue/[type]',
+    requiresAuth: true,
+    title: 'Fuel Issue Form',
+    permissions: ['can_issue_fuel'],
+  },
+  {
+    path: '/fuels/receive',
+    requiresAuth: true,
+    title: 'Receive Petrol',
+    permissions: ['can_receive_petrol'],
+  },
 ];
 
 // Helper function to get route config by path
