@@ -23,7 +23,6 @@ export default function FuelIssuePage() {
       
       // Fetch configuration for the selected fuel type
       const response = await API.get(`/api/fuel/config/${type}`);
-      console.log(response.data);
       
       if (response.status === 200) {
         // Navigate to the issue form with the config

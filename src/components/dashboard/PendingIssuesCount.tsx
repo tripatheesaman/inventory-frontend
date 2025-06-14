@@ -395,26 +395,26 @@ export function PendingIssuesCount() {
       </Modal>
 
       <Modal open={isDetailsOpen} onOpenChange={setIsDetailsOpen}>
-        <ModalContent className="max-w-5xl bg-white rounded-xl shadow-xl border-[#002a6e]/10">
+        <ModalContent className="max-w-[95vw] md:max-w-5xl bg-white rounded-xl shadow-xl border-[#002a6e]/10">
           <ModalHeader className="border-b border-[#002a6e]/10 pb-4">
-            <div className="flex justify-between items-center">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
               <div>
-                <ModalTitle className="text-2xl font-bold bg-gradient-to-r from-[#003594] to-[#d2293b] bg-clip-text text-transparent">
+                <ModalTitle className="text-xl md:text-2xl font-bold bg-gradient-to-r from-[#003594] to-[#d2293b] bg-clip-text text-transparent">
                   Issue Details #{selectedIssue?.issue_slip_number}
                 </ModalTitle>
                 <div className="mt-2 text-gray-600 space-y-2">
-                  <div className="flex items-center gap-4">
+                  <div className="flex flex-col md:flex-row items-start md:items-center gap-2 md:gap-4">
                     <span>Issued By: {selectedIssue?.issued_by.name}</span>
-                    <span className="h-1 w-1 rounded-full bg-gray-400"></span>
+                    <span className="hidden md:block h-1 w-1 rounded-full bg-gray-400"></span>
                     <span>Staff ID: {selectedIssue?.issued_by.staffId}</span>
                   </div>
                 </div>
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 w-full md:w-auto">
                 <Button
                   variant="default"
                   size="sm"
-                  className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white transition-colors"
+                  className="flex-1 md:flex-none flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white transition-colors"
                   onClick={handleApproveIssue}
                 >
                   <Check className="h-4 w-4" />
@@ -423,7 +423,7 @@ export function PendingIssuesCount() {
                 <Button
                   variant="destructive"
                   size="sm"
-                  className="flex items-center gap-2 bg-[#d2293b] hover:bg-[#d2293b]/90 transition-colors"
+                  className="flex-1 md:flex-none flex items-center gap-2 bg-[#d2293b] hover:bg-[#d2293b]/90 transition-colors"
                   onClick={handleRejectClick}
                 >
                   <X className="h-4 w-4" />
@@ -433,31 +433,31 @@ export function PendingIssuesCount() {
             </div>
           </ModalHeader>
           <div className="mt-6">
-            <div className="overflow-x-auto rounded-lg border border-[#002a6e]/10">
-              <table className="w-full">
-                <thead>
-                  <tr className="bg-[#003594]/5">
-                    <th className="text-left p-4 font-semibold text-[#003594]">Item Name</th>
-                    <th className="text-left p-4 font-semibold text-[#003594]">Part Number</th>
-                    <th className="text-left p-4 font-semibold text-[#003594]">NAC Code</th>
-                    <th className="text-left p-4 font-semibold text-[#003594]">Quantity</th>
-                    <th className="text-left p-4 font-semibold text-[#003594]">Cost</th>
-                    <th className="text-left p-4 font-semibold text-[#003594]">Balance</th>
-                    <th className="text-left p-4 font-semibold text-[#003594]">Issued For</th>
-                    <th className="text-left p-4 font-semibold text-[#003594]">Actions</th>
+            <div className="overflow-x-auto rounded-lg border border-[#002a6e]/10 max-h-[60vh]">
+              <table className="w-full min-w-[800px]">
+                <thead className="sticky top-0 bg-[#003594]/5 z-10">
+                  <tr>
+                    <th className="text-left p-4 font-semibold text-[#003594] whitespace-nowrap">Item Name</th>
+                    <th className="text-left p-4 font-semibold text-[#003594] whitespace-nowrap">Part Number</th>
+                    <th className="text-left p-4 font-semibold text-[#003594] whitespace-nowrap">NAC Code</th>
+                    <th className="text-left p-4 font-semibold text-[#003594] whitespace-nowrap">Quantity</th>
+                    <th className="text-left p-4 font-semibold text-[#003594] whitespace-nowrap">Cost</th>
+                    <th className="text-left p-4 font-semibold text-[#003594] whitespace-nowrap">Balance</th>
+                    <th className="text-left p-4 font-semibold text-[#003594] whitespace-nowrap">Issued For</th>
+                    <th className="text-left p-4 font-semibold text-[#003594] whitespace-nowrap">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
                   {selectedIssue?.items?.map((item) => (
                     <tr key={item.id} className="border-t border-[#002a6e]/10 hover:bg-[#003594]/5 transition-colors">
-                      <td className="p-4 text-gray-900">{item.item_name}</td>
-                      <td className="p-4 text-gray-900">{item.part_number}</td>
-                      <td className="p-4 text-gray-900">{item.nac_code}</td>
-                      <td className="p-4 text-gray-900">{item.issue_quantity}</td>
-                      <td className="p-4 text-gray-900">NPR {item.issue_cost.toFixed(2)}</td>
-                      <td className="p-4 text-gray-900">{item.remaining_balance}</td>
-                      <td className="p-4 text-gray-900">{item.issued_for}</td>
-                      <td className="p-4 text-gray-900">
+                      <td className="p-4 text-gray-900 whitespace-nowrap">{item.item_name}</td>
+                      <td className="p-4 text-gray-900 whitespace-nowrap">{item.part_number}</td>
+                      <td className="p-4 text-gray-900 whitespace-nowrap">{item.nac_code}</td>
+                      <td className="p-4 text-gray-900 whitespace-nowrap">{item.issue_quantity}</td>
+                      <td className="p-4 text-gray-900 whitespace-nowrap">NPR {item.issue_cost.toFixed(2)}</td>
+                      <td className="p-4 text-gray-900 whitespace-nowrap">{item.remaining_balance}</td>
+                      <td className="p-4 text-gray-900 whitespace-nowrap">{item.issued_for}</td>
+                      <td className="p-4 text-gray-900 whitespace-nowrap">
                         <div className="flex items-center gap-2">
                           <Button
                             variant="outline"
