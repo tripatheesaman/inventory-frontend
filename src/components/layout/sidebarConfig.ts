@@ -7,6 +7,7 @@ interface SubmenuItem {
   href: string;
   permission?: string;
   icon?: IconName;
+  submenu?: SubmenuItem[];
 }
 
 interface SidebarLink {
@@ -96,6 +97,38 @@ export const sidebarLinks: SidebarLink[] = [
         permission: 'view_monthly_reports',
         icon: 'calendar'
       },
+      { 
+        label: "Fuel Reports", 
+        href: "/reports/fuel",
+        permission: 'can_access_fuel_menu',
+        icon: 'fuel',
+        submenu: [
+          {
+            label: "Weekly Diesel",
+            href: "/reports/fuel/diesel/weekly",
+            permission: 'can_access_fuel_menu',
+            icon: 'droplet'
+          },
+          {
+            label: "Weekly Petrol",
+            href: "/reports/fuel/petrol/weekly",
+            permission: 'can_access_fuel_menu',
+            icon: 'droplet'
+          },
+          {
+            label: "Petrol Consumption",
+            href: "/reports/fuel/petrol/consumption",
+            permission: 'can_access_fuel_menu',
+            icon: 'droplet'
+          },
+          {
+            label: "Oil Consumption",
+            href: "/reports/fuel/oil/consumption",
+            permission: 'can_access_fuel_menu',
+            icon: 'droplet'
+          }
+        ]
+      }
     ],
   },
   {
