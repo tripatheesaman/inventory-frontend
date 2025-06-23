@@ -42,13 +42,13 @@ export default function FuelReportsPage() {
   ];
 
   return (
-    <div className="container mx-auto py-6">
-      <h1 className="text-2xl font-bold mb-6">Fuel Reports</h1>
-      <div className="grid gap-6">
+    <div className="container mx-auto py-10">
+      <h1 className="text-3xl font-extrabold mb-10 text-[#003594] tracking-tight">Fuel Reports</h1>
+      <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
         {reportOptions.map((section) => (
-          <Card key={section.title}>
+          <Card key={section.title} className="shadow-lg rounded-xl border border-gray-200 bg-white hover:shadow-2xl transition-shadow">
             <CardHeader>
-              <CardTitle>{section.title}</CardTitle>
+              <CardTitle className="text-lg font-bold text-[#003594]">{section.title}</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="grid gap-4">
@@ -56,7 +56,7 @@ export default function FuelReportsPage() {
                   <Button
                     key={option.name}
                     variant="outline"
-                    className="w-full justify-start"
+                    className="w-full justify-start font-semibold border-[#003594] text-[#003594] hover:bg-[#003594] hover:text-white transition-colors"
                     onClick={() => router.push(option.path)}
                   >
                     {option.name}

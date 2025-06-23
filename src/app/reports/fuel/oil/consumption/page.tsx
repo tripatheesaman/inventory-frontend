@@ -6,34 +6,64 @@ import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { CalendarIcon } from 'lucide-react';
-import { format, startOfMonth, endOfMonth } from 'date-fns';
+import { format } from 'date-fns';
 import { API } from '@/lib/api';
 import { useToast } from '@/components/ui/use-toast';
+import { Label } from '@/components/ui/label';
+import { Spinner, ContentSpinner } from '@/components/ui/spinner';
 
 export default function OilConsumptionReportPage() {
-  const [date, setDate] = useState<Date>(new Date());
+  const [startDate, setStartDate] = useState<Date>(new Date());
+  const [endDate, setEndDate] = useState<Date>(new Date());
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
 
   const handleGenerateReport = async () => {
+    if (!startDate || !endDate) {
+      toast({
+        title: 'Error',
+        description: 'Please select both start and end dates',
+        variant: 'destructive',
+      });
+      return;
+    }
     setIsLoading(true);
     try {
-      const startDate = startOfMonth(date);
-      const endDate = endOfMonth(date);
-      
       const response = await API.get('/api/fuel/reports/oil/consumption', {
         params: {
           start_date: format(startDate, 'yyyy-MM-dd'),
           end_date: format(endDate, 'yyyy-MM-dd')
-        }
+        },
+        responseType: 'blob'
       });
 
-      // TODO: Handle the report data
-      console.log(response.data);
+      // Create a blob from the response data
+      const blob = new Blob([response.data], { 
+        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' 
+      });
+      
+      // Create a URL for the blob
+      const url = window.URL.createObjectURL(blob);
+      
+      // Create a temporary link element
+      const link = document.createElement('a');
+      link.href = url;
+      
+      // Set the file name
+      const fileName = `oil_consumption_report_${format(startDate, 'yyyy-MM-dd')}_to_${format(endDate, 'yyyy-MM-dd')}.xlsx`;
+      link.setAttribute('download', fileName);
+      
+      // Append to body, click, and remove
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      
+      // Clean up the URL
+      window.URL.revokeObjectURL(url);
       
       toast({
         title: 'Success',
-        description: 'Report generated successfully',
+        description: 'Report downloaded successfully',
       });
     } catch (error) {
       toast({
@@ -47,41 +77,66 @@ export default function OilConsumptionReportPage() {
   };
 
   return (
-    <div className="container mx-auto py-6">
-      <Card>
+    <div className="container mx-auto py-10">
+      <Card className="shadow-lg rounded-xl border border-gray-200 bg-white max-w-2xl mx-auto">
         <CardHeader>
-          <CardTitle>Oil Consumption Report</CardTitle>
+          <CardTitle className="text-2xl font-bold text-[#003594]">Oil Consumption Report</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid gap-6">
-            <div className="space-y-2">
-              <h3 className="font-semibold">Select Month</h3>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className="w-full justify-start text-left font-normal"
-                  >
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {date ? format(date, "MMMM yyyy") : <span>Pick a date</span>}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0">
-                  <Calendar
-                    value={date}
-                    onChange={(date: Date | null) => date && setDate(date)}
-                  />
-                </PopoverContent>
-              </Popover>
+          <div className="grid gap-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-2">
+                <Label className="text-[#003594] font-semibold">From Date</Label>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className="w-full justify-start text-left font-normal bg-white border-[#003594] text-[#003594] hover:bg-[#003594] hover:text-white"
+                    >
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {startDate ? format(startDate, "PPP") : <span>Pick a date</span>}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0 bg-white">
+                    <Calendar
+                      value={startDate}
+                      onChange={(date: Date | null) => date && setStartDate(date)}
+                      className="bg-white"
+                    />
+                  </PopoverContent>
+                </Popover>
+              </div>
+              <div className="space-y-2">
+                <Label className="text-[#003594] font-semibold">To Date</Label>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className="w-full justify-start text-left font-normal bg-white border-[#003594] text-[#003594] hover:bg-[#003594] hover:text-white"
+                    >
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {endDate ? format(endDate, "PPP") : <span>Pick a date</span>}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0 bg-white">
+                    <Calendar
+                      value={endDate}
+                      onChange={(date: Date | null) => date && setEndDate(date)}
+                      className="bg-white"
+                    />
+                  </PopoverContent>
+                </Popover>
+              </div>
             </div>
-
             <Button 
               onClick={handleGenerateReport} 
               disabled={isLoading}
-              className="w-full"
+              className="w-full bg-[#003594] text-white font-semibold hover:bg-[#d2293b] transition-colors"
             >
+              {isLoading ? <Spinner size="sm" variant="white" className="mr-2" /> : null}
               {isLoading ? 'Generating Report...' : 'Generate Report'}
             </Button>
+            {isLoading && <ContentSpinner />}
           </div>
         </CardContent>
       </Card>
