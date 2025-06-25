@@ -145,6 +145,36 @@ export const routes: RouteConfig[] = [
     title: 'Receive Petrol',
     permissions: ['can_receive_petrol'],
   },
+  {
+    path: '/reports/fuel',
+    requiresAuth: true,
+    title: 'Fuel Reports',
+    permissions: ['can_access_fuel_menu'],
+  },
+  {
+    path: '/reports/fuel/diesel/weekly',
+    requiresAuth: true,
+    title: 'Weekly Diesel Report',
+    permissions: ['can_access_fuel_menu'],
+  },
+  {
+    path: '/reports/fuel/petrol/weekly',
+    requiresAuth: true,
+    title: 'Weekly Petrol Report',
+    permissions: ['can_access_fuel_menu'],
+  },
+  {
+    path: '/reports/fuel/petrol/consumption',
+    requiresAuth: true,
+    title: 'Petrol Consumption Report',
+    permissions: ['can_access_fuel_menu'],
+  },
+  {
+    path: '/reports/fuel/oil/consumption',
+    requiresAuth: true,
+    title: 'Oil Consumption Report',
+    permissions: ['can_access_fuel_menu'],
+  },
 ];
 
 // Helper function to get route config by path
