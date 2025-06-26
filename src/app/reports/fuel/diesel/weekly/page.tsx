@@ -12,6 +12,7 @@ import { useToast } from '@/components/ui/use-toast';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { Spinner, ContentSpinner } from '@/components/ui/spinner';
 
 export default function WeeklyDieselReportPage() {
   const [startDate, setStartDate] = useState<Date>(new Date());
@@ -122,21 +123,21 @@ export default function WeeklyDieselReportPage() {
   };
 
   return (
-    <div className="container mx-auto py-6">
-      <Card>
+    <div className="container mx-auto py-10">
+      <Card className="shadow-lg rounded-xl border border-gray-200 bg-white max-w-2xl mx-auto">
         <CardHeader>
-          <CardTitle>Weekly Diesel Report</CardTitle>
+          <CardTitle className="text-2xl font-bold text-[#003594]">Weekly Diesel Report</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid gap-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid gap-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-2">
-                <Label>From Date</Label>
+                <Label className="text-[#003594] font-semibold">From Date</Label>
                 <Popover>
                   <PopoverTrigger asChild>
                     <Button
                       variant="outline"
-                      className="w-full justify-start text-left font-normal bg-white"
+                      className="w-full justify-start text-left font-normal bg-white border-[#003594] text-[#003594] hover:bg-[#003594] hover:text-white"
                     >
                       <CalendarIcon className="mr-2 h-4 w-4" />
                       {startDate ? format(startDate, "PPP") : <span>Pick a date</span>}
@@ -151,14 +152,13 @@ export default function WeeklyDieselReportPage() {
                   </PopoverContent>
                 </Popover>
               </div>
-
               <div className="space-y-2">
-                <Label>To Date</Label>
+                <Label className="text-[#003594] font-semibold">To Date</Label>
                 <Popover>
                   <PopoverTrigger asChild>
                     <Button
                       variant="outline"
-                      className="w-full justify-start text-left font-normal bg-white"
+                      className="w-full justify-start text-left font-normal bg-white border-[#003594] text-[#003594] hover:bg-[#003594] hover:text-white"
                     >
                       <CalendarIcon className="mr-2 h-4 w-4" />
                       {endDate ? format(endDate, "PPP") : <span>Pick a date</span>}
@@ -174,42 +174,42 @@ export default function WeeklyDieselReportPage() {
                 </Popover>
               </div>
             </div>
-
             <Button 
               onClick={handleGenerateReport} 
               disabled={isLoading}
-              className="w-full"
+              className="w-full bg-[#003594] text-white font-semibold hover:bg-[#d2293b] transition-colors"
             >
+              {isLoading ? <Spinner size="sm" variant="white" className="mr-2" /> : null}
               {isLoading ? 'Generating Report...' : 'Generate Report'}
             </Button>
+            {isLoading && <ContentSpinner />}
           </div>
         </CardContent>
       </Card>
-
       <Dialog open={showFlightDialog} onOpenChange={setShowFlightDialog}>
         <DialogContent className="bg-white">
           <DialogHeader>
-            <DialogTitle>Enter Number of Flights</DialogTitle>
+            <DialogTitle className="text-[#003594]">Enter Number of Flights</DialogTitle>
           </DialogHeader>
           <div className="py-4">
-            <Label>Number of Flights</Label>
+            <Label className="text-[#003594] font-semibold">Number of Flights</Label>
             <Input
               type="number"
               value={flightCount}
               onChange={(e) => setFlightCount(Number(e.target.value))}
               placeholder="Enter number of flights"
               min="0"
-              className="bg-white"
+              className="bg-white border-[#003594]"
             />
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setShowFlightDialog(false)}>
-              Cancel
-            </Button>
-            <Button onClick={handleFlightCountSubmit}>
+            <Button variant="outline" onClick={() => setShowFlightDialog(false)} className="border-[#003594] text-[#003594] hover:bg-[#003594] hover:text-white">Cancel</Button>
+            <Button onClick={handleFlightCountSubmit} className="bg-[#003594] text-white font-semibold hover:bg-[#d2293b] transition-colors">
+              {isLoading ? <Spinner size="sm" variant="white" className="mr-2" /> : null}
               Generate Report
             </Button>
           </DialogFooter>
+          {isLoading && <ContentSpinner />}
         </DialogContent>
       </Dialog>
     </div>

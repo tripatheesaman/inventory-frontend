@@ -9,6 +9,7 @@ import { CalendarIcon } from 'lucide-react';
 import { format, startOfMonth, endOfMonth } from 'date-fns';
 import { API } from '@/lib/api';
 import { useToast } from '@/components/ui/use-toast';
+import { Spinner, ContentSpinner } from '@/components/ui/spinner';
 
 export default function PetrolConsumptionReportPage() {
   const [date, setDate] = useState<Date>(new Date());
@@ -47,26 +48,26 @@ export default function PetrolConsumptionReportPage() {
   };
 
   return (
-    <div className="container mx-auto py-6">
-      <Card>
+    <div className="container mx-auto py-10">
+      <Card className="shadow-lg rounded-xl border border-gray-200 bg-white max-w-2xl mx-auto">
         <CardHeader>
-          <CardTitle>Petrol Consumption Report</CardTitle>
+          <CardTitle className="text-2xl font-bold text-[#003594]">Petrol Consumption Report</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid gap-6">
+          <div className="grid gap-8">
             <div className="space-y-2">
-              <h3 className="font-semibold">Select Month</h3>
+              <h3 className="font-semibold text-[#003594]">Select Month</h3>
               <Popover>
                 <PopoverTrigger asChild>
                   <Button
                     variant="outline"
-                    className="w-full justify-start text-left font-normal"
+                    className="w-full justify-start text-left font-normal bg-white border-[#003594] text-[#003594] hover:bg-[#003594] hover:text-white"
                   >
                     <CalendarIcon className="mr-2 h-4 w-4" />
                     {date ? format(date, "MMMM yyyy") : <span>Pick a date</span>}
                   </Button>
                 </PopoverTrigger>
-                <PopoverContent className="w-auto p-0">
+                <PopoverContent className="w-auto p-0 bg-white">
                   <Calendar
                     value={date}
                     onChange={(date: Date | null) => date && setDate(date)}
@@ -74,14 +75,15 @@ export default function PetrolConsumptionReportPage() {
                 </PopoverContent>
               </Popover>
             </div>
-
             <Button 
               onClick={handleGenerateReport} 
               disabled={isLoading}
-              className="w-full"
+              className="w-full bg-[#003594] text-white font-semibold hover:bg-[#d2293b] transition-colors"
             >
+              {isLoading ? <Spinner size="sm" variant="white" className="mr-2" /> : null}
               {isLoading ? 'Generating Report...' : 'Generate Report'}
             </Button>
+            {isLoading && <ContentSpinner />}
           </div>
         </CardContent>
       </Card>
