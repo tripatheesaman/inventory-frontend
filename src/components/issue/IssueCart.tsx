@@ -8,7 +8,6 @@ import { useState } from 'react';
 
 interface IssueCartProps {
   items: IssueCartItem[];
-  onRemoveItem: (itemId: string) => void;
   onUpdateItem: (itemId: string, updates: Partial<IssueCartItem>) => void;
   onDeleteItem: (itemId: string) => void;
   onSubmit: () => void;
@@ -153,7 +152,6 @@ function EditableItem({ item, onUpdate, onDelete }: EditableItemProps) {
 
 export function IssueCart({ 
   items, 
-  onRemoveItem, 
   onUpdateItem,
   onDeleteItem,
   onSubmit,

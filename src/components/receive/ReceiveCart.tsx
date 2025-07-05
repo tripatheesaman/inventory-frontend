@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -8,10 +8,10 @@ import { ReceiveCartItem } from '@/types/receive';
 import { Trash2, Pencil } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useCustomToast } from '@/components/ui/custom-toast';
+import Image from 'next/image';
 
 interface ReceiveCartProps {
   items: ReceiveCartItem[];
-  onRemoveItem: (id: string) => void;
   onUpdateItem: (itemId: string, updates: Partial<ReceiveCartItem>) => void;
   onDeleteItem: (itemId: string) => void;
   onSubmit: () => void;
@@ -19,9 +19,77 @@ interface ReceiveCartProps {
   isSubmitting: boolean;
 }
 
+// Separate component for cart item to avoid hooks in map
+function CartItem({ 
+  item, 
+  onEdit, 
+  onDelete 
+}: { 
+  item: ReceiveCartItem; 
+  onEdit: (item: ReceiveCartItem) => void; 
+  onDelete: (itemId: string) => void; 
+}) {
+  const imageUrl = useMemo(() => {
+    return item.image ? URL.createObjectURL(item.image) : null;
+  }, [item.image]);
+
+  return (
+    <div className="flex items-start justify-between p-4 border rounded-lg">
+      <div className="space-y-1">
+        <p className="font-medium">{item.itemName}</p>
+        <p className="text-sm text-muted-foreground">
+          NAC Code: {item.nacCode}
+        </p>
+        <p className="text-sm">
+          Receive Quantity: {item.receiveQuantity}
+        </p>
+        {item.partNumber && (
+          <p className="text-sm">Part Number: {item.partNumber}</p>
+        )}
+        <p className="text-sm">
+          Equipment Number: {item.equipmentNumber}
+        </p>
+        <p className="text-sm">
+          Location: {item.location}
+        </p>
+        <p className="text-sm">
+          Card Number: {item.cardNumber}
+        </p>
+        {imageUrl && (
+          <div className="mt-2">
+            <Image
+              src={imageUrl}
+              alt="Item"
+              width={200}
+              height={200}
+              className="max-w-[200px] h-auto rounded-md"
+              unoptimized
+            />
+          </div>
+        )}
+      </div>
+      <div className="flex space-x-2">
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={() => onEdit(item)}
+        >
+          <Pencil className="h-4 w-4" />
+        </Button>
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={() => onDelete(item.id)}
+        >
+          <Trash2 className="h-4 w-4" />
+        </Button>
+      </div>
+    </div>
+  );
+}
+
 export function ReceiveCart({
   items,
-  onRemoveItem,
   onUpdateItem,
   onDeleteItem,
   onSubmit,
@@ -47,22 +115,6 @@ export function ReceiveCart({
       unit: item.unit,
       image: item.image,
     });
-  };
-
-  const handleUpdate = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    if (!editingItem) return;
-
-    onUpdateItem(editingItem.id, {
-      receiveQuantity: editingItem.receiveQuantity,
-      partNumber: editingItem.partNumber,
-      equipmentNumber: editingItem.equipmentNumber,
-      location: editingItem.location,
-      cardNumber: editingItem.cardNumber,
-      image: editingItem.image,
-    });
-    setIsEditDialogOpen(false);
-    setEditingItem(null);
   };
 
   const handleEditSubmit = (e: React.FormEvent<HTMLFormElement>) => {
@@ -106,57 +158,12 @@ export function ReceiveCart({
       ) : (
         <div className="space-y-4">
           {items.map((item) => (
-            <div
+            <CartItem
               key={item.id}
-              className="flex items-start justify-between p-4 border rounded-lg"
-            >
-              <div className="space-y-1">
-                <p className="font-medium">{item.itemName}</p>
-                <p className="text-sm text-muted-foreground">
-                  NAC Code: {item.nacCode}
-                </p>
-                <p className="text-sm">
-                  Receive Quantity: {item.receiveQuantity}
-                </p>
-                {item.partNumber && (
-                  <p className="text-sm">Part Number: {item.partNumber}</p>
-                )}
-                <p className="text-sm">
-                  Equipment Number: {item.equipmentNumber}
-                </p>
-                <p className="text-sm">
-                  Location: {item.location}
-                </p>
-                <p className="text-sm">
-                  Card Number: {item.cardNumber}
-                </p>
-                {item.image && (
-                  <div className="mt-2">
-                    <img
-                      src={URL.createObjectURL(item.image)}
-                      alt="Item"
-                      className="max-w-[200px] rounded-md"
-                    />
-                  </div>
-                )}
-              </div>
-              <div className="flex space-x-2">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => handleEdit(item)}
-                >
-                  <Pencil className="h-4 w-4" />
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => onDeleteItem(item.id)}
-                >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
-              </div>
-            </div>
+              item={item}
+              onEdit={handleEdit}
+              onDelete={onDeleteItem}
+            />
           ))}
         </div>
       )}
@@ -273,7 +280,7 @@ export function ReceiveCart({
                     }}
                     className="mt-1 border-[#002a6e]/10 focus:border-[#003594] focus:ring-[#003594]/20"
                     placeholder="Enter location"
-                    disabled={editingItem?.location !== '0' && editingItem?.location !== ''}
+                    disabled={editFormData.nacCode !== 'N/A'}
                   />
                 </div>
 
@@ -291,7 +298,7 @@ export function ReceiveCart({
                     }}
                     className="mt-1 border-[#002a6e]/10 focus:border-[#003594] focus:ring-[#003594]/20"
                     placeholder="Enter card number"
-                    disabled={editingItem?.cardNumber !== '0' && editingItem?.cardNumber !== ''}
+                    disabled={editFormData.nacCode !== 'N/A'}
                   />
                 </div>
 

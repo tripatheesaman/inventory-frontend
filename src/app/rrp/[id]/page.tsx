@@ -9,8 +9,26 @@ import { useNotification } from '@/context/NotificationContext';
 import { useAuthContext } from '@/context/AuthContext';
 import { use } from 'react';
 
+interface RRPItem {
+  id: number;
+  item_name: string;
+  part_number: string;
+  nac_code: string;
+  equipment_number: string;
+  received_quantity: number;
+  unit: string;
+  item_price: number;
+  vat_percentage: number;
+  customs_charge: number;
+  currency: string;
+  forex_rate: number;
+  freight_charge: number;
+  customs_service_charge: number;
+  total_amount: number;
+}
+
 interface RRPDetails {
-  items: any[];
+  items: RRPItem[];
   rrpNumber: string;
   rrpDate: string;
   type: 'local' | 'foreign';
@@ -55,42 +73,57 @@ export default function RRPDetailsPage({ params }: { params: Promise<{ id: strin
       try {
         const response = await API.get(`/api/rrp/items/${resolvedParams.id}`);
         const data = response.data;
-        // Transform the data to match our interface
+        if (!data.rrpDetails || !Array.isArray(data.rrpDetails) || data.rrpDetails.length === 0) {
+          throw new Error('No RRP details found');
+        }
         const firstItem = data.rrpDetails[0];
-        const isForeign = firstItem.rrp_number.startsWith('F') ? true:false;
+        const isForeign = typeof firstItem.rrp_number === 'string' && firstItem.rrp_number.startsWith('F');
+
+        const items: RRPItem[] = data.rrpDetails.map((item: unknown) => {
+          if (typeof item === 'object' && item !== null && 'id' in item) {
+            const typedItem = item as Record<string, unknown>;
+            return {
+              id: Number(typedItem.id),
+              item_name: String(typedItem.item_name),
+              part_number: String(typedItem.part_number),
+              nac_code: String(typedItem.nac_code),
+              equipment_number: String(typedItem.equipment_number),
+              received_quantity: Number(typedItem.received_quantity),
+              unit: String(typedItem.unit),
+              item_price: Number(typedItem.item_price),
+              vat_percentage: Number(typedItem.vat_percentage),
+              customs_charge: Number(typedItem.customs_charge),
+              currency: String(typedItem.currency),
+              forex_rate: Number(typedItem.forex_rate),
+              freight_charge: parseFloat(String(typedItem.freight_charge)) || 0,
+              customs_service_charge: parseFloat(String(typedItem.customs_service_charge)) || 0,
+              total_amount: parseFloat(String(typedItem.total_amount)) || 0,
+            };
+          }
+          throw new Error('Invalid item structure');
+        });
+
+        const inspectionDetails = firstItem.inspection_details;
+        const inspectionUser = inspectionDetails && typeof inspectionDetails === 'object'
+          ? `${inspectionDetails.inspection_user},${inspectionDetails.inspection_details?.designation || ''}`
+          : '';
 
         const transformedData: RRPDetails = {
-          items: data.rrpDetails.map((item: any) => ({
-            id: item.id,
-            item_name: item.item_name,
-            part_number: item.part_number,
-            nac_code: item.nac_code,
-            equipment_number: item.equipment_number,
-            received_quantity: item.received_quantity,
-            unit: item.unit,
-            item_price: item.item_price,
-            vat_percentage: item.vat_percentage,
-            customs_charge: item.customs_charge,
-            currency: item.currency,
-            forex_rate: item.forex_rate,
-            freight_charge: parseFloat(item.freight_charge) || 0,
-            customs_service_charge: parseFloat(item.customs_service_charge) || 0,
-            total_amount: parseFloat(item.total_amount) || 0
-          })),
-          rrpNumber: firstItem.rrp_number,
-          rrpDate: firstItem.date,
+          items,
+          rrpNumber: String(firstItem.rrp_number),
+          rrpDate: String(firstItem.date),
           type: isForeign ? 'foreign' : 'local',
-          supplier: firstItem.supplier_name,
-          inspectionUser: `${firstItem.inspection_details.inspection_user},${firstItem.inspection_details.inspection_details?.designation || ''}`,
-          invoiceNumber: firstItem.invoice_number,
-          invoiceDate: firstItem.invoice_date,
-          freightCharge: parseFloat(firstItem.freight_charge) || 0,
-          customsDate: isForeign ? firstItem.customs_date : undefined,
-          poNumber: isForeign ? (firstItem.po_number || undefined) : undefined,
-          airwayBillNumber: isForeign ? (firstItem.airway_bill_number || undefined) : undefined,
-          customsNumber: isForeign ? (firstItem.customs_number || undefined) : undefined,
-          currency: isForeign ? firstItem.currency : undefined,
-          forexRate: isForeign ? parseFloat(firstItem.forex_rate) : undefined
+          supplier: String(firstItem.supplier_name),
+          inspectionUser,
+          invoiceNumber: String(firstItem.invoice_number),
+          invoiceDate: String(firstItem.invoice_date),
+          freightCharge: parseFloat(String(firstItem.freight_charge)) || 0,
+          customsDate: isForeign ? String(firstItem.customs_date) : undefined,
+          poNumber: isForeign ? (firstItem.po_number ? String(firstItem.po_number) : undefined) : undefined,
+          airwayBillNumber: isForeign ? (firstItem.airway_bill_number ? String(firstItem.airway_bill_number) : undefined) : undefined,
+          customsNumber: isForeign ? (firstItem.customs_number ? String(firstItem.customs_number) : undefined) : undefined,
+          currency: isForeign ? String(firstItem.currency) : undefined,
+          forexRate: isForeign ? parseFloat(String(firstItem.forex_rate)) : undefined
         };
 
         setRRPDetails(transformedData);
@@ -108,7 +141,7 @@ export default function RRPDetailsPage({ params }: { params: Promise<{ id: strin
     };
 
     fetchRRPDetails();
-  }, [resolvedParams.id]);
+  }, [resolvedParams.id, showErrorToast]);
 
   const handleDeleteItem = async (itemId: number) => {
     if (!rrpDetails) return;
@@ -121,7 +154,7 @@ export default function RRPDetailsPage({ params }: { params: Promise<{ id: strin
     });
   };
 
-  const handleEdit = async (data: any) => {
+  const handleEdit = async (data: RRPDetails) => {
     try {
       // Transform the data to match the backend's expected format
       const transformedData = {
@@ -142,7 +175,7 @@ export default function RRPDetailsPage({ params }: { params: Promise<{ id: strin
         approval_status: 'PENDING',
 
         // Array of items to update
-        items: data.items.map((item: any) => ({
+        items: data.items.map((item) => ({
           id: item.id,
           item_price: parseFloat(item.item_price?.toString() || '0'),
           customs_charge: parseFloat(item.customs_charge?.toString() || '0'),

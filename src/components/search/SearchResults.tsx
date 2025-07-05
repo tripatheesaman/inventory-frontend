@@ -1,19 +1,12 @@
 'use client'
 
 import { SearchResult, ReceiveSearchResult } from '@/types/search';
-import { Spinner } from '@/components/ui/spinner';
-import { normalizeEquipmentNumbers } from '@/utils/equipmentNumbers';
 
 interface SearchResultsProps {
   results: (SearchResult | ReceiveSearchResult)[] | null;
   isLoading: boolean;
   error: string | null;
   onRowDoubleClick: (item: SearchResult | ReceiveSearchResult) => void;
-  searchParams: {
-    universal: string;
-    equipmentNumber: string;
-    partNumber: string;
-  } | null;
   canViewFullDetails: boolean;
 }
 
@@ -22,7 +15,6 @@ export const SearchResults = ({
   isLoading,
   error,
   onRowDoubleClick,
-  searchParams,
   canViewFullDetails 
 }: SearchResultsProps) => {
   if (isLoading) {

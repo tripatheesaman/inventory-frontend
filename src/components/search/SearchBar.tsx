@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Search } from 'lucide-react';
 import { cn } from '@/utils/utils';
 
@@ -18,21 +18,23 @@ export const SearchBar = ({
   debounceTime = 300 
 }: SearchBarProps) => {
   const [searchTerm, setSearchTerm] = useState('');
-
-  // Debounced search function
-  const debouncedSearch = useCallback(
-    (value: string) => {
-      const timer = setTimeout(() => {
-        onSearch(value);
-      }, debounceTime);
-      return () => clearTimeout(timer);
-    },
-    [onSearch, debounceTime]
-  );
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
-    debouncedSearch(searchTerm);
-  }, [searchTerm, debouncedSearch]);
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+    }
+    
+    timeoutRef.current = setTimeout(() => {
+      onSearch(searchTerm);
+    }, debounceTime);
+
+    return () => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+    };
+  }, [searchTerm, onSearch, debounceTime]);
 
   return (
     <div className={cn("relative", className)}>

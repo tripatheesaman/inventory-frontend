@@ -21,15 +21,13 @@ interface ReceiveItemFormProps {
   onClose: () => void;
   item: ReceiveSearchResult | null;
   onSubmit: (item: ReceiveCartItem) => void;
-  isManualEntry?: boolean;
 }
 
 export const ReceiveItemForm = ({
   isOpen,
   onClose,
   item,
-  onSubmit,
-  isManualEntry = false
+  onSubmit
 }: ReceiveItemFormProps) => {
   const { showErrorToast } = useCustomToast();
   const [formData, setFormData] = useState<ReceiveCartItem>({
@@ -270,7 +268,7 @@ export const ReceiveItemForm = ({
                   className={`mt-1 border-[#002a6e]/10 focus:border-[#003594] focus:ring-[#003594]/20 ${errors.location ? 'border-red-500' : ''}`}
               placeholder="Enter location"
               required
-                  disabled={formData.location !== '0' && formData.location !== ''}
+                  disabled={formData.nacCode !== 'N/A'}
             />
                 {errors.location && (
                   <p className="text-sm text-red-500 mt-1">{errors.location}</p>
@@ -292,7 +290,7 @@ export const ReceiveItemForm = ({
                   className={`mt-1 border-[#002a6e]/10 focus:border-[#003594] focus:ring-[#003594]/20 ${errors.cardNumber ? 'border-red-500' : ''}`}
               placeholder="Enter card number"
               required
-                  disabled={formData.cardNumber !== '0' && formData.cardNumber !== ''}
+                  disabled={formData.nacCode !== 'N/A'}
             />
                 {errors.cardNumber && (
                   <p className="text-sm text-red-500 mt-1">{errors.cardNumber}</p>

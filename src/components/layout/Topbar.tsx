@@ -46,7 +46,7 @@ export default function TopBar({ onToggleSidebar }: TopBarProps) {
           <Menu className="h-5 w-5 text-[#003594]" />
       </Button>
         <div className="hidden md:block">
-          <h1 className="text-xl font-semibold text-[#003594]">Inventory Management System</h1>
+          <h1 className="text-xl font-semibold text-[#003594]">GIMS</h1>
         </div>
       </div>
 

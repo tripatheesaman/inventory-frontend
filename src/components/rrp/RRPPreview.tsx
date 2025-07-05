@@ -1,6 +1,5 @@
 'use client';
 
-import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -82,7 +81,7 @@ export default function RRPPreview({
   onCustomsDateChange,
 }: RRPPreviewProps) {
   const { config } = useRRP();
-  const { showErrorToast, showSuccessToast } = useCustomToast();
+  const { showErrorToast } = useCustomToast();
   const vatRate = config?.vat_rate || 0;
   const customServiceCharge = config?.customServiceCharge || 565; // Default to 565 if not found in config
   const isForeign = currency !== 'NPR';

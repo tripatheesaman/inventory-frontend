@@ -34,7 +34,7 @@ export default function AppSettingsPage() {
     };
 
     fetchFiscalYear();
-  }, []);
+  }, [showErrorToast]);
 
   const handleSave = async () => {
     if (!permissions?.includes('can_change_fy')) {

@@ -1,6 +1,6 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuthContext } from '@/context/AuthContext';
 import { useCustomToast } from '@/components/ui/custom-toast';
@@ -50,7 +50,7 @@ interface EditUserFormProps {
 
 export default function EditUserForm({ userId }: EditUserFormProps) {
   const router = useRouter();
-  const { permissions, user } = useAuthContext();
+  const { user } = useAuthContext();
   const { showSuccessToast, showErrorToast } = useCustomToast();
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
@@ -67,14 +67,7 @@ export default function EditUserForm({ userId }: EditUserFormProps) {
     can_reset_password: 0,
   });
 
-  useEffect(() => {
-    Promise.all([
-      fetchUserData(),
-      fetchRoles(),
-    ]);
-  }, [userId]);
-
-  const fetchUserData = async () => {
+  const fetchUserData = useCallback(async () => {
     try {
       const response = await API.get(`/api/user/${userId}`, {
         params: {
@@ -104,9 +97,9 @@ export default function EditUserForm({ userId }: EditUserFormProps) {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [userId, showErrorToast, user?.UserInfo.username]);
 
-  const fetchRoles = async () => {
+  const fetchRoles = useCallback(async () => {
     try {
       const response = await API.get('/api/role', {
         params: {
@@ -124,7 +117,15 @@ export default function EditUserForm({ userId }: EditUserFormProps) {
         duration: 3000,
       });
     }
-  };
+  }, [showErrorToast, user?.UserInfo.username]);
+
+  useEffect(() => {
+    Promise.all([
+      fetchUserData(),
+      fetchRoles(),
+    ]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleInputChange = (field: string, value: string | number) => {
     setFormData(prev => ({

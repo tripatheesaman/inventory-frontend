@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { API } from '@/lib/api';
 import { useCustomToast } from '@/components/ui/custom-toast';
 
-export default function ReceiveDetailsPage({ params }: { params: { id: string } }) {
+export default function ReceiveDetailsPage() {
   const searchParams = useSearchParams();
   const notificationId = searchParams.get('notificationId');
   const router = useRouter();

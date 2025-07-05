@@ -1,5 +1,3 @@
-import { LucideIcon, Users, Settings, Fuel, Droplet, Package } from 'lucide-react';
-
 export type IconName = 'home' | 'search' | 'request' | 'log-in' | 'log-out' | 'file-text' | 'printer' | 'receipt' | 'calendar' | 'print' | 'users' | 'settings' | 'fuel' | 'droplet' | 'package';
 
 interface SubmenuItem {

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuthContext } from '@/context/AuthContext';
 import { useCustomToast } from '@/components/ui/custom-toast';
@@ -33,7 +33,7 @@ interface Role {
 
 export default function CreateUserPage() {
   const router = useRouter();
-  const { permissions, user } = useAuthContext();
+  const { user } = useAuthContext();
   const { showSuccessToast, showErrorToast } = useCustomToast();
   const [isLoading, setIsLoading] = useState(false);
   const [availableRoles, setAvailableRoles] = useState<Role[]>([]);
@@ -49,11 +49,7 @@ export default function CreateUserPage() {
     status: 1,
   });
 
-  useEffect(() => {
-    fetchRoles();
-  }, []);
-
-  const fetchRoles = async () => {
+  const fetchRoles = useCallback(async () => {
     try {
       const response = await API.get('/api/role', {
         params: {
@@ -71,7 +67,11 @@ export default function CreateUserPage() {
         duration: 3000,
       });
     }
-  };
+  }, [showErrorToast, user?.UserInfo.username]);
+
+  useEffect(() => {
+    fetchRoles();
+  }, [fetchRoles]);
 
   const handleInputChange = (field: string, value: string | number) => {
     setFormData(prev => ({
@@ -108,11 +108,44 @@ export default function CreateUserPage() {
         });
         router.push('/users');
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error creating user:', error);
+      let errorTitle = "Error";
+      let errorMessage = "Failed to create user";
+      if (
+        error &&
+        typeof error === 'object' &&
+        'response' in error &&
+        typeof (error as { response?: unknown }).response === 'object' &&
+        (error as { response?: unknown }).response !== null
+      ) {
+        const response = (error as { response?: unknown }).response;
+        if (
+          typeof response === 'object' &&
+          response !== null &&
+          'data' in response &&
+          typeof (response as { data?: unknown }).data === 'object' &&
+          (response as { data?: unknown }).data !== null
+        ) {
+          const data = (response as { data?: unknown }).data;
+          if (
+            typeof data === 'object' &&
+            data !== null
+          ) {
+            if ('error' in data && typeof (data as { error?: unknown }).error === 'string') {
+              errorTitle = (data as { error: string }).error || errorTitle;
+            }
+            if ('message' in data && typeof (data as { message?: unknown }).message === 'string') {
+              errorMessage = (data as { message: string }).message || errorMessage;
+            }
+          }
+        }
+      } else if (error instanceof Error && error.message) {
+        errorMessage = error.message;
+      }
       showErrorToast({
-        title: error.response?.data?.error || "Error",
-        message: error.response?.data?.message || "Failed to create user",
+        title: errorTitle,
+        message: errorMessage,
         duration: 3000
       });
     } finally {

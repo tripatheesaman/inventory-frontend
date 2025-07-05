@@ -13,7 +13,7 @@ import { EquipmentRangeSelect } from '@/components/request/EquipmentRangeSelect'
 interface IssueItemFormProps {
   isOpen: boolean;
   onClose: () => void;
-  item: any;
+  item: IssueCartItem | null;
   onSubmit: (item: IssueCartItem) => void;
 }
 

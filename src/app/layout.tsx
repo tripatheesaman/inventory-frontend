@@ -14,8 +14,11 @@ import { NotificationProvider } from '@/context/NotificationContext';
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: 'Inventory Management',
-  description: 'Inventory management system',
+  title: 'GIMS',
+  description: 'Inventory Management System',
+  icons: {
+    icon: '/images/nac_icon.png',
+  },
 };
 
 interface LayoutProps {

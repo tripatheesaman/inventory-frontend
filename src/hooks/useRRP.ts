@@ -1,6 +1,5 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { API } from '@/lib/api';
-import { useCustomToast } from '@/components/ui/custom-toast';
 
 interface InspectionUser {
   name: string;
@@ -17,12 +16,11 @@ interface RRPConfig {
 }
 
 export function useRRP() {
-  const { showErrorToast } = useCustomToast();
   const [config, setConfig] = useState<RRPConfig | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const configLoadedRef = useRef(false);
 
-  const fetchConfig = async () => {
+  const fetchConfig = useCallback(async () => {
     if (!configLoadedRef.current) {
       try {
         const response = await API.get('/api/rrp/config');
@@ -30,16 +28,12 @@ export function useRRP() {
         configLoadedRef.current = true;
       } catch (error) {
         console.error('Error fetching RRP config:', error);
-        showErrorToast({
-          title: "Error",
-          message: "Failed to load RRP configuration",
-          duration: 3000,
-        });
+        // Don't show toast here to avoid dependency issues
       } finally {
         setIsLoading(false);
       }
     }
-  };
+  }, []);
 
   const refreshConfig = async () => {
     configLoadedRef.current = false;
@@ -49,7 +43,7 @@ export function useRRP() {
 
   useEffect(() => {
     fetchConfig();
-  }, []);
+  }, [fetchConfig]);
 
   // Helper functions to get formatted data
   const getLocalSuppliers = () => config?.supplier_list_local.split(',').map(s => s.trim()) || [];

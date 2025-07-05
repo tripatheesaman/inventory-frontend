@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useCustomToast } from '@/components/ui/custom-toast';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -26,11 +26,10 @@ export default function NewRRPPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const rrpType = searchParams.get('type') || 'local';
-  const { showErrorToast, showSuccessToast } = useCustomToast();
+  const { showErrorToast } = useCustomToast();
   const { config, isLoading, getLocalSuppliers, getForeignSuppliers, getCurrencies } = useRRP();
-  const [isVerifying, setIsVerifying] = useState(false);
   const [previousRRPDate, setPreviousRRPDate] = useState<Date | null>(null);
-  const [isNewRRP, setIsNewRRP] = useState(false);
+  const [isNewRRP] = useState(false);
 
   // Initialize state from URL parameters
   const [dates, setDates] = useState<RRPDates>({
@@ -157,7 +156,6 @@ export default function NewRRPPage() {
     }
 
     try {
-      setIsVerifying(true);
       const response = await API.get(`/api/rrp/verifyRRPNumber/${rrpNumber}?date=${dates.rrpDate.toISOString()}`);
       
       // Handle error responses
@@ -223,15 +221,42 @@ export default function NewRRPPage() {
 
         router.push(`/rrp/items?${queryParams.toString()}`);
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error verifying RRP number:', error);
+      let errorMessage = "Failed to verify RRP number";
+      if (
+        error &&
+        typeof error === 'object' &&
+        'response' in error &&
+        typeof (error as { response?: unknown }).response === 'object' &&
+        (error as { response?: unknown }).response !== null
+      ) {
+        const response = (error as { response?: unknown }).response;
+        if (
+          typeof response === 'object' &&
+          response !== null &&
+          'data' in response &&
+          typeof (response as { data?: unknown }).data === 'object' &&
+          (response as { data?: unknown }).data !== null
+        ) {
+          const data = (response as { data?: unknown }).data;
+          if (
+            typeof data === 'object' &&
+            data !== null &&
+            'message' in data &&
+            typeof (data as { message?: unknown }).message === 'string'
+          ) {
+            errorMessage = (data as { message: string }).message;
+          }
+        }
+      } else if (error instanceof Error && error.message) {
+        errorMessage = error.message;
+      }
       showErrorToast({
         title: "Error",
-        message: error.response?.data?.message || "Failed to verify RRP number",
+        message: errorMessage,
         duration: 3000,
       });
-    } finally {
-      setIsVerifying(false);
     }
   };
 

@@ -8,7 +8,6 @@ import { RequestCartItem } from '@/types/request';
 import { format } from 'date-fns';
 import { Pencil, Check, X, Trash2, Loader2 } from 'lucide-react';
 import { EquipmentSelect } from '../issue/EquipmentSelect';
-import { Spinner } from '@/components/ui/spinner';
 
 interface RequestPreviewModalProps {
   isOpen: boolean;

@@ -5,7 +5,7 @@ Purpose: Receive Page
 
 'use client'
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Calendar } from '@/components/ui/calendar';
 import { SearchControls } from '@/components/search';
 import { useReceiveSearch } from '@/hooks/useReceiveSearch';
@@ -32,10 +32,8 @@ export default function ReceivePage() {
   const [cart, setCart] = useState<ReceiveCartItem[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [remarks, setRemarks] = useState<string>('');
-  const [isLoadingLastReceive, setIsLoadingLastReceive] = useState(true);
 
   const {
-    searchParams,
     results,
     isLoading,
     error,
@@ -50,17 +48,25 @@ export default function ReceivePage() {
     }
   };
 
-  const handleItemSelect = (item: ReceiveSearchResult) => {
-    setSelectedItem(item);
-    setIsItemFormOpen(true);
-  };
-
   const handleAddToCart = (item: ReceiveCartItem) => {
     // Check if cart already has 3 items
     if (cart.length >= 3) {
       showErrorToast({
         title: "Error",
         message: "Maximum of 3 items can be received at once.",
+        duration: 3000,
+      });
+      return;
+    }
+
+    // Check if item is already in cart (by original request ID)
+    const originalRequestId = item.id.split('-')[0];
+    const isDuplicate = cart.some(cartItem => cartItem.id.split('-')[0] === originalRequestId);
+    
+    if (isDuplicate) {
+      showErrorToast({
+        title: "Error",
+        message: "This item is already in your receive cart.",
         duration: 3000,
       });
       return;
@@ -82,20 +88,6 @@ export default function ReceivePage() {
     setCart(prev => [...prev, cartItem]);
     setIsItemFormOpen(false);
     setSelectedItem(null);
-  };
-
-  const handleRemoveFromCart = (itemId: string) => {
-    const removedItem = cart.find(item => item.id === itemId);
-    if (removedItem) {
-      setResults((prevResults: ReceiveSearchResult[] | null) => 
-        prevResults?.map(result => 
-          result.id === Number(removedItem.id)
-            ? { ...result, currentBalance: String(Number(result.currentBalance) - removedItem.receiveQuantity) }
-            : result
-        ) ?? null
-      );
-    }
-    setCart(prev => prev.filter(item => item.id !== itemId));
   };
 
   const handlePreviewSubmit = () => {
@@ -273,7 +265,6 @@ export default function ReceivePage() {
                     isLoading={isLoading}
                     error={error}
                     onRowDoubleClick={handleRowDoubleClick}
-                    searchParams={searchParams}
                     canViewFullDetails={canViewFullDetails}
                   />
                 )}
@@ -311,7 +302,6 @@ export default function ReceivePage() {
               <div className="bg-white rounded-xl shadow-sm border border-[#002a6e]/10 p-6 hover:border-[#d2293b]/20 transition-colors">
                 <ReceiveCart
                   items={cart}
-                  onRemoveItem={handleRemoveFromCart}
                   onUpdateItem={handleUpdateCartItem}
                   onDeleteItem={handleDeleteCartItem}
                   onSubmit={handlePreviewSubmit}

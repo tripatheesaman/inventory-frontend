@@ -8,7 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Loader2, Search, Trash2, Edit2, ArrowLeft } from 'lucide-react';
+import { Loader2, Trash2, ArrowLeft } from 'lucide-react';
 import {
   Table,
   TableBody,
@@ -25,7 +25,6 @@ import {
 } from '@/components/ui/dialog';
 import { Switch } from '@/components/ui/switch';
 import { useRRP } from '@/hooks/useRRP';
-import { useAuthContext } from '@/context/AuthContext';
 import {
   Select,
   SelectContent,
@@ -65,7 +64,6 @@ export default function RRPItemsPage() {
   const searchParams = useSearchParams();
   const { showErrorToast } = useCustomToast();
   const { isLoading: isConfigLoading, getCurrencies } = useRRP();
-  const { user } = useAuthContext();
   const [isLoading, setIsLoading] = useState(true);
   const [items, setItems] = useState<RRPItem[]>([]);
   const [filteredItems, setFilteredItems] = useState<RRPItem[]>([]);
@@ -96,18 +94,14 @@ export default function RRPItemsPage() {
         setFilteredItems(response.data);
       } catch (error) {
         console.error('Error fetching RRP items:', error);
-        showErrorToast({
-          title: "Error",
-          message: "Failed to load RRP items",
-          duration: 3000,
-        });
+        // Don't show toast here to avoid infinite loop
       } finally {
         setIsLoading(false);
       }
     };
 
     fetchItems();
-  }, []);
+  }, []); // Remove showErrorToast dependency
 
   useEffect(() => {
     const filtered = items.filter(item =>
@@ -182,11 +176,6 @@ export default function RRPItemsPage() {
 
   const handleRemoveFromCart = (index: number) => {
     setCart(prev => prev.filter((_, i) => i !== index));
-  };
-
-  const handleEditCartItem = (index: number) => {
-    setSelectedItem(cart[index]);
-    setIsDialogOpen(true);
   };
 
   const handleSubmit = async () => {

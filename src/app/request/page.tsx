@@ -1,10 +1,10 @@
 'use client'
 
-import { useState, useEffect, Suspense, lazy } from 'react';
+import { useState, useEffect, Suspense, lazy, useCallback } from 'react';
 import { Calendar } from '@/components/ui/calendar';
 import { SearchControls } from '@/components/search';
 import { useSearch } from '@/hooks/useSearch';
-import { RequestCartItem, RequestData } from '@/types/request';
+import { RequestCartItem } from '@/types/request';
 import { useAuthContext } from '@/context/AuthContext';
 import { useCustomToast } from "@/components/ui/custom-toast";
 import { Input } from '@/components/ui/input';
@@ -58,13 +58,11 @@ export default function RequestPage() {
   const [isLoadingLastRequest, setIsLoadingLastRequest] = useState(true);
 
   const {
-    searchParams,
     results,
     isLoading,
     error,
     handleSearch,
     setResults,
-    setSearchParams,
   } = useSearch();
 
   // Cache for last request info
@@ -74,56 +72,60 @@ export default function RequestPage() {
     timestamp: number;
   } | null>(null);
 
-  useEffect(() => {
-    const fetchLastRequestInfo = async () => {
-      // Check cache first
-      if (lastRequestCache && Date.now() - lastRequestCache.timestamp < 5 * 60 * 1000) { // 5 minutes cache
-        setRequestNumber(lastRequestCache.requestNumber);
-        if (lastRequestCache.requestDate) {
-          setDate(new Date(lastRequestCache.requestDate));
-        }
-        setIsLoadingLastRequest(false);
-        return;
+  const fetchLastRequestInfo = useCallback(async () => {
+    // Check cache first
+    if (lastRequestCache && Date.now() - lastRequestCache.timestamp < 5 * 60 * 1000) { // 5 minutes cache
+      setRequestNumber(lastRequestCache.requestNumber);
+      if (lastRequestCache.requestDate) {
+        setDate(new Date(lastRequestCache.requestDate));
       }
+      setIsLoadingLastRequest(false);
+      return;
+    }
 
-      try {
-        const response = await API.get('/api/request/getlastrequestinfo');
-        if (response.status === 200 && response.data) {
-          const { requestNumber: lastRequestNumber, requestDate } = response.data;
-          setRequestNumber(lastRequestNumber || '');
-          if (requestDate) {
-            setDate(new Date(requestDate));
-          }
-          // Update cache
-          setLastRequestCache({
-            requestNumber: lastRequestNumber || '',
-            requestDate: requestDate || '',
-            timestamp: Date.now()
-          });
+    try {
+      const response = await API.get('/api/request/getlastrequestinfo');
+      if (response.status === 200 && response.data) {
+        const { requestNumber: lastRequestNumber, requestDate } = response.data;
+        setRequestNumber(lastRequestNumber || '');
+        if (requestDate) {
+          setDate(new Date(requestDate));
         }
-      } catch (error) {
-        console.error('Error fetching last request info:', error);
-        showErrorToast({
-          title: "Error",
-          message: "Failed to fetch last request information",
-          duration: 3000,
+        // Update cache
+        setLastRequestCache({
+          requestNumber: lastRequestNumber || '',
+          requestDate: requestDate || '',
+          timestamp: Date.now()
         });
-      } finally {
-        setIsLoadingLastRequest(false);
       }
-    };
+    } catch (error: unknown) {
+      // Handle 404 gracefully - no last request info is a normal case
+      if (error && typeof error === 'object' && 'response' in error && error.response && typeof error.response === 'object' && 'status' in error.response && error.response.status === 404) {
+        // 404 means no last request info, which is normal for new users
+        console.log('No previous request info found - this is normal for new users');
+        setRequestNumber('');
+        setDate(undefined);
+        // Update cache with empty values
+        setLastRequestCache({
+          requestNumber: '',
+          requestDate: '',
+          timestamp: Date.now()
+        });
+      } else {
+        // Log other errors but don't show toast to avoid dependency issues
+        console.error('Error fetching last request info:', error);
+      }
+    } finally {
+      setIsLoadingLastRequest(false);
+    }
+  }, [lastRequestCache]);
 
+  useEffect(() => {
     fetchLastRequestInfo();
-  }, []);
+  }, [fetchLastRequestInfo]);
 
   const handleRowDoubleClick = (item: SearchResult) => {
     setSelectedItem(item);
-    setIsItemFormOpen(true);
-  };
-
-  const handleItemSelect = (item: SearchResult) => {
-    setSelectedItem(item);
-    setIsManualEntry(false);
     setIsItemFormOpen(true);
   };
 
@@ -161,20 +163,6 @@ export default function RequestPage() {
     setIsItemFormOpen(false);
     setSelectedItem(null);
     setIsManualEntry(false);
-  };
-
-  const handleRemoveFromCart = (itemId: string) => {
-    const removedItem = cart.find(item => item.id === itemId);
-    if (removedItem) {
-      setResults((prevResults: SearchResult[] | null) => 
-        prevResults?.map(result => 
-          result.id === Number(removedItem.id)
-            ? { ...result, currentBalance: (Number(result.currentBalance) + removedItem.requestQuantity).toString() }
-            : result
-        ) ?? null
-      );
-    }
-    setCart(prev => prev.filter(item => item.id !== itemId));
   };
 
   const handlePreviewSubmit = () => {
@@ -314,29 +302,71 @@ export default function RequestPage() {
           console.error('Unexpected response status:', response.status);
           throw new Error(response.data?.message || 'Failed to submit request');
         }
-      } catch (apiError) {
+      } catch (apiError: unknown) {
         console.error('API error details:', apiError);
         if (apiError instanceof Error) {
           throw apiError;
-        } else if (typeof apiError === 'object' && apiError !== null) {
-          const axiosError = apiError as any;
-          console.error('Axios error response:', axiosError.response);
-          throw new Error(axiosError.response?.data?.message || 'Failed to submit request');
+        } else if (
+          typeof apiError === 'object' &&
+          apiError !== null &&
+          'response' in apiError &&
+          typeof (apiError as { response?: unknown }).response === 'object' &&
+          (apiError as { response?: unknown }).response !== null
+        ) {
+          const response = (apiError as { response?: unknown }).response;
+          if (
+            typeof response === 'object' &&
+            response !== null &&
+            'data' in response &&
+            typeof (response as { data?: unknown }).data === 'object' &&
+            (response as { data?: unknown }).data !== null
+          ) {
+            const data = (response as { data?: unknown }).data;
+            if (
+              typeof data === 'object' &&
+              data !== null &&
+              'message' in data &&
+              typeof (data as { message?: unknown }).message === 'string'
+            ) {
+              console.error('Axios error response:', response);
+              throw new Error((data as { message: string }).message || 'Failed to submit request');
+            }
+          }
         } else {
           throw new Error('An unknown error occurred');
         }
       }
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Error submitting request:', error);
-      
       let errorMessage = "Failed to submit request";
       if (error instanceof Error) {
         errorMessage = error.message;
-      } else if (typeof error === 'object' && error !== null) {
-        const axiosError = error as any;
-        errorMessage = axiosError.response?.data?.message || errorMessage;
+      } else if (
+        typeof error === 'object' &&
+        error !== null &&
+        'response' in error &&
+        typeof (error as { response?: unknown }).response === 'object' &&
+        (error as { response?: unknown }).response !== null
+      ) {
+        const response = (error as { response?: unknown }).response;
+        if (
+          typeof response === 'object' &&
+          response !== null &&
+          'data' in response &&
+          typeof (response as { data?: unknown }).data === 'object' &&
+          (response as { data?: unknown }).data !== null
+        ) {
+          const data = (response as { data?: unknown }).data;
+          if (
+            typeof data === 'object' &&
+            data !== null &&
+            'message' in data &&
+            typeof (data as { message?: unknown }).message === 'string'
+          ) {
+            errorMessage = (data as { message: string }).message;
+          }
+        }
       }
-
       showErrorToast({
         title: "Error",
         message: errorMessage,
@@ -366,6 +396,19 @@ export default function RequestPage() {
             {/* Left Column - Search and Results */}
             <div className="lg:col-span-2 space-y-8">
               <div className="bg-white rounded-xl shadow-sm border border-[#002a6e]/10 p-6 hover:border-[#d2293b]/20 transition-colors">
+                <div className="flex items-center justify-between mb-4">
+                  <span className="text-lg font-semibold text-[#003594]">Search Inventory</span>
+                  <Button
+                    variant="outline"
+                    onClick={handleManualEntry}
+                    className="flex items-center gap-2 border-[#d2293b] text-[#d2293b] bg-[#ffeaea] hover:bg-[#d2293b]/10"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="w-5 h-5">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                    </svg>
+                    Request New Item
+                  </Button>
+                </div>
                 <SearchControls
                   onUniversalSearch={handleSearch('universal')}
                   onEquipmentSearch={handleSearch('equipmentNumber')}
@@ -383,7 +426,6 @@ export default function RequestPage() {
                       isLoading={isLoading}
                       error={error}
                       onRowDoubleClick={handleRowDoubleClick}
-                      searchParams={searchParams}
                       canViewFullDetails={canViewFullDetails}
                     />
                   )}
@@ -427,12 +469,6 @@ export default function RequestPage() {
                       placeholder="Enter any remarks"
                     />
                   </div>
-                  <Button
-                    onClick={handleManualEntry}
-                    className="w-full bg-[#003594] hover:bg-[#d2293b] text-white transition-colors"
-                  >
-                    Request New Item
-                  </Button>
                 </div>
               </div>
 
@@ -440,7 +476,6 @@ export default function RequestPage() {
                 <Suspense fallback={<RequestCartSkeleton />}>
                   <RequestCart
                     items={cart}
-                    onRemoveItem={handleRemoveFromCart}
                     onUpdateItem={handleUpdateCartItem}
                     onDeleteItem={handleDeleteCartItem}
                     onSubmit={handlePreviewSubmit}

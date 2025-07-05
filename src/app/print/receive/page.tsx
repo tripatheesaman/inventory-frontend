@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useDebounce } from '@/hooks/useDebounce';
 import { API } from '@/lib/api';
 import { Input } from '@/components/ui/input';
@@ -39,9 +39,7 @@ interface ReceiveSearchResult {
 export default function PrintReceivePage() {
   const [searchParams, setSearchParams] = useState<ReceiveSearchParams>({});
   const [results, setResults] = useState<ReceiveSearchResult[] | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [currentPage, setCurrentPage] = useState(1);
+  const [currentPage] = useState(1);
   const [previewReceive, setPreviewReceive] = useState<ReceiveSearchResult | null>(null);
   const itemsPerPage = 10;
 
@@ -51,27 +49,20 @@ export default function PrintReceivePage() {
 
   const { toast } = useToast();
 
-  const searchReceives = async (params: ReceiveSearchParams) => {
-    setIsLoading(true);
-    setError(null);
-
+  const searchReceives = useCallback(async (params: ReceiveSearchParams) => {
     try {
       const response = await API.get('/api/receive/search', { params });
       setResults(response.data);
     } catch (err) {
       console.error('Search error:', err);
-      setError('Failed to search receives. Please try again.');
       toast({
         title: 'Error',
         description: 'Failed to search receives. Please try again.',
         variant: 'destructive',
       });
-    } finally {
-      setIsLoading(false);
     }
-  };
+  }, [toast]);
 
-  // Effect to trigger search when debounced values change
   useEffect(() => {
     // Only search if at least one search parameter has a value
     if (debouncedUniversal || debouncedEquipment || debouncedPart) {
@@ -85,7 +76,7 @@ export default function PrintReceivePage() {
       // Clear results when no search parameters
       setResults(null);
     }
-  }, [debouncedUniversal, debouncedEquipment, debouncedPart]);
+  }, [debouncedUniversal, debouncedEquipment, debouncedPart, searchReceives]);
 
   const handleUniversalSearch = (value: string) => {
     setSearchParams(prev => ({ ...prev, universal: value }));

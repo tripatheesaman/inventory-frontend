@@ -4,6 +4,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { format } from 'date-fns';
 import { IMAGE_BASE_URL } from '@/constants/api';
 import { cn } from '@/utils/utils';
+import Image from 'next/image';
 
 interface PrintReceivePreviewModalProps {
   receive: {
@@ -90,10 +91,13 @@ export function PrintReceivePreviewModal({ receive, isOpen, onClose }: PrintRece
                       <td className="px-6 py-4 whitespace-nowrap">{item.location}</td>
                       <td className="px-6 py-4 whitespace-nowrap">{item.cardNumber}</td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <img 
+                        <Image
                           src={item.imageUrl ? (item.imageUrl.startsWith('http') ? item.imageUrl : `${IMAGE_BASE_URL}${item.imageUrl.replace(/^\//, '')}`) : '/images/nepal_airlines_logo.png'}
                           alt={item.itemName}
+                          width={64}
+                          height={64}
                           className="w-16 h-16 object-cover rounded-lg border border-[#002a6e]/10"
+                          unoptimized={item.imageUrl ? item.imageUrl.startsWith('http') : false}
                           onError={(e) => {
                             const target = e.target as HTMLImageElement;
                             target.src = '/nepal_airlines_logo.png';

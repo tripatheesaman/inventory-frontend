@@ -9,7 +9,6 @@ import { useRouter } from 'next/navigation';
 import { API } from '@/lib/api';
 import { cn } from '@/utils/utils';
 import { useToast } from '@/components/ui/use-toast';
-import { useAuthContext } from '@/context/AuthContext';
 
 export function NotificationBell() {
   const [isOpen, setIsOpen] = useState(false);
@@ -17,7 +16,16 @@ export function NotificationBell() {
   const { notifications, unreadCount, markAsRead, markAllAsRead, fetchNotifications } = useNotification();
   const router = useRouter();
   const { toast } = useToast();
-  const { user } = useAuthContext();
+
+  // Define a type for notification
+  type NotificationType = {
+    id: number;
+    referenceType: string;
+    referenceNumber: string;
+    message: string;
+    isRead: number;
+    createdAt: string;
+  };
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -30,7 +38,7 @@ export function NotificationBell() {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const handleNotificationClick = async (notification: any) => {
+  const handleNotificationClick = async (notification: NotificationType) => {
     try {
       // Mark notification as read
       await markAsRead(notification.id);
@@ -67,21 +75,21 @@ export function NotificationBell() {
             
             // Keep the full RRP number with T when coming from notification
             const queryParams = new URLSearchParams({
-              type,
-              rrpNumber: rrpData.rrp_number,
-              rrpDate: rrpData.date,
-              invoiceDate: rrpData.invoice_date,
-              supplier: rrpData.supplier_name,
-              inspectionUser: rrpData.inspection_details.inspection_user,
-              invoiceNumber: rrpData.invoice_number,
+              type: String(type),
+              rrpNumber: String(rrpData.rrp_number),
+              rrpDate: String(rrpData.date),
+              invoiceDate: String(rrpData.invoice_date),
+              supplier: String(rrpData.supplier_name),
+              inspectionUser: String(rrpData.inspection_details.inspection_user),
+              invoiceNumber: String(rrpData.invoice_number),
               freightCharge: rrpData.freight_charge?.toString() || '0',
-              notificationId: notification.id,
+              notificationId: String(notification.id),
               ...(type === 'foreign' && {
-                customsDate: rrpData.customs_date,
-                customsNumber: rrpData.customs_number,
-                poNumber: rrpData.po_number,
-                airwayBillNumber: rrpData.airway_bill_number,
-                currency: rrpData.currency,
+                customsDate: rrpData.customs_date ? String(rrpData.customs_date) : '',
+                customsNumber: rrpData.customs_number ? String(rrpData.customs_number) : '',
+                poNumber: rrpData.po_number ? String(rrpData.po_number) : '',
+                airwayBillNumber: rrpData.airway_bill_number ? String(rrpData.airway_bill_number) : '',
+                currency: rrpData.currency ? String(rrpData.currency) : '',
                 forexRate: rrpData.forex_rate?.toString() || '1'
               })
             });

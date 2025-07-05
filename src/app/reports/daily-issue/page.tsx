@@ -15,7 +15,7 @@ import {
 import { format, startOfDay } from 'date-fns';
 import { CalendarIcon } from 'lucide-react';
 import { cn } from '@/utils/utils';
-import { DailyIssueReport } from '@/components/reports/DailyIssueReport';
+import { DailyIssueReport, Issue } from '@/components/reports/DailyIssueReport';
 
 export default function DailyIssueReportPage() {
   const { toast } = useToast();
@@ -23,10 +23,11 @@ export default function DailyIssueReportPage() {
   const [toDate, setToDate] = useState<Date>();
   const [equipmentNumber, setEquipmentNumber] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [issues, setIssues] = useState<any[]>([]);
   const [totalItems, setTotalItems] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
+
+  const [issues, setIssues] = useState<Issue[]>([]);
 
   const fetchIssues = async (page: number) => {
     if (!fromDate || !toDate) return;

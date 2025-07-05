@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useAuthContext } from '@/context/AuthContext';
 import { API } from '@/lib/api';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -14,13 +14,13 @@ import {
   ModalDescription,
   ModalTrigger,
 } from '@/components/ui/modal';
-import { useRouter } from 'next/navigation';
 import { IMAGE_BASE_URL } from '@/constants/api';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { cn } from '@/utils/utils';
 import { useCustomToast } from '@/components/ui/custom-toast';
+import Image from 'next/image';
 
 interface PendingReceive {
   id: number;
@@ -75,26 +75,26 @@ export function PendingReceivesCount() {
   const [editData, setEditData] = useState<EditData | null>(null);
   const [nacCodeError, setNacCodeError] = useState<string>('');
 
-  useEffect(() => {
-    const fetchPendingCount = async () => {
-      if (!permissions?.includes('can_approve_receive')) {
-        setIsLoading(false);
-        return;
-      }
+  const fetchPendingCount = useCallback(async () => {
+    if (!permissions?.includes('can_approve_receive')) {
+      setIsLoading(false);
+      return;
+    }
 
-      try {
-        const response = await API.get('/api/receive/pending');
-        setPendingReceives(response.data);
-        setPendingCount(response.data.length);
-      } catch (error) {
-        console.error('Error fetching pending receives:', error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchPendingCount();
+    try {
+      const response = await API.get('/api/receive/pending');
+      setPendingReceives(response.data);
+      setPendingCount(response.data.length);
+    } catch (error) {
+      console.error('Error fetching pending receives:', error);
+    } finally {
+      setIsLoading(false);
+    }
   }, [permissions]);
+
+  useEffect(() => {
+    fetchPendingCount();
+  }, [fetchPendingCount]);
 
   const handleViewDetails = async (receiveId: number) => {
     try {
@@ -437,21 +437,17 @@ export function PendingReceivesCount() {
                   <div className="space-y-1">
                     <p className="text-sm font-medium text-[#003594]">Image</p>
                     <div className="mt-2">
-                      <img 
+                      <Image
                         src={selectedReceive?.requestedImage ? 
                           (selectedReceive.requestedImage.startsWith('http') ? 
                             selectedReceive.requestedImage : 
                             `${IMAGE_BASE_URL}${selectedReceive.requestedImage.replace(/^\//, '')}`) 
                           : FALLBACK_IMAGE}
                         alt="Requested Item"
+                        width={160}
+                        height={160}
                         className="w-40 h-40 object-cover rounded-lg border border-[#002a6e]/10 cursor-pointer hover:opacity-80 transition-opacity"
                         onClick={() => selectedReceive?.requestedImage && handleImageClick(selectedReceive.requestedImage)}
-                        onError={(e) => {
-                          const target = e.target as HTMLImageElement;
-                          if (target.src !== FALLBACK_IMAGE) {
-                            target.src = FALLBACK_IMAGE;
-                          }
-                        }}
                       />
                     </div>
                   </div>
@@ -489,21 +485,17 @@ export function PendingReceivesCount() {
                   <div className="space-y-1">
                     <p className="text-sm font-medium text-[#003594]">Image</p>
                     <div className="mt-2">
-                      <img 
+                      <Image
                         src={selectedReceive?.receivedImage ? 
                           (selectedReceive.receivedImage.startsWith('http') ? 
                             selectedReceive.receivedImage : 
                             `${IMAGE_BASE_URL}${selectedReceive.receivedImage.replace(/^\//, '')}`) 
                           : FALLBACK_IMAGE}
                         alt="Received Item"
+                        width={160}
+                        height={160}
                         className="w-40 h-40 object-cover rounded-lg border border-[#002a6e]/10 cursor-pointer hover:opacity-80 transition-opacity"
                         onClick={() => selectedReceive?.receivedImage && handleImageClick(selectedReceive.receivedImage)}
-                        onError={(e) => {
-                          const target = e.target as HTMLImageElement;
-                          if (target.src !== FALLBACK_IMAGE) {
-                            target.src = FALLBACK_IMAGE;
-                          }
-                        }}
                       />
                     </div>
                   </div>
@@ -620,9 +612,11 @@ export function PendingReceivesCount() {
             <ModalTitle className="text-xl font-semibold text-[#003594]">Image Preview</ModalTitle>
           </ModalHeader>
           <div className="p-6 flex justify-center">
-            <img
-              src={selectedImage}
+            <Image
+              src={selectedImage || FALLBACK_IMAGE}
               alt="Preview"
+              width={400}
+              height={400}
               className="max-w-full max-h-[80vh] object-contain rounded-lg border border-[#002a6e]/10"
             />
           </div>

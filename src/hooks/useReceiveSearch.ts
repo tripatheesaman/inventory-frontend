@@ -63,8 +63,14 @@ export function useReceiveSearch() {
       const response = await API.get('/api/receive/search/receivables', { params: currentParams });
       if (response.status === 200) {
         // Transform the response data to flatten the items array
-        const transformedResults = response.data.flatMap((request: any) => 
-          request.items.map((item: any) => ({
+        const transformedResults = response.data.flatMap((request: {
+          items: ReceiveSearchResult[];
+          requestNumber: string;
+          requestDate: string;
+          requestedBy: string;
+          approvalStatus: string;
+        }) =>
+          request.items.map((item: ReceiveSearchResult) => ({
             ...item,
             requestNumber: request.requestNumber,
             requestDate: request.requestDate,
@@ -77,7 +83,7 @@ export function useReceiveSearch() {
         setError('Failed to fetch results');
         setResults(null);
       }
-    } catch (err) {
+    } catch {
       setError('An error occurred while searching');
       setResults(null);
     } finally {

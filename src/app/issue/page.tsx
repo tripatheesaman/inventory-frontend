@@ -5,9 +5,8 @@ Purpose: Issue Page
 
 'use client'
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Calendar } from '@/components/ui/calendar';
-import { cn } from '@/utils/utils';
 import { SearchControls, SearchResults } from '@/components/search';
 import { useSearch } from '@/hooks/useSearch';
 import { IssueCartItem, IssueRequest } from '@/types/issue';
@@ -24,19 +23,17 @@ export default function IssuePage() {
   const { user } = useAuthContext();
   const { showSuccessToast, showErrorToast } = useCustomToast();
   const [date, setDate] = useState<Date | undefined>(undefined);
-  const [selectedItem, setSelectedItem] = useState<any>(null);
+  const [selectedItem, setSelectedItem] = useState<IssueCartItem | null>(null);
   const [isItemFormOpen, setIsItemFormOpen] = useState(false);
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   const [cart, setCart] = useState<IssueCartItem[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const {
-    searchParams,
     results,
     isLoading,
     error,
     handleSearch,
-    setResults,
   } = useSearch();
 
   // Function to adjust current balance based on cart items
@@ -59,7 +56,16 @@ export default function IssuePage() {
   const adjustedResults = results ? adjustCurrentBalance(results) : null;
 
   const handleRowDoubleClick = (item: SearchResult) => {
-    setSelectedItem(item);
+    // Convert SearchResult to IssueCartItem for the form
+    const issueCartItem: IssueCartItem = {
+      ...item,
+      id: String(item.id),
+      currentBalance: Number(item.currentBalance),
+      selectedEquipment: item.equipmentNumber,
+      issueQuantity: 1,
+      quantity: 1,
+    };
+    setSelectedItem(issueCartItem);
     setIsItemFormOpen(true);
   };
 
@@ -72,13 +78,6 @@ export default function IssuePage() {
     setCart(prev => [...prev, cartItem]);
     setIsItemFormOpen(false);
     setSelectedItem(null);
-  };
-
-  const handleRemoveFromCart = (itemId: string) => {
-    const removedItem = cart.find(item => item.id === itemId);
-    if (removedItem) {
-    setCart(prev => prev.filter(item => item.id !== itemId));
-    }
   };
 
   const handlePreviewSubmit = () => {
@@ -147,17 +146,37 @@ export default function IssuePage() {
       } else {
         throw new Error(response.data?.message || 'Failed to submit issue request');
       }
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Error submitting issue request:', error);
-      
       let errorMessage = "Failed to submit issue request";
       if (error instanceof Error) {
         errorMessage = error.message;
-      } else if (typeof error === 'object' && error !== null) {
-        const axiosError = error as any;
-        errorMessage = axiosError.response?.data?.message || errorMessage;
+      } else if (
+        typeof error === 'object' &&
+        error !== null &&
+        'response' in error &&
+        typeof (error as { response?: unknown }).response === 'object' &&
+        (error as { response?: unknown }).response !== null
+      ) {
+        const response = (error as { response?: unknown }).response;
+        if (
+          typeof response === 'object' &&
+          response !== null &&
+          'data' in response &&
+          typeof (response as { data?: unknown }).data === 'object' &&
+          (response as { data?: unknown }).data !== null
+        ) {
+          const data = (response as { data?: unknown }).data;
+          if (
+            typeof data === 'object' &&
+            data !== null &&
+            'message' in data &&
+            typeof (data as { message?: unknown }).message === 'string'
+          ) {
+            errorMessage = (data as { message: string }).message;
+          }
+        }
       }
-
       showErrorToast({
         title: "Error",
         message: errorMessage,
@@ -205,7 +224,6 @@ export default function IssuePage() {
                     isLoading={isLoading}
                     error={error}
                     onRowDoubleClick={handleRowDoubleClick}
-                    searchParams={searchParams}
                     canViewFullDetails={true}
                   />
                 )}
@@ -232,7 +250,6 @@ export default function IssuePage() {
               <div className="bg-white rounded-xl shadow-sm border border-[#002a6e]/10 p-6 hover:border-[#d2293b]/20 transition-colors">
                 <IssueCart
                   items={cart}
-                  onRemoveItem={handleRemoveFromCart}
                   onUpdateItem={handleUpdateCartItem}
                   onDeleteItem={handleDeleteCartItem}
                   onSubmit={handlePreviewSubmit}

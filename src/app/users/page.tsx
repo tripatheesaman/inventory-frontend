@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuthContext } from '@/context/AuthContext';
 import { useCustomToast } from '@/components/ui/custom-toast';
@@ -29,7 +29,6 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Loader2, Plus, MoreVertical, Search } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
-import { useSearch } from '@/hooks/useSearch';
 
 interface User {
   id: number;
@@ -62,20 +61,7 @@ export default function UsersPage() {
   const canDeleteUser = permissions?.includes('can_delete_users');
   const canManagePermissions = permissions?.includes('can_manage_user_permissions');
 
-  const {
-    searchParams,
-    results,
-    isLoading: searchLoading,
-    error,
-    handleSearch,
-    setResults,
-  } = useSearch();
-
-  useEffect(() => {
-    fetchUsers();
-  }, []);
-
-  const fetchUsers = async () => {
+  const fetchUsers = useCallback(async () => {
     try {
       const response = await API.get('/api/user', {
         params: {
@@ -95,7 +81,11 @@ export default function UsersPage() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [showErrorToast, user?.UserInfo.username]);
+
+  useEffect(() => {
+    fetchUsers();
+  }, [fetchUsers]);
 
   const handleDeleteUser = async (userId: number) => {
     if (!canDeleteUser) {

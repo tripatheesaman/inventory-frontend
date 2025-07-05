@@ -1,10 +1,9 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { API } from '@/lib/api';
 import { useCustomToast } from '@/components/ui/custom-toast';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Loader2, ArrowLeft } from 'lucide-react';
 import RRPPreview from '@/components/rrp/RRPPreview';
@@ -34,8 +33,8 @@ export default function RRPPreviewPage() {
   const { showErrorToast, showSuccessToast } = useCustomToast();
   const { config } = useRRP();
   const { user } = useAuthContext();
-  const [isLoading, setIsLoading] = useState(false);
-  const [cart, setCart] = useState<CartItem[]>(() => {
+  const [isLoading] = useState(false);
+  const [cart] = useState<CartItem[]>(() => {
     try {
       const cartData = searchParams.get('cart');
       return cartData ? JSON.parse(decodeURIComponent(cartData)) : [];

@@ -2,7 +2,7 @@
 
 import { useRouter } from 'next/navigation';
 import { useCustomToast } from '@/components/ui/custom-toast';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useAuthContext } from '@/context/AuthContext';
 import { useRRP } from '@/hooks/useRRP';

@@ -49,10 +49,39 @@ export default function WeeklyDieselReportPage() {
         // If no flight count, show dialog to enter flight count
         setShowFlightDialog(true);
       }
-    } catch (error) {
+    } catch (error: unknown) {
+      let errorMessage = 'Failed to check flight count';
+      if (
+        error &&
+        typeof error === 'object' &&
+        'response' in error &&
+        typeof (error as { response?: unknown }).response === 'object' &&
+        (error as { response?: unknown }).response !== null
+      ) {
+        const response = (error as { response?: unknown }).response;
+        if (
+          typeof response === 'object' &&
+          response !== null &&
+          'data' in response &&
+          typeof (response as { data?: unknown }).data === 'object' &&
+          (response as { data?: unknown }).data !== null
+        ) {
+          const data = (response as { data?: unknown }).data;
+          if (
+            typeof data === 'object' &&
+            data !== null &&
+            'message' in data &&
+            typeof (data as { message?: unknown }).message === 'string'
+          ) {
+            errorMessage = (data as { message: string }).message;
+          }
+        }
+      } else if (error instanceof Error && error.message) {
+        errorMessage = error.message;
+      }
       toast({
         title: 'Error',
-        description: 'Failed to check flight count',
+        description: errorMessage,
         variant: 'destructive',
       });
     } finally {
@@ -99,10 +128,39 @@ export default function WeeklyDieselReportPage() {
         title: 'Success',
         description: 'Report downloaded successfully',
       });
-    } catch (error) {
+    } catch (error: unknown) {
+      let errorMessage = 'Failed to generate report';
+      if (
+        error &&
+        typeof error === 'object' &&
+        'response' in error &&
+        typeof (error as { response?: unknown }).response === 'object' &&
+        (error as { response?: unknown }).response !== null
+      ) {
+        const response = (error as { response?: unknown }).response;
+        if (
+          typeof response === 'object' &&
+          response !== null &&
+          'data' in response &&
+          typeof (response as { data?: unknown }).data === 'object' &&
+          (response as { data?: unknown }).data !== null
+        ) {
+          const data = (response as { data?: unknown }).data;
+          if (
+            typeof data === 'object' &&
+            data !== null &&
+            'message' in data &&
+            typeof (data as { message?: unknown }).message === 'string'
+          ) {
+            errorMessage = (data as { message: string }).message;
+          }
+        }
+      } else if (error instanceof Error && error.message) {
+        errorMessage = error.message;
+      }
       toast({
         title: 'Error',
-        description: 'Failed to generate report',
+        description: errorMessage,
         variant: 'destructive',
       });
     }

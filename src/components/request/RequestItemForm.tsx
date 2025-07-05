@@ -12,6 +12,7 @@ import { PartNumberSelect } from './PartNumberSelect';
 import { EquipmentRangeSelect } from './EquipmentRangeSelect';
 import { Loader2 } from 'lucide-react';
 import { expandEquipmentNumbers } from '@/utils/equipmentNumbers';
+import imageCompression from 'browser-image-compression';
 
 interface RequestItemFormProps {
   isOpen: boolean;
@@ -133,6 +134,27 @@ export function RequestItemForm({ isOpen, onClose, item, onSubmit, isManualEntry
     onClose();
   };
 
+  const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0] || null;
+    if (file) {
+      try {
+        const options = {
+          maxWidthOrHeight: 1200,
+          maxSizeMB: 1,
+          useWebWorker: true,
+          initialQuality: 0.7,
+        };
+        const compressedFile = await imageCompression(file, options);
+        setImage(compressedFile);
+      } catch (err) {
+        console.error('Image compression error:', err);
+        setImage(file); // fallback to original if compression fails
+      }
+    } else {
+      setImage(null);
+    }
+  };
+
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent className="max-w-2xl w-[95vw] bg-white rounded-xl shadow-sm border border-[#002a6e]/10">
@@ -247,7 +269,7 @@ export function RequestItemForm({ isOpen, onClose, item, onSubmit, isManualEntry
               id="image"
               type="file"
               accept="image/*"
-              onChange={(e) => setImage(e.target.files?.[0] || null)}
+              onChange={handleImageChange}
               className="mt-1 border-[#002a6e]/10 focus:border-[#003594] file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-medium file:bg-[#003594] file:text-white hover:file:bg-[#d2293b] file:transition-colors"
             />
           </div>

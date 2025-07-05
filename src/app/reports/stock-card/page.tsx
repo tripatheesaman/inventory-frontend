@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { SearchControls, SearchResults } from '@/components/search';
+import { SearchControls } from '@/components/search';
 import { useSearch } from '@/hooks/useSearch';
 import { useAuthContext } from '@/context/AuthContext';
 import { Button } from '@/components/ui/button';
@@ -14,6 +14,7 @@ import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { cn } from '@/utils/utils';
+import { SearchResult } from '@/types/search';
 
 interface SelectedItem {
   id: number;
@@ -23,7 +24,7 @@ interface SelectedItem {
 
 export default function StockCardPage() {
   const { toast } = useToast();
-  const { permissions } = useAuthContext();
+  const {} = useAuthContext();
   const [selectedItems, setSelectedItems] = useState<SelectedItem[]>([]);
   const [isGenerating, setIsGenerating] = useState(false);
   const [fromDate, setFromDate] = useState<Date | undefined>();
@@ -31,14 +32,13 @@ export default function StockCardPage() {
   const [generateByIssueDate, setGenerateByIssueDate] = useState(false);
 
   const {
-    searchParams,
     results,
     isLoading,
     error,
     handleSearch,
   } = useSearch();
 
-  const handleRowClick = (item: any) => {
+  const handleRowClick = (item: SearchResult) => {
     const isSelected = selectedItems.some(selected => selected.id === item.id);
     if (isSelected) {
       setSelectedItems(selectedItems.filter(selected => selected.id !== item.id));
@@ -340,6 +340,12 @@ export default function StockCardPage() {
               {isGenerating ? "Generating..." : "Generate Stock Cards"}
             </Button>
           </div>
+
+          {error && (
+            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-6">
+              {error}
+            </div>
+          )}
         </div>
       </div>
     </div>

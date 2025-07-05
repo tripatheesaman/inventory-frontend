@@ -2,7 +2,6 @@
 
 import { RequestSearchResult, RequestSearchParams } from '@/types/request';
 import { PrintRequestResultsTable } from './PrintRequestResultsTable';
-import { Spinner } from '@/components/ui/spinner';
 
 export interface PrintRequestResultsProps {
   results: RequestSearchResult[] | null;

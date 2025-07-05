@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuthContext } from '@/context/AuthContext';
 import { useCustomToast } from '@/components/ui/custom-toast';
@@ -15,12 +15,6 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { Loader2, ArrowLeft } from 'lucide-react';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-} from '@/components/ui/select';
 
 interface Permission {
   id: number;
@@ -41,17 +35,13 @@ interface UserPermissionsFormProps {
 
 export default function UserPermissionsForm({ userId }: UserPermissionsFormProps) {
   const router = useRouter();
-  const { permissions, user } = useAuthContext();
+  const { user } = useAuthContext();
   const { showSuccessToast, showErrorToast } = useCustomToast();
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [permissionGroups, setPermissionGroups] = useState<PermissionGroup[]>([]);
 
-  useEffect(() => {
-    fetchPermissions();
-  }, [userId]);
-
-  const fetchPermissions = async () => {
+  const fetchPermissions = useCallback(async () => {
     try {
       const response = await API.get('/api/permission', {
         params: {
@@ -86,19 +76,29 @@ export default function UserPermissionsForm({ userId }: UserPermissionsFormProps
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [showErrorToast, user?.UserInfo.username, userId]);
 
-  const handlePermissionToggle = (permissionId: number) => {
-    setPermissionGroups(prevGroups => 
-      prevGroups.map(group => ({
+  useEffect(() => {
+    if (user?.UserInfo.username && userId) {
+    fetchPermissions();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const handlePermissionToggle = (permissionId: number, checked: boolean) => {
+    console.log("permissionId", permissionId, "checked", checked);
+    setPermissionGroups(prevGroups => {
+      const newGroups = prevGroups.map(group => ({
         ...group,
         permissions: group.permissions.map(permission => 
           permission.id === permissionId 
-            ? { ...permission, hasAccess: permission.hasAccess === 1 ? 0 : 1 }
+            ? { ...permission, hasAccess: checked ? 1 : 0 }
             : permission
         )
-      }))
-    );
+      }));
+      console.log("Updated permissionGroups", newGroups);
+      return newGroups;
+    });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -180,7 +180,7 @@ export default function UserPermissionsForm({ userId }: UserPermissionsFormProps
                     <div key={permission.id} className="flex items-center space-x-2 p-2 rounded-md border border-[#002a6e]/10 bg-white">
                       <Switch
                         checked={permission.hasAccess === 1}
-                        onCheckedChange={() => handlePermissionToggle(permission.id)}
+                        onCheckedChange={(checked) => handlePermissionToggle(permission.id, checked)}
                         className="relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#003594] focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[state=checked]:bg-[#003594] data-[state=unchecked]:bg-gray-200"
                       >
                         <span className="inline-block h-4 w-4 transform rounded-full bg-white transition-transform data-[state=checked]:translate-x-5 data-[state=unchecked]:translate-x-1" />

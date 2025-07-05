@@ -30,7 +30,6 @@ function EditableRow({ item, onUpdate, onDelete }: EditableRowProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [editedItem, setEditedItem] = useState(item);
   const isConsumable = item.equipmentNumber.toLowerCase().includes('consumable');
-  const hasPartNumber = item.partNumber && item.partNumber.trim() !== '';
 
   const handleSave = () => {
     onUpdate(editedItem);

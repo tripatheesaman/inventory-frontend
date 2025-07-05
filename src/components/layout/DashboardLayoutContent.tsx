@@ -37,7 +37,7 @@ export default function DashboardLayoutContent({ children }: DashboardLayoutCont
     <ProtectedRoute>
       <div className="flex h-screen bg-gray-100">
         <Suspense fallback={<ContentSpinner />}>
-          <Sidebar collapsed={collapsed} onCollapse={setCollapsed} />
+          <Sidebar collapsed={collapsed} />
         </Suspense>
         <div className="flex-1 flex flex-col">
           <TopBar onToggleSidebar={() => setCollapsed(prev => !prev)} />

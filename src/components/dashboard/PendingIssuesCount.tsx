@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useAuthContext } from '@/context/AuthContext';
 import { API } from '@/lib/api';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -42,48 +42,47 @@ export function PendingIssuesCount() {
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
   const [isRejectOpen, setIsRejectOpen] = useState(false);
   const [isEditOpen, setIsEditOpen] = useState(false);
-  const [rejectionReason, setRejectionReason] = useState('');
   const [pendingIssues, setPendingIssues] = useState<PendingIssue[]>([]);
   const [selectedIssue, setSelectedIssue] = useState<PendingIssue | null>(null);
   const [editingItem, setEditingItem] = useState<{ id: number; quantity: number } | null>(null);
   const [editQuantity, setEditQuantity] = useState('');
 
-  useEffect(() => {
-    const fetchPendingCount = async () => {
-      if (!permissions?.includes('can_approve_issues')) {
-        setIsLoading(false);
-        return;
-      }
+  const fetchPendingCount = useCallback(async () => {
+    if (!permissions?.includes('can_approve_issues')) {
+      setIsLoading(false);
+      return;
+    }
 
-      try {
-        const response = await API.get('/api/issue/pending');
-        
-        // Group items by issue_slip_number
-        const groupedIssues = response.data.issues.reduce((acc: { [key: string]: PendingIssue[] }, curr: PendingIssue) => {
-          if (!acc[curr.issue_slip_number]) {
-            acc[curr.issue_slip_number] = [];
-          }
-          acc[curr.issue_slip_number].push(curr);
-          return acc;
-        }, {});
+    try {
+      const response = await API.get('/api/issue/pending');
+      
+      // Group items by issue_slip_number
+      const groupedIssues = response.data.issues.reduce((acc: { [key: string]: PendingIssue[] }, curr: PendingIssue) => {
+        if (!acc[curr.issue_slip_number]) {
+          acc[curr.issue_slip_number] = [];
+        }
+        acc[curr.issue_slip_number].push(curr);
+        return acc;
+      }, {});
 
-        // Convert grouped issues to array format
-        const uniqueIssues = (Object.entries(groupedIssues) as [string, PendingIssue[]][]).map(([issue_slip_number, items]) => ({
-          ...items[0], // Use the first item's metadata
-          items: items // Store all items for this issue slip
-        }));
-        
-        setPendingIssues(uniqueIssues);
-        setPendingCount(uniqueIssues.length);
-      } catch (error) {
-        console.error('Error fetching pending issues:', error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchPendingCount();
+      // Convert grouped issues to array format
+      const uniqueIssues = (Object.entries(groupedIssues) as [string, PendingIssue[]][]).map(([, items]) => ({
+        ...items[0], // Use the first item's metadata
+        items: items // Store all items for this issue slip
+      }));
+      
+      setPendingIssues(uniqueIssues);
+      setPendingCount(uniqueIssues.length);
+    } catch (error) {
+      console.error('Error fetching pending issues:', error);
+    } finally {
+      setIsLoading(false);
+    }
   }, [permissions]);
+
+  useEffect(() => {
+    fetchPendingCount();
+  }, [fetchPendingCount]);
 
   const handleViewDetails = async (issueSlipNumber: string) => {
     const issue = pendingIssues.find(issue => issue.issue_slip_number === issueSlipNumber);
@@ -120,7 +119,7 @@ export function PendingIssuesCount() {
           return acc;
         }, {});
 
-        const uniqueIssues = (Object.entries(groupedIssues) as [string, PendingIssue[]][]).map(([issue_slip_number, items]) => ({
+        const uniqueIssues = (Object.entries(groupedIssues) as [string, PendingIssue[]][]).map(([, items]) => ({
           ...items[0],
           items: items
         }));
@@ -172,7 +171,7 @@ export function PendingIssuesCount() {
           return acc;
         }, {});
 
-        const uniqueIssues = (Object.entries(groupedIssues) as [string, PendingIssue[]][]).map(([issue_slip_number, items]) => ({
+        const uniqueIssues = (Object.entries(groupedIssues) as [string, PendingIssue[]][]).map(([, items]) => ({
           ...items[0],
           items: items
         }));

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import { Check, ChevronsUpDown } from 'lucide-react';
 import { cn } from '@/utils/utils';
 import { Button } from '@/components/ui/button';
@@ -71,7 +71,7 @@ export function EquipmentRangeSelect({
     return { numbers, ranges, textEntries };
   };
 
-  const generateRanges = (input: string): string[] => {
+  const generateRanges = useCallback((input: string): string[] => {
     const { numbers, ranges, textEntries } = parseInput(input);
     const individualNumbers: string[] = [];
     const rangeEntries: string[] = [];
@@ -132,7 +132,7 @@ export function EquipmentRangeSelect({
       ...rangeEntries
     ];
     return result;
-  };
+  }, []);
 
   const suggestions = useMemo(() => {
     if (!equipmentList) return [];
@@ -143,7 +143,7 @@ export function EquipmentRangeSelect({
       value: range,
       label: range
     }));
-  }, [equipmentList]);
+  }, [equipmentList, generateRanges]);
 
   const filteredSuggestions = useMemo(() => {
     const query = inputValue.toLowerCase();

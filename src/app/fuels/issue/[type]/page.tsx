@@ -8,7 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { format } from 'date-fns';
-import { CalendarIcon, Plus, Trash2, Search, ChevronsUpDown, Check } from 'lucide-react';
+import { CalendarIcon, Plus, Trash2, ChevronsUpDown, Check } from 'lucide-react';
 import { useParams, useRouter } from 'next/navigation';
 import { useToast } from '@/components/ui/use-toast';
 import { API } from '@/lib/api';
@@ -63,8 +63,6 @@ export default function FuelIssueFormPage() {
   const [selectedIndices, setSelectedIndices] = useState<{ [key: number]: number }>({});
   const inputRefs = useRef<{ [key: number]: HTMLInputElement | null }>({});
   const optionRefs = useRef<{ [key: number]: { [key: number]: HTMLDivElement | null } }>({});
-  const [focusedIndex, setFocusedIndex] = useState<number | null>(null);
-  const [isSearchFocused, setIsSearchFocused] = useState<{ [key: number]: boolean }>({});
 
   useEffect(() => {
     const fetchConfig = async () => {
@@ -72,7 +70,7 @@ export default function FuelIssueFormPage() {
         const response = await API.get(`/api/fuel/config/${type}`);
         setConfig(response.data);
         setPrice(response.data.latest_fuel_price || 0);
-      } catch (error) {
+      } catch {
         toast({
           title: 'Error',
           description: 'Failed to load fuel configuration',
@@ -124,8 +122,6 @@ export default function FuelIssueFormPage() {
       case 'Escape':
         e.preventDefault();
         setOpenStates(prev => ({ ...prev, [index]: false }));
-        setFocusedIndex(null);
-        setIsSearchFocused(prev => ({ ...prev, [index]: false }));
         break;
     }
   };
@@ -165,8 +161,9 @@ export default function FuelIssueFormPage() {
     handleRecordChange(index, 'equipment_number', value);
     setOpenStates(prev => ({ ...prev, [index]: false }));
     setInputValues(prev => ({ ...prev, [index]: '' }));
-    setFocusedIndex(null);
-    setIsSearchFocused(prev => ({ ...prev, [index]: false }));
+    setTimeout(() => {
+      inputRefs.current[index]?.focus();
+    }, 0);
   };
 
   const toggleOpen = (index: number) => {
@@ -174,8 +171,6 @@ export default function FuelIssueFormPage() {
     if (!openStates[index]) {
       // Reset selected index when opening
       setSelectedIndices(prev => ({ ...prev, [index]: -1 }));
-      setFocusedIndex(null);
-      // Focus the input after a short delay
       setTimeout(() => {
         inputRefs.current[index]?.focus();
       }, 0);
@@ -184,8 +179,6 @@ export default function FuelIssueFormPage() {
 
   const handleInputChange = (index: number, value: string) => {
     setInputValues(prev => ({ ...prev, [index]: value }));
-    setFocusedIndex(null);
-    setIsSearchFocused(prev => ({ ...prev, [index]: true }));
   };
 
   const validateRecords = () => {
@@ -262,11 +255,40 @@ export default function FuelIssueFormPage() {
       } else {
         throw new Error(response.data?.message || 'Failed to create fuel records');
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
+      let errorMessage = 'Failed to create fuel records';
+      if (error instanceof Error) {
+        errorMessage = error.message;
+      } else if (
+        typeof error === 'object' &&
+        error !== null &&
+        'response' in error &&
+        typeof (error as { response?: unknown }).response === 'object' &&
+        (error as { response?: unknown }).response !== null
+      ) {
+        const response = (error as { response?: unknown }).response;
+        if (
+          typeof response === 'object' &&
+          response !== null &&
+          'data' in response &&
+          typeof (response as { data?: unknown }).data === 'object' &&
+          (response as { data?: unknown }).data !== null
+        ) {
+          const data = (response as { data?: unknown }).data;
+          if (
+            typeof data === 'object' &&
+            data !== null &&
+            'message' in data &&
+            typeof (data as { message?: unknown }).message === 'string'
+          ) {
+            errorMessage = (data as { message: string }).message;
+          }
+        }
+      }
       console.error('Error creating fuel records:', error);
       toast({
         title: 'Error',
-        description: error.response?.data?.message || error.message || 'Failed to create fuel records',
+        description: errorMessage,
         variant: 'destructive',
       });
     } finally {

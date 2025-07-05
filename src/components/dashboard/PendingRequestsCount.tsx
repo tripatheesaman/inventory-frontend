@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useAuthContext } from '@/context/AuthContext';
 import { API } from '@/lib/api';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -20,6 +20,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Calendar } from '@/components/ui/calendar';
 import { useCustomToast } from '@/components/ui/custom-toast';
+import Image from 'next/image';
 
 interface PendingRequest {
   requestId: number;
@@ -81,33 +82,33 @@ export function PendingRequestsCount() {
     items: EditItemData[];
   } | null>(null);
 
-  useEffect(() => {
-    const fetchPendingCount = async () => {
-      if (!permissions?.includes('can_approve_request')) {
-        setIsLoading(false);
-        return;
-      }
+  const fetchPendingCount = useCallback(async () => {
+    if (!permissions?.includes('can_approve_request')) {
+      setIsLoading(false);
+      return;
+    }
 
-      try {
-        const response = await API.get('/api/request/pending');
-        const uniqueRequests = response.data.reduce((acc: PendingRequest[], curr: PendingRequest) => {
-          if (!acc.find(req => req.requestNumber === curr.requestNumber)) {
-            acc.push(curr);
-          }
-          return acc;
-        }, []);
-        
-        setPendingRequests(uniqueRequests);
-        setPendingCount(uniqueRequests.length);
-      } catch (error) {
-        console.error('Error fetching pending requests:', error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchPendingCount();
+    try {
+      const response = await API.get('/api/request/pending');
+      const uniqueRequests = response.data.reduce((acc: PendingRequest[], curr: PendingRequest) => {
+        if (!acc.find(req => req.requestNumber === curr.requestNumber)) {
+          acc.push(curr);
+        }
+        return acc;
+      }, []);
+      
+      setPendingRequests(uniqueRequests);
+      setPendingCount(uniqueRequests.length);
+    } catch (error) {
+      console.error('Error fetching pending requests:', error);
+    } finally {
+      setIsLoading(false);
+    }
   }, [permissions]);
+
+  useEffect(() => {
+    fetchPendingCount();
+  }, [fetchPendingCount]);
 
   const handleViewDetails = async (requestNumber: string, requestDate: string) => {
     try {
@@ -470,15 +471,18 @@ export function PendingRequestsCount() {
                       <td className="p-4 text-gray-900">{item.requestedQuantity}</td>
                       <td className="p-4 text-gray-900">{item.specifications || '-'}</td>
                       <td className="p-4">
-                        <img 
+                        <Image
                           src={item.imageUrl ? (item.imageUrl.startsWith('http') ? item.imageUrl : `${IMAGE_BASE_URL}${item.imageUrl.replace(/^\//, '')}`) : '/images/nepal_airlines_logo.png'}
                           alt={item.itemName}
+                          width={64}
+                          height={64}
                           className="w-16 h-16 object-cover rounded-lg border border-[#002a6e]/10 cursor-pointer hover:opacity-80 transition-opacity"
                           onClick={() => item.imageUrl && handleImageClick(item.imageUrl)}
                           onError={(e) => {
                             const target = e.target as HTMLImageElement;
                             target.src = '/nepal_airlines_logo.png';
                           }}
+                          unoptimized={item.imageUrl ? item.imageUrl.startsWith('http') : false}
                         />
                       </td>
                     </tr>
@@ -606,10 +610,13 @@ export function PendingRequestsCount() {
                       <Label className="text-[#003594] font-medium">Image</Label>
                       <div className="flex flex-col md:flex-row items-start md:items-center gap-4">
                         {item.imageUrl && (
-                          <img
+                          <Image
                             src={item.imageUrl.startsWith('http') ? item.imageUrl : `${IMAGE_BASE_URL}${item.imageUrl.replace(/^\//, '')}`}
                             alt={item.itemName}
+                            width={96}
+                            height={96}
                             className="w-24 h-24 object-cover rounded-lg border border-[#002a6e]/10 hover:opacity-80 transition-opacity"
+                            unoptimized={item.imageUrl.startsWith('http')}
                           />
                         )}
                         <div className="flex-1 w-full">
@@ -676,10 +683,13 @@ export function PendingRequestsCount() {
             >
               <X className="h-4 w-4 text-[#003594]" />
             </Button>
-            <img
+            <Image
               src={selectedImage}
               alt="Preview"
+              width={800}
+              height={600}
               className="w-full h-auto max-h-[80vh] object-contain rounded-lg border border-[#002a6e]/10"
+              unoptimized={selectedImage.startsWith('http')}
             />
           </div>
         </ModalContent>

@@ -15,7 +15,6 @@ export default function SearchPage() {
   const canViewFullDetails = permissions.includes('can_view_full_item_details_in_search');
 
   const {
-    searchParams,
     results,
     isLoading,
     error,
@@ -69,8 +68,7 @@ export default function SearchPage() {
             isLoading={isLoading}
             error={error}
             onRowDoubleClick={handleRowDoubleClick}
-            searchParams={searchParams}
-                canViewFullDetails={canViewFullDetails}
+            canViewFullDetails={canViewFullDetails}
           />
             )}
         </div>

@@ -14,7 +14,7 @@ import { Suspense, useState } from 'react';
 import { ContentSpinner } from '@/components/ui/spinner';
 
 export default function Layout({ children }: { children: React.ReactNode }) {
-  const { isAuthenticated, permissions } = useAuthContext();
+  const { permissions } = useAuthContext();
   const path = usePathname();
   const [collapsed, setCollapsed] = useState(false);
 
@@ -39,7 +39,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="flex min-h-screen">
-      <Sidebar collapsed={collapsed} onCollapse={setCollapsed} />
+      <Sidebar collapsed={collapsed} />
       <div className="flex-1 flex flex-col">
         <TopBar onToggleSidebar={() => setCollapsed(prev => !prev)} />
         <main className="p-4">

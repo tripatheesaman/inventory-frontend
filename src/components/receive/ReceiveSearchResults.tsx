@@ -8,11 +8,6 @@ interface ReceiveSearchResultsProps {
   isLoading: boolean;
   error: string | null;
   onRowDoubleClick: (item: ReceiveSearchResult) => void;
-  searchParams: {
-    universal: string;
-    equipmentNumber: string;
-    partNumber: string;
-  } | null;
   canViewFullDetails: boolean;
 }
 
@@ -21,7 +16,6 @@ export const ReceiveSearchResults = ({
   isLoading,
   error,
   onRowDoubleClick,
-  searchParams,
   canViewFullDetails
 }: ReceiveSearchResultsProps) => {
   if (isLoading) {

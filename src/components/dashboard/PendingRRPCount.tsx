@@ -1,6 +1,7 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import React from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useAuthContext } from '@/context/AuthContext';
 import { API } from '@/lib/api';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -14,7 +15,6 @@ import {
   ModalDescription,
   ModalTrigger,
 } from '@/components/ui/modal';
-import { useRouter } from 'next/navigation';
 import { useCustomToast } from '@/components/ui/custom-toast';
 import { RRPDetailsModal } from '@/components/rrp/RRPDetailsModal';
 import { useNotification } from '@/context/NotificationContext';
@@ -37,7 +37,7 @@ interface PendingRRP {
   customs_number: string | null;
   inspection_details: {
     inspection_user: string;
-    inspection_details: Record<string, any>;
+    inspection_details: Record<string, unknown>;
   };
   approval_status: string;
   created_by: string;
@@ -86,7 +86,7 @@ export function PendingRRPCount() {
   const [allRRPItems, setAllRRPItems] = useState<PendingRRP[]>([]);
   const [config, setConfig] = useState<Config | null>(null);
   const [selectedRRP, setSelectedRRP] = useState<{
-    items: any[];
+    items: PendingRRPItem[];
     rrpNumber: string;
     rrpDate: string;
     type: 'local' | 'foreign';
@@ -103,11 +103,26 @@ export function PendingRRPCount() {
     forexRate?: number;
   } | null>(null);
 
-  useEffect(() => {
-    fetchPendingCount();
-  }, []);
+  // Define a type for items in selectedRRP
+  interface PendingRRPItem {
+    id: number;
+    item_name: string;
+    part_number: string;
+    nac_code: string;
+    equipment_number: string;
+    received_quantity: number;
+    unit: string;
+    item_price: number;
+    vat_percentage: number;
+    customs_charge: number;
+    currency: string;
+    forex_rate: number;
+    freight_charge: number;
+    customs_service_charge: number;
+    total_amount: number;
+  }
 
-  const fetchPendingCount = async () => {
+  const fetchPendingCount = useCallback(async () => {
     try {
       setIsLoading(true);
       if (!permissions?.includes('can_approve_rrp')) {
@@ -117,34 +132,29 @@ export function PendingRRPCount() {
 
       const response = await API.get('/api/rrp/pending');
       const data = response.data as PendingRRPResponse;
-      // Store config
       setConfig(data.config);
-      
-      // Store all items
       setAllRRPItems(data.pendingRRPs);
-      
-      // Create a list of unique RRPs with their first record
       const uniqueRRPs = data.pendingRRPs.reduce((acc: { [key: string]: PendingRRP }, item: PendingRRP) => {
         if (!acc[item.rrp_number]) {
           acc[item.rrp_number] = item;
         }
         return acc;
       }, {});
-      
       setPendingRRPs(Object.values(uniqueRRPs));
       setPendingCount(Object.keys(uniqueRRPs).length);
-    } catch (error) {
-      showErrorToast({
-        title: "Error",
-        message: "Failed to fetch pending RRPs",
-        duration: 3000,
-      });
+    } catch (error: unknown) {
+      console.error('Error fetching pending RRPs:', error);
+      // Don't show toast here to avoid dependency issues
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [permissions]);
 
-  const handleViewDetails = (rrpNumber: string, rrpDate: string) => {
+  useEffect(() => {
+    fetchPendingCount();
+  }, [fetchPendingCount]);
+
+  const handleViewDetails = (rrpNumber: string) => {
     // Get all items for this RRP number from allRRPItems
     const rrpItems = allRRPItems.filter(rrp => rrp.rrp_number === rrpNumber);
     if (rrpItems.length === 0) return;
@@ -159,13 +169,13 @@ export function PendingRRPCount() {
         part_number: item.part_number,
         nac_code: item.nac_code,
         equipment_number: item.equipment_number,
-        received_quantity: item.received_quantity,
+        received_quantity: parseFloat(item.received_quantity) || 0,
         unit: item.unit,
-        item_price: item.item_price,
-        vat_percentage: item.vat_percentage,
-        customs_charge: item.customs_charge,
+        item_price: parseFloat(item.item_price) || 0,
+        vat_percentage: parseFloat(item.vat_percentage) || 0,
+        customs_charge: parseFloat(item.customs_charge) || 0,
         currency: item.currency,
-        forex_rate: item.forex_rate || 1,
+        forex_rate: parseFloat(item.forex_rate?.toString?.() || '1') || 1,
         freight_charge: parseFloat(item.freight_charge) || 0,
         customs_service_charge: parseFloat(item.customs_service_charge) || 0,
         total_amount: parseFloat(item.total_amount) || 0
@@ -188,7 +198,7 @@ export function PendingRRPCount() {
     setIsDetailsOpen(true);
   };
 
-  const handleApproveRRP = async () => {
+  const handleApproveRRP = useCallback(async () => {
     if (!selectedRRP || !user?.UserInfo?.username) return;
 
     try {
@@ -209,16 +219,22 @@ export function PendingRRPCount() {
       });
       setIsDetailsOpen(false);
       fetchPendingCount();
-    } catch (error) {
+    } catch (error: unknown) {
+      let message = 'Failed to approve RRP';
+      if (error && typeof error === 'object' && 'response' in error && error.response && typeof error.response === 'object' && 'data' in error.response && error.response.data && typeof error.response.data === 'object' && 'message' in error.response.data) {
+        message = (error.response.data as { message?: string }).message || message;
+      } else if (error instanceof Error) {
+        message = error.message;
+      }
       showErrorToast({
-        title: "Error",
-        message: "Failed to approve RRP",
+        title: 'Error',
+        message,
         duration: 3000,
       });
     }
-  };
+  }, [selectedRRP, user?.UserInfo?.username, markAsRead, showSuccessToast, showErrorToast, fetchPendingCount]);
 
-  const handleRejectRRP = async (reason: string) => {
+  const handleRejectRRP = useCallback(async (reason: string) => {
     if (!selectedRRP || !user?.UserInfo?.username) return;
 
     try {
@@ -241,36 +257,62 @@ export function PendingRRPCount() {
       });
       setIsDetailsOpen(false);
       fetchPendingCount();
-    } catch (error) {
+    } catch (error: unknown) {
+      let message = 'Failed to reject RRP';
+      if (error && typeof error === 'object' && 'response' in error && error.response && typeof error.response === 'object' && 'data' in error.response && error.response.data && typeof error.response.data === 'object' && 'message' in error.response.data) {
+        message = (error.response.data as { message?: string }).message || message;
+      } else if (error instanceof Error) {
+        message = error.message;
+      }
       showErrorToast({
-        title: "Error",
-        message: "Failed to reject RRP",
+        title: 'Error',
+        message,
         duration: 3000,
       });
     }
-  };
+  }, [selectedRRP, user?.UserInfo?.username, markAsRead, showSuccessToast, showErrorToast, fetchPendingCount]);
 
-  const handleEditRRP = async (data: any) => {
+  const handleEditRRP = useCallback(async (data: unknown) => {
     if (!selectedRRP) return;
+
+    // Type guard for data
+    if (!data || typeof data !== 'object' || !('rrpNumber' in data)) return;
+    const safeData = data as {
+      rrpNumber: string;
+      rrpDate: string;
+      type: string;
+      supplier: string;
+      inspectionUser: string;
+      invoiceNumber: string;
+      invoiceDate: string;
+      freightCharge: number;
+      customsNumber?: string;
+      customsDate?: string;
+      poNumber?: string;
+      airwayBillNumber?: string;
+      currency?: string;
+      forexRate?: number;
+      items: PendingRRPItem[];
+    };
 
     try {
       // Transform the data to match the backend's expected format
       const transformedData = {
-        rrp_number: data.rrpNumber,
-        date: data.rrpDate,
-        type: data.type,
-        supplier_name: data.supplier,
-        inspection_user: data.inspectionUser,
-        invoice_number: data.invoiceNumber,
-        invoice_date: data.invoiceDate,
-        freight_charge: data.freightCharge,
-        customs_number: data.customsNumber,
-        customs_date: data.customsDate,
-        po_number: data.poNumber,
-        airway_bill_number: data.airwayBillNumber,
-        currency: data.currency,
-        forex_rate: data.forexRate,
-        items: data.items.map((item: any) => ({
+        rrp_number: safeData.rrpNumber,
+        date: safeData.rrpDate,
+        type: safeData.type,
+        supplier_name: safeData.supplier,
+        inspection_user: safeData.inspectionUser,
+        invoice_number: safeData.invoiceNumber,
+        invoice_date: safeData.invoiceDate,
+        freight_charge: safeData.freightCharge,
+        customs_number: safeData.customsNumber,
+        customs_date: safeData.customsDate,
+        po_number: safeData.poNumber,
+        airway_bill_number: safeData.airwayBillNumber,
+        currency: safeData.currency,
+        forex_rate: safeData.forexRate,
+        items: safeData.items.map((item) => ({
           id: item.id,
           item_name: item.item_name,
           part_number: item.part_number,
@@ -309,16 +351,22 @@ export function PendingRRPCount() {
       } else {
         throw new Error('Failed to update RRP');
       }
-    } catch (error) {
+    } catch (error: unknown) {
+      let message = 'Failed to update RRP';
+      if (error && typeof error === 'object' && 'response' in error && error.response && typeof error.response === 'object' && 'data' in error.response && error.response.data && typeof error.response.data === 'object' && 'message' in error.response.data) {
+        message = (error.response.data as { message?: string }).message || message;
+      } else if (error instanceof Error) {
+        message = error.message;
+      }
       showErrorToast({
-        title: "Error",
-        message: "Failed to update RRP",
+        title: 'Error',
+        message,
         duration: 3000,
       });
     }
-  };
+  }, [selectedRRP, markAsRead, showSuccessToast, showErrorToast, fetchPendingCount]);
 
-  const handleDeleteItem = async (itemId: number) => {
+  const handleDeleteItem = useCallback(async (itemId: number) => {
     if (!selectedRRP) return;
 
     try {
@@ -329,14 +377,20 @@ export function PendingRRPCount() {
         duration: 3000,
       });
       fetchPendingCount();
-    } catch (error) {
+    } catch (error: unknown) {
+      let message = 'Failed to delete item';
+      if (error && typeof error === 'object' && 'response' in error && error.response && typeof error.response === 'object' && 'data' in error.response && error.response.data && typeof error.response.data === 'object' && 'message' in error.response.data) {
+        message = (error.response.data as { message?: string }).message || message;
+      } else if (error instanceof Error) {
+        message = error.message;
+      }
       showErrorToast({
-        title: "Error",
-        message: "Failed to delete item",
+        title: 'Error',
+        message,
         duration: 3000,
       });
     }
-  };
+  }, [selectedRRP, showSuccessToast, showErrorToast, fetchPendingCount]);
 
   if (!permissions?.includes('can_approve_rrp')) {
     return null;
@@ -395,7 +449,7 @@ export function PendingRRPCount() {
                   </div>
                   <div className="flex justify-end">
                     <Button
-                      onClick={() => handleViewDetails(rrp.rrp_number, rrp.date)}
+                      onClick={() => handleViewDetails(rrp.rrp_number)}
                       className="flex items-center gap-2 bg-[#003594] hover:bg-[#003594]/90 text-white"
                     >
                       <Eye className="h-4 w-4" />

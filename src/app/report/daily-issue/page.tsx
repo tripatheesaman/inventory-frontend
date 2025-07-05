@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { DailyIssueReport } from '@/components/reports/DailyIssueReport';
 import { addDays } from 'date-fns';
 import { Calendar } from '@/components/ui/calendar';
@@ -29,7 +29,7 @@ export default function DailyIssuePage() {
   const [fromDate, setFromDate] = useState<Date>(new Date());
   const [toDate, setToDate] = useState<Date>(addDays(new Date(), 7));
 
-  const fetchIssues = async (page: number) => {
+  const fetchIssues = useCallback(async (page: number) => {
     setIsLoading(true);
     try {
       const response = await fetch(
@@ -48,11 +48,11 @@ export default function DailyIssuePage() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [fromDate, toDate, itemsPerPage]);
 
   useEffect(() => {
     fetchIssues(currentPage);
-  }, [currentPage, fromDate, toDate]);
+  }, [currentPage, fetchIssues]);
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page);

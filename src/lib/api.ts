@@ -28,10 +28,12 @@ API.interceptors.request.use(
 API.interceptors.response.use(
   (response) => response,
   (error) => {
-    // If the error is 401, redirect to login
+    // If the error is 401, remove the token but don't redirect
+    // Let the AuthContext handle the redirect logic
     if (error.response?.status === 401) {
       localStorage.removeItem('token');
-      window.location.href = '/login';
+      // Don't use window.location.href as it can cause infinite loops
+      // The AuthContext will handle the redirect when it detects the token is missing
     }
     return Promise.reject(error);
   }

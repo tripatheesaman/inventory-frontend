@@ -10,10 +10,10 @@ import { Trash2, Pencil } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { PartNumberSelect } from './PartNumberSelect';
 import { EquipmentRangeSelect } from './EquipmentRangeSelect';
+import Image from 'next/image';
 
 interface RequestCartProps {
   items: RequestCartItem[];
-  onRemoveItem: (id: string) => void;
   onUpdateItem: (itemId: string, updates: Partial<RequestCartItem>) => void;
   onDeleteItem: (itemId: string) => void;
   onSubmit: () => void;
@@ -25,7 +25,6 @@ interface RequestCartProps {
 
 export function RequestCart({
   items,
-  onRemoveItem,
   onUpdateItem,
   onDeleteItem,
   onSubmit,
@@ -42,21 +41,6 @@ export function RequestCart({
     setEditingItem(item);
     setIsEditDialogOpen(true);
     setEditFormData(item);
-  };
-
-  const handleUpdate = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    if (!editingItem) return;
-
-    onUpdateItem(editingItem.id, {
-      requestQuantity: editingItem.requestQuantity,
-      partNumber: editingItem.partNumber,
-      equipmentNumber: editingItem.equipmentNumber,
-      specifications: editingItem.specifications,
-      image: editingItem.image,
-    });
-    setIsEditDialogOpen(false);
-    setEditingItem(null);
   };
 
   const handleEditSubmit = (e: React.FormEvent<HTMLFormElement>) => {
@@ -108,10 +92,13 @@ export function RequestCart({
                 )}
                 {item.image && (
                   <div className="mt-2">
-                    <img
+                    <Image
                       src={URL.createObjectURL(item.image)}
                       alt="Item"
+                      width={200}
+                      height={200}
                       className="max-w-[200px] rounded-md"
+                      unoptimized
                     />
                   </div>
                 )}

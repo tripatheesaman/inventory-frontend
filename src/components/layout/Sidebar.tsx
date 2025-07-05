@@ -6,19 +6,18 @@ File: src/app/components/Sidebar.tsx
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
-import { useState, Dispatch, SetStateAction } from "react";
+import { useState } from "react";
 import { useAuthContext } from "@/context/AuthContext";
 import { cn } from "@/utils/utils";
-import { Home, LogIn, LogOut, FileText, ChevronDown, Search } from "lucide-react";
+import { ChevronDown } from "lucide-react";
 import { sidebarLinks } from "./sidebarConfig";
 import { SidebarIcon } from "./SidebarIcon";
 
 interface SidebarProps {
   collapsed: boolean;
-  onCollapse: Dispatch<SetStateAction<boolean>>;
 }
 
-export default function Sidebar({ collapsed, onCollapse }: SidebarProps) {
+export default function Sidebar({ collapsed }: SidebarProps) {
   const pathname = usePathname();
   const { permissions } = useAuthContext();
   const [activeMenu, setActiveMenu] = useState<string | null>(null);

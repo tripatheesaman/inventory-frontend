@@ -68,7 +68,7 @@ export default function RRPSettingsPage() {
     };
 
     fetchData();
-  }, []);
+  }, [showErrorToast]);
 
   const handleSave = async () => {
     if (!permissions?.includes('can_edit_rrp_authority_details')) {
@@ -111,30 +111,6 @@ export default function RRPSettingsPage() {
         auth.id === id ? { ...auth, [field]: value } : auth
       )
     );
-  };
-
-  const addNewAuthority = () => {
-    const newAuthority: AuthorityDetails = {
-      id: Date.now(), // Temporary ID for new entries
-      authority_type: '',
-      level_1_authority_name: '',
-      level_1_authority_staffid: '',
-      level_1_authority_designation: '',
-      level_2_authority_name: '',
-      level_2_authority_staffid: '',
-      level_2_authority_designation: '',
-      level_3_authority_name: '',
-      level_3_authority_staffid: '',
-      level_3_authority_designation: '',
-      quality_check_authority_name: '',
-      quality_check_authority_staffid: '',
-      quality_check_authority_designation: ''
-    };
-    setAuthorityDetails(prev => [...prev, newAuthority]);
-  };
-
-  const removeAuthority = (id: number) => {
-    setAuthorityDetails(prev => prev.filter(auth => auth.id !== id));
   };
 
   const handleAddSupplier = async () => {

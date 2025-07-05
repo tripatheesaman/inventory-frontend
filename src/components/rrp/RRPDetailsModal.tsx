@@ -7,7 +7,6 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Switch } from '@/components/ui/switch';
 import {
   Dialog,
   DialogContent,
@@ -32,7 +31,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { format } from 'date-fns';
 import { Trash2 } from 'lucide-react';
 import { useNotification } from '@/context/NotificationContext';
 
@@ -40,7 +38,7 @@ interface RRPDetailsModalProps {
   isOpen: boolean;
   onClose: () => void;
   rrpData: {
-    items: any[];
+    items: EditItemData[];
     rrpNumber: string;
     rrpDate: string;
     type: 'local' | 'foreign';
@@ -58,7 +56,23 @@ interface RRPDetailsModalProps {
   };
   onApprove?: () => void;
   onReject?: (reason: string) => void;
-  onEdit: (data: any) => void;
+  onEdit: (data: {
+    items: EditItemData[];
+    rrpNumber: string;
+    rrpDate: string;
+    type: 'local' | 'foreign';
+    supplier: string;
+    inspectionUser: string;
+    invoiceNumber: string;
+    invoiceDate: string;
+    freightCharge: number;
+    customsDate?: string;
+    poNumber?: string;
+    airwayBillNumber?: string;
+    currency?: string;
+    forexRate?: number;
+    customsNumber?: string;
+  }) => void;
   onDeleteItem?: (itemId: number) => void;
   config: {
     supplier_list_local: string;
@@ -258,7 +272,6 @@ export function RRPDetailsModal({
     try {
       // Safely parse all numeric values with null checks
       const itemPrice = item?.item_price ? parseFloat(String(item.item_price)) : 0;
-      const quantity = item?.received_quantity ? parseFloat(String(item.received_quantity)) : 0;
       const vatPercentage = item?.vat_percentage ? parseFloat(String(item.vat_percentage)) : 0;
       const customsCharge = item?.customs_charge ? parseFloat(String(item.customs_charge)) : 0;
       const forexRate = item?.forex_rate ? parseFloat(String(item.forex_rate)) : 1;

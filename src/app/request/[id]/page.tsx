@@ -4,18 +4,14 @@ import { useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { API } from '@/lib/api';
 import { useCustomToast } from '@/components/ui/custom-toast';
-import { RequestItemForm } from '@/components/request/RequestItemForm';
 import { RequestCart } from '@/components/request/RequestCart';
 import { RequestPreviewModal } from '@/components/request/RequestPreviewModal';
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
-import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { format } from 'date-fns';
-import { cn } from '@/utils/utils';
 import { use } from 'react';
 import { useNotification } from '@/context/NotificationContext';
+import { cn } from '@/utils/utils';
 
 interface RequestCartItem {
   id: string;
@@ -61,20 +57,26 @@ export default function RequestDetailsPage({ params }: { params: Promise<{ id: s
         const response = await API.get(`/api/request/${resolvedParams.id}`);
         const data = response.data;
         // Transform the data to match RequestCartItem interface
-        const transformedItems = data.items.map((item: any) => ({
-          id: item.id.toString(),
-          nacCode: item.nacCode || 'N/A',
-          partNumber: item.partNumber,
-          itemName: item.itemName,
-          unit: item.unit,
-          requestQuantity: item.requestedQuantity,
-          currentBalance: item.currentBalance,
-          previousRate: item.previousRate,
-          equipmentNumber: item.equipmentNumber,
-          imageUrl: item.imageUrl,
-          specifications: item.specifications,
-          remarks: item.remarks
-        }));
+        const transformedItems = data.items.map((item: unknown) => {
+          if (typeof item === 'object' && item !== null && 'id' in item) {
+            const typedItem = item as Record<string, unknown>;
+            return {
+              id: String(typedItem.id),
+              nacCode: (typedItem.nacCode as string) || 'N/A',
+              partNumber: typedItem.partNumber as string,
+              itemName: typedItem.itemName as string,
+              unit: typedItem.unit as string,
+              requestQuantity: typedItem.requestedQuantity as number,
+              currentBalance: typedItem.currentBalance as number,
+              previousRate: typedItem.previousRate as number,
+              equipmentNumber: typedItem.equipmentNumber as string,
+              imageUrl: typedItem.imageUrl as string,
+              specifications: typedItem.specifications as string,
+              remarks: typedItem.remarks as string,
+            };
+          }
+          return null;
+        }).filter(Boolean) as RequestCartItem[];
         
         setRequestDetails({
           ...data,
@@ -96,7 +98,7 @@ export default function RequestDetailsPage({ params }: { params: Promise<{ id: s
     };
 
     fetchRequestDetails();
-  }, [resolvedParams.id]);
+  }, [resolvedParams.id, showErrorToast]);
 
   const handleUpdateCartItem = (itemId: string, updates: Partial<RequestCartItem>) => {
     setCart(prev => prev.map(item => 
@@ -204,7 +206,7 @@ export default function RequestDetailsPage({ params }: { params: Promise<{ id: s
       <div className="flex items-center justify-center min-h-[60vh]">
         <div className="text-center space-y-4">
           <div className="text-2xl font-bold text-[#003594]">Request Not Found</div>
-          <p className="text-gray-600">The request you're looking for doesn't exist or has been removed.</p>
+          <p className="text-gray-600">The request you&#39;re looking for doesn&#39;t exist or has been removed.</p>
           <Button 
             onClick={() => router.push('/dashboard')}
             className="bg-[#003594] hover:bg-[#003594]/90 text-white"
@@ -256,7 +258,6 @@ export default function RequestDetailsPage({ params }: { params: Promise<{ id: s
             items={cart}
             onUpdateItem={handleUpdateCartItem}
             onDeleteItem={handleDeleteCartItem}
-            onRemoveItem={handleDeleteCartItem}
             onSubmit={handlePreviewSubmit}
             isSubmitDisabled={!date || cart.length === 0}
             isSubmitting={isSubmitting}

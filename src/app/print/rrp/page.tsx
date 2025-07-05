@@ -29,7 +29,7 @@ interface RRPSearchResult {
   customsNumber: string | null;
   inspectionDetails: {
     inspection_user: string;
-    inspection_details: Record<string, any>;
+    inspection_details: Record<string, unknown>;
   };
   approvalStatus: string;
   createdBy: string;

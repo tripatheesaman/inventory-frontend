@@ -6,7 +6,7 @@ import { Download, ChevronLeft, ChevronRight } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import { API } from '@/lib/api';
 
-interface Issue {
+export interface Issue {
   issue_slip_number: string;
   issue_date: string;
   part_number: string;

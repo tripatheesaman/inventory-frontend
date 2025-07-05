@@ -1,7 +1,6 @@
 'use client'
 
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { format } from 'date-fns';
 import { cn } from '@/utils/utils';
 
 interface RRPSearchResult {
@@ -16,7 +15,7 @@ interface RRPSearchResult {
   airwayBillNumber: string | null;
   inspectionDetails: {
     inspection_user: string;
-    inspection_details: Record<string, any>;
+    inspection_details: Record<string, unknown>;
   };
   approvalStatus: string;
   createdBy: string;
